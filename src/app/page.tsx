@@ -115,7 +115,7 @@ export default async function DashboardPage({
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 leading-none mb-1.5">Total Database</p>
-                      <h3 className="text-2xl font-black tracking-tighter leading-none">{totalKontrak} Entri</h3>
+                      <h3 className="text-2xl font-semibold tracking-tighter leading-none">{totalKontrak} Entri</h3>
                       <span className="text-[9px] font-medium opacity-50 uppercase mt-1 block">Data Terverifikasi</span>
                     </div>
                   </CardContent>
