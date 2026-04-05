@@ -5,7 +5,8 @@ import {
   LayoutDashboard, 
   Users, 
   UserPlus, 
-  FileText 
+  FileText,
+  FileSpreadsheet // Import icon untuk Excel
 } from "lucide-react"
 import {
   Sidebar,
@@ -17,10 +18,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter, // Menggunakan SidebarFooter bawaan untuk posisi bawah
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import LogoutButton from "./logout-button"
+import { ExportExcelButton } from "./export-excel-button" // Import button export
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -50,7 +52,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="font-sans"> {/* Memastikan font Poppins aktif di sidebar */}
+    <Sidebar className="font-sans">
       <SidebarHeader className="p-4 border-b bg-white/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 font-black text-xl text-blue-700 tracking-tighter">
           <FileText className="w-6 h-6 text-blue-600" />
@@ -65,6 +67,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="px-2">
+              {/* Menu Navigasi Standar */}
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title} className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
@@ -75,12 +78,22 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Menu Khusus Export Excel */}
+              <SidebarMenuItem>
+                <div className="px-0 py-1">
+                   {/* Kita menggunakan komponen ExportExcelButton yang sudah dibuat. 
+                     Jika ingin tampilannya persis seperti menu sidebar, pastikan 
+                     di dalam ExportExcelButton menggunakan styling yang serupa.
+                   */}
+                  <ExportExcelButton variant="sidebar" />
+                </div>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer Sidebar untuk Logout dengan Konfirmasi */}
       <SidebarFooter className="p-4 border-t bg-slate-50/50">
         <LogoutButton />
       </SidebarFooter>

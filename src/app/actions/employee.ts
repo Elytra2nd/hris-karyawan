@@ -159,3 +159,21 @@ export async function deleteEmployee(id: string) {
     return { success: false, error: 'Gagal menghapus data karyawan' };
   }
 }
+
+export async function getAllEmployeesForExport() {
+  try {
+    const data = await prisma.employee.findMany({
+      include: {
+        contracts: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      },
+      orderBy: { namaLengkap: 'asc' }
+    });
+    return data;
+  } catch (error) {
+    console.error("Export Error:", error);
+    return [];
+  }
+}
