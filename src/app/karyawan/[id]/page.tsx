@@ -44,8 +44,12 @@ export default async function DetailKaryawanPage({ params }: { params: Promise<{
             </h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary">Edit Data</Button>
-            <Button>+ Tambah Kontrak</Button>
+            <Link href={`/karyawan/${id}/edit`}>
+              <Button variant="secondary">Edit Data</Button>
+            </Link>
+            <Link href={`/karyawan/${id}/kontrak`}>
+                <Button>+ Tambah Kontrak</Button>
+            </Link>
           </div>
         </div>
 
