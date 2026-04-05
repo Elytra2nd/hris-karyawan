@@ -1,0 +1,56 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// Tabel untuk Akses Login (Admin/Viewer)
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  role     String // "ADMIN" atau "VIEWER"
+}
+
+// Tabel Master Data Karyawan (Sesuai Kolom Excel)
+model Employee {
+  id          String  @id @default(cuid())
+  ba          String
+  baCabang    String
+  region      String
+  cabang      String
+  namaLengkap String
+  status      String  @default("AKTIF") // "AKTIF" atau "OUT"
+  nik         String? // Boleh kosong (HO yang isi)
+  noJamsostek String?
+  noKtp       String
+  tglLahir    String
+  namaIbu     String
+  noHp        String
+  formConsent String // "ADA" atau "TIDAK ADA"
+
+  // Relasi ke Riwayat Kontrak
+  contracts Contract[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabel Riwayat Kontrak Karyawan
+model Contract {
+  id             String   @id @default(cuid())
+  employeeId     String
+  posisi         String // "SALESMAN", "ADMIN", dll
+  traineeSejak   DateTime @db.Date
+  traineeSelesai DateTime @db.Date
+
+  // Jika karyawan dihapus, riwayat kontraknya ikut terhapus
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
