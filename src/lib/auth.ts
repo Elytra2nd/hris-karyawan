@@ -1,14 +1,37 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+
+// Memperluas tipe session NextAuth agar mengenali properti 'role' dan 'username'
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+      username: string;
+    } & DefaultSession["user"]
+  }
+
+  interface User {
+    role: string;
+    username: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role: string;
+    username: string;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        username: { label: 'Username', type: 'text', placeholder: 'admin' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
@@ -30,7 +53,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           username: user.username,
-          role: user.role, // "ADMIN" atau "VIEWER"
+          role: user.role,
         };
       },
     }),
@@ -38,6 +61,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.role = user.role;
         token.username = user.username;
       }
@@ -45,12 +69,19 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
-        session.user.username = token.username as string;
+        session.user.id = token.id as string;
+        session.user.role = token.role;
+        session.user.username = token.username;
       }
       return session;
     },
   },
-  session: { strategy: 'jwt' },
-  pages: { signIn: '/login' },
+  session: { 
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 Hari
+  },
+  pages: { 
+    signIn: '/login' 
+  },
+  secret: process.env.NEXTAUTH_SECRET, // Pastikan ini ada di .env
 };

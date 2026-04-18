@@ -1,56 +1,72 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-  engineType   = "library"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "mysql"
 }
 
-// Tabel untuk Akses Login (Admin/Viewer)
-model User {
-  id       String @id @default(cuid())
-  username String @unique
-  password String
-  role     String // "ADMIN" atau "VIEWER"
+model Contract {
+  id             String   @id @default(cuid())
+  employeeId     String
+  posisi         String
+  traineeSejak   DateTime @db.Date
+  traineeSelesai DateTime @db.Date
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  contractPath   String?
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Contract_employeeId_fkey")
+
+  @@index([employeeId], map: "Contract_employeeId_fkey")
+  @@map("contract") // Tetap menggunakan nama tabel kecil di MySQL
 }
 
-// Tabel Master Data Karyawan (Sesuai Kolom Excel)
 model Employee {
-  id          String  @id @default(cuid())
+  id          String     @id @default(cuid())
   ba          String
   baCabang    String
   region      String
   cabang      String
   namaLengkap String
-  status      String  @default("AKTIF") // "AKTIF" atau "OUT"
-  nik         String? // Boleh kosong (HO yang isi)
+  status      String     @default("AKTIF")
+  nik         String?
   noJamsostek String?
   noKtp       String
   tglLahir    String
   namaIbu     String
   noHp        String
-  formConsent String  // "ADA" atau "TIDAK ADA"
-
-  // Relasi ke Riwayat Kontrak
+  formConsent String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  image       String?
+  kkPath      String?
+  ktpPath     String?
   contracts   Contract[]
   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  @@map("employee")
 }
 
-// Tabel Riwayat Kontrak Karyawan
-model Contract {
-  id             String   @id @default(cuid())
-  employeeId     String
-  posisi         String   // "SALESMAN", "ADMIN", dll
-  traineeSejak   DateTime @db.Date
-  traineeSelesai DateTime @db.Date
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique(map: "User_username_key")
+  password  String
+  role      String   // "ADMIN" atau "VIEWER"
+  createdAt DateTime @default(now()) // Tambahan untuk memperbaiki Error "Unknown argument createdAt"
   
-  // Jika karyawan dihapus, riwayat kontraknya ikut terhapus
-  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@map("user")
+}
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+// --- MODEL UNTUK AUDIT TRAIL ---
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   // ID User yang melakukan aksi
+  userName  String   // Nama User untuk tracking cepat
+  action    String   // CREATE, UPDATE, DELETE
+  entity    String   // Employee, Contract, dll
+  entityId  String   // ID data yang dimodifikasi
+  details   String   @db.Text // Detail perubahan dalam format JSON string
+  createdAt DateTime @default(now())
+
+  @@map("auditlog")
 }

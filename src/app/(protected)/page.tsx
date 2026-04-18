@@ -11,13 +11,13 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { DashboardShell } from '@/components/dashboard-shell';
+import { StatCards } from '@/components/stat-cards';
 import { EmployeeChart } from '@/components/employee-chart';
 import { ContractStatusChart } from '@/components/contract-status-chart';
 import { RegionChart } from '@/components/region-chart'; 
 import { RiskAlert } from '@/components/risk-alert';     
 import { Card, CardContent } from '@/components/ui/card';
 import { TableProperties, BarChart3, Users } from 'lucide-react';
-import { StatCards } from '@/components/stat-cards';
 
 // Menambahkan interface untuk searchParams agar Next.js mengenali query di URL
 export default async function DashboardPage({

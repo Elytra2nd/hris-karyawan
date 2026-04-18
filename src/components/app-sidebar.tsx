@@ -6,7 +6,9 @@ import {
   Users, 
   UserPlus, 
   FileText,
-  FileSpreadsheet // Import icon untuk Excel
+  History,
+  ShieldCheck,
+  UserCog // Icon untuk Management User
 } from "lucide-react"
 import {
   Sidebar,
@@ -19,16 +21,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarAdminOnly,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import LogoutButton from "./logout-button"
-import { ExportExcelButton } from "./export-excel-button" // Import button export
-
-const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Data Karyawan", url: "/", icon: Users },
-  { title: "Tambah Karyawan", url: "/karyawan/tambah", icon: UserPlus },
-]
+import { ExportExcelButton } from "./export-excel-button"
 
 export function AppSidebar() {
   const [mounted, setMounted] = useState(false);
@@ -37,6 +34,7 @@ export function AppSidebar() {
     setMounted(true);
   }, []);
 
+  // Skeleton / Loading State
   if (!mounted) {
     return (
       <Sidebar>
@@ -61,37 +59,81 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent className="bg-white/30">
+        {/* GROUP 1: MENU GENERAL (Semua Role) */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
             Menu Utama
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="px-2">
-              {/* Menu Navigasi Standar */}
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title} className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                    <Link href={item.url} className="flex items-center gap-3 py-2">
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Dashboard" className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                  <Link href="/" className="flex items-center gap-3 py-2">
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span className="font-medium">Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-              {/* Menu Khusus Export Excel */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Data Karyawan" className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                  <Link href="/karyawan" className="flex items-center gap-3 py-2">
+                    <Users className="w-5 h-5" />
+                    <span className="font-medium">Data Karyawan</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <SidebarMenuItem>
                 <div className="px-0 py-1">
-                   {/* Kita menggunakan komponen ExportExcelButton yang sudah dibuat. 
-                     Jika ingin tampilannya persis seperti menu sidebar, pastikan 
-                     di dalam ExportExcelButton menggunakan styling yang serupa.
-                   */}
                   <ExportExcelButton variant="sidebar" />
                 </div>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* GROUP 2: MENU ADMINISTRATOR (Hanya Admin) */}
+        <SidebarAdminOnly>
+          <SidebarGroup className="mt-2">
+            <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-amber-600 flex items-center gap-2">
+              <ShieldCheck className="w-3 h-3" /> Administrator Area
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="px-2">
+                {/* Menu Tambah Karyawan */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Tambah Karyawan" className="hover:bg-amber-50 hover:text-amber-700 transition-colors">
+                    <Link href="/karyawan/tambah" className="flex items-center gap-3 py-2">
+                      <UserPlus className="w-5 h-5" />
+                      <span className="font-medium">Tambah Karyawan</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Menu Management User - BARU */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Manage Users" className="hover:bg-amber-50 hover:text-amber-700 transition-colors">
+                    <Link href="/admin/users" className="flex items-center gap-3 py-2">
+                      <UserCog className="w-5 h-5" />
+                      <span className="font-medium">Management User</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Menu Log Aktivitas */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Log Aktivitas" className="hover:bg-slate-100 hover:text-slate-900 transition-colors">
+                    <Link href="/admin/audit-log" className="flex items-center gap-3 py-2">
+                      <History className="w-5 h-5" />
+                      <span className="font-medium">Log Aktivitas</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarAdminOnly>
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t bg-slate-50/50">
