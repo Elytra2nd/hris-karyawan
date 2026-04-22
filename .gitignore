@@ -41,3 +41,15 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Data files (sensitive — jangan di-commit)
+*.xlsx
+*.xlsm
+*.csv
+*.xls
+Logo_of_PT_Astra_International_Tbk_terbaru_2025.png
+
+# Seed data (local only)
+prisma/seed-data.json
+prisma/seed-history.json
+prisma/seed-real.ts
