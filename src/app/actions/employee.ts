@@ -226,7 +226,7 @@ export async function getAllEmployeesForExport() {
     const data = await prisma.employee.findMany({
       include: {
         contracts: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { traineeSelesai: 'desc' },
           take: 1
         }
       },
@@ -263,7 +263,7 @@ export async function getEmployees({
       },
       include: {
         contracts: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { traineeSelesai: 'desc' },
           take: 1
         }
       },

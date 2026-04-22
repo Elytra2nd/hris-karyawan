@@ -60,7 +60,7 @@ export const ContractPDF = ({ employee, contract }: { employee: any, contract: a
 
       <View style={styles.section}>
         <Text style={styles.bodyText}>
-          Bahwa pihak kedua bersedia menjalankan masa Trainee terhitung sejak tanggal {format(new Date(contract.traineeSejak), 'dd MMMM yyyy', { locale: id })} sampai dengan {format(new Date(contract.traineeSelesai), 'dd MMMM yyyy', { locale: id })} sesuai dengan aturan yang berlaku di PT. Multi Makmur.
+          Bahwa pihak kedua bersedia menjalankan masa Trainee terhitung sejak tanggal {format(new Date(contract.traineeSejak), 'dd MMMM yyyy', { locale: id })} sampai dengan {format(new Date(contract.traineeSelesai), 'dd MMMM yyyy', { locale: id })} sesuai dengan aturan yang berlaku di Astra Motor Kalimantan Barat.
         </Text>
       </View>
 
@@ -68,7 +68,7 @@ export const ContractPDF = ({ employee, contract }: { employee: any, contract: a
       <View style={styles.signatureArea}>
         <View style={styles.sigBox}>
           <Text>Pihak Pertama,</Text>
-          <Text style={{ fontSize: 9, marginTop: 2 }}>(PT. Multi Makmur)</Text>
+          <Text style={{ fontSize: 9, marginTop: 2 }}>(Astra Motor Kalimantan Barat)</Text>
           <Text style={styles.sigName}>Pimpinan Cabang</Text>
         </View>
         <View style={styles.sigBox}>

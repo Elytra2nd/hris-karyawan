@@ -1,25 +1,20 @@
-import { Poppins } from 'next/font/google';
 import './globals.css';
-import LayoutWrapper from '@/components/layout-wrapper';
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-poppins',
-});
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata = {
-  title: 'HRIS PT. Multi Makmur',
+  title: 'HRIS Astra Motor Kalimantan Barat',
   description: 'Sistem Informasi Manajemen Karyawan',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className={`${poppins.variable} font-sans antialiased text-slate-900`}>
-        <LayoutWrapper>
-          {children}
-        </LayoutWrapper>
+      <head>
+        <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800,900&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans antialiased text-slate-900" style={{ fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif" }}>
+        {children}
+        <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
   );

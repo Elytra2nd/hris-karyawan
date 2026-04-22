@@ -3,22 +3,15 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, LockKeyhole, FileText, Building2 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Loader2, Lock, User, Shield, ArrowRight, AlertCircle } from 'lucide-react';
+
+const F = "'Satoshi', 'Inter', system-ui, sans-serif";
 
 export default function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,123 +22,189 @@ export default function LoginForm() {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
 
-    const res = await signIn('credentials', {
-      redirect: false,
-      username,
-      password,
-    });
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        username,
+        password,
+      });
 
-    if (res?.error) {
-      setError('Username atau password salah!');
+      if (res?.error) {
+        setError('Username atau password salah.');
+        setLoading(false);
+      } else if (res?.ok) {
+        // Force full page navigation with cookie refresh
+        window.location.replace('/');
+      }
+    } catch {
+      setError('Terjadi kesalahan. Coba lagi.');
       setLoading(false);
-    } else {
-      router.push('/');
-      router.refresh();
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4 font-sans">
-      
-      {/* Container Utama: Lebih Ramping */}
-      <div className="w-full max-w-100 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        
-        {/* Header Branding: Ukuran Ikon & Teks Diperkecil */}
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="bg-blue-600 p-3 rounded-2xl shadow-blue-200 shadow-xl inline-block">
-            <FileText className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter text-slate-900">
-              HRIS KARYAWAN
-            </h1>
-            <div className="flex items-center gap-1.5 justify-center text-slate-500 font-semibold text-xs mt-0.5">
-              <Building2 className="w-3.5 h-3.5 text-blue-400" />
-              <span>PT. Multi Makmur - Cabang Kalbar</span>
-            </div>
-          </div>
+    <div style={{ width: '100%', maxWidth: 420, fontFamily: F }}>
+
+      {/* BRANDING */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 16,
+        }}>
+          <img src="/astra-logo.png" alt="Astra" style={{ height: 48, objectFit: 'contain' }} />
         </div>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1E293B', margin: 0, letterSpacing: '-0.02em' }}>
+          HRIS Karyawan
+        </h1>
+        <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 4, fontWeight: 500 }}>
+          Astra Motor Kalimantan Barat
+        </p>
+      </div>
 
-        <Card className="shadow-xl border-none font-sans bg-white/95 backdrop-blur-md overflow-hidden rounded-2xl">
-          {/* Garis Aksen Lebih Tipis */}
-          <div className="h-1.5 w-full bg-linear-to-r from-blue-400 via-blue-600 to-blue-800" />
-          
-          <CardHeader className="space-y-1.5 text-center pt-8 pb-6">
-            <CardTitle className="text-xl font-black tracking-tight text-slate-900 uppercase">
-              Autentikasi
-            </CardTitle>
-            <CardDescription className="text-xs font-medium px-6 leading-relaxed">
-              Masukkan kredensial Anda untuk mengakses database kontrak.
-            </CardDescription>
-          </CardHeader>
+      {/* CARD */}
+      <div style={{
+        background: '#fff', borderRadius: 16, overflow: 'hidden',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        border: '1px solid #E2E8F0',
+      }}>
+        {/* Accent line */}
+        <div style={{ height: 3, background: 'linear-gradient(90deg, #1E293B 0%, #3B82F6 50%, #1E293B 100%)' }} />
 
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-[10px] font-bold uppercase tracking-widest text-slate-600 ml-0.5">
-                  Username ID
-                </Label>
-                <Input
-                  id="username"
+        <div style={{ padding: '32px 28px' }}>
+          {/* Title */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1E293B', margin: 0 }}>
+              Masuk ke Sistem
+            </h2>
+            <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 4 }}>
+              Masukkan kredensial untuk mengakses database
+            </p>
+          </div>
+
+          {/* FORM */}
+          <form onSubmit={handleSubmit}>
+            {/* Username */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 6, letterSpacing: '0.02em' }}>
+                Username
+              </label>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '0 14px', height: 46, borderRadius: 10,
+                border: `1.5px solid ${focused === 'user' ? '#3B82F6' : '#E2E8F0'}`,
+                background: focused === 'user' ? '#fff' : '#F8FAFC',
+                transition: 'all 0.15s',
+                boxShadow: focused === 'user' ? '0 0 0 3px rgba(59,130,246,0.1)' : 'none',
+              }}>
+                <User size={16} color={focused === 'user' ? '#3B82F6' : '#94A3B8'} style={{ transition: 'color 0.15s' }} />
+                <input
                   name="username"
                   type="text"
-                  placeholder="Username"
+                  placeholder="Masukkan username"
                   required
                   disabled={loading}
-                  className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-slate-400 rounded-lg"
+                  autoComplete="username"
+                  onFocus={() => setFocused('user')}
+                  onBlur={() => setFocused(null)}
+                  style={{
+                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                    fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: F,
+                  }}
                 />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-[10px] font-bold uppercase tracking-widest text-slate-600 ml-0.5">
-                  Password
-                </Label>
-                <Input
-                  id="password"
+            {/* Password */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 6, letterSpacing: '0.02em' }}>
+                Password
+              </label>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '0 14px', height: 46, borderRadius: 10,
+                border: `1.5px solid ${focused === 'pass' ? '#3B82F6' : '#E2E8F0'}`,
+                background: focused === 'pass' ? '#fff' : '#F8FAFC',
+                transition: 'all 0.15s',
+                boxShadow: focused === 'pass' ? '0 0 0 3px rgba(59,130,246,0.1)' : 'none',
+              }}>
+                <Lock size={16} color={focused === 'pass' ? '#3B82F6' : '#94A3B8'} style={{ transition: 'color 0.15s' }} />
+                <input
                   name="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Masukkan password"
                   required
                   disabled={loading}
-                  className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-slate-400 rounded-lg"
+                  autoComplete="current-password"
+                  onFocus={() => setFocused('pass')}
+                  onBlur={() => setFocused(null)}
+                  style={{
+                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                    fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: F,
+                  }}
                 />
               </div>
-              
-              {error && (
-                <div className="p-3 rounded-lg bg-red-50 text-[11px] font-bold text-red-600 border border-red-100 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                  {error}
-                </div>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold h-12 text-sm transition-all shadow-md shadow-blue-200 rounded-xl active:scale-[0.98]" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Verifikasi...
-                  </span>
-                ) : (
-                  'Masuk ke Sistem'
-                )}
-              </Button>
-            </form>
-            
-            <div className="mt-8 text-center">
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em]">
-                HRIS Internal Security • v2.1
-              </p>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Footer Luar: Font Diperkecil */}
-        <div className="flex justify-between items-center px-2 text-[10px] text-slate-400 font-semibold font-sans uppercase tracking-tight">
-          <span>&copy; 2026 PT. Multi Makmur</span>
-          <span>Access Verified</span>
+            {/* Error */}
+            {error && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 14px', borderRadius: 10, marginBottom: 18,
+                background: '#FEF2F2', border: '1px solid #FECACA',
+                fontSize: 13, fontWeight: 500, color: '#DC2626',
+              }}>
+                <AlertCircle size={14} />
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%', height: 48, borderRadius: 10, border: 'none',
+                background: loading ? '#94A3B8' : '#1E293B',
+                color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
+                fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(30,41,59,0.15)',
+              }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#334155'; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#1E293B'; }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  Memverifikasi...
+                </>
+              ) : (
+                <>
+                  Masuk
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Security note */}
+          <div style={{
+            marginTop: 24, padding: '12px 0', borderTop: '1px solid #F1F5F9',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            fontSize: 11, color: '#CBD5E1', fontWeight: 500,
+          }}>
+            <Lock size={10} />
+            Koneksi terenkripsi · Sesi aman
+          </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '16px 4px 0', fontSize: 11, color: '#CBD5E1', fontWeight: 500,
+      }}>
+        <span>&copy; 2026 Astra Motor Kalimantan Barat</span>
+        <span>HRIS v2.1</span>
       </div>
     </div>
   );

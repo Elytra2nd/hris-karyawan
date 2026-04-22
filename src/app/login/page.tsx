@@ -2,7 +2,11 @@ import LoginForm from '@/components/login-form';
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+    <main style={{
+      display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center',
+      background: '#FAFBFC', padding: 16,
+      fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
+    }}>
       <LoginForm />
     </main>
   );

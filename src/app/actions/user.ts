@@ -43,7 +43,7 @@ export async function deleteUser(id: string) {
   if (session.role !== 'ADMIN') throw new Error("Unauthorized");
 
   // Cegah admin menghapus dirinya sendiri
-  if (session.userId === id) {
+  if (session.id === id) {
     return { success: false, error: "Tidak bisa menghapus akun sendiri." };
   }
 

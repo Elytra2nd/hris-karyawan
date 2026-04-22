@@ -83,5 +83,6 @@ export const authOptions: NextAuthOptions = {
   pages: { 
     signIn: '/login' 
   },
-  secret: process.env.NEXTAUTH_SECRET, // Pastikan ini ada di .env
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: false,
 };

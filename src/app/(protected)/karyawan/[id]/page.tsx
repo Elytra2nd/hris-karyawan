@@ -2,165 +2,183 @@ import { verifySession } from '@/lib/dal';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { differenceInMonths, differenceInDays } from 'date-fns';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Clock, ChevronLeft, UserCircle2, MapPin, Contact2, Pencil, PlusCircle } from 'lucide-react';
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-
-// Import Komponen List Karyawan (Client Component)
+import { differenceInMonths, differenceInDays, format } from 'date-fns';
+import { ChevronLeft, User, MapPin, Phone, CreditCard, Clock, CalendarDays, Pencil, PlusCircle, Building2, FileCheck, Shield, CheckCircle2, XCircle } from 'lucide-react';
 import { ContractList } from '@/components/contract-list';
 
+const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+
 export default async function DetailKaryawanPage({ params }: { params: Promise<{ id: string }> }) {
-  // Ambil session untuk mengecek role
   const session = await verifySession();
   const { id } = await params;
-
-  // Cek apakah user adalah Admin
   const isAdmin = session?.role === 'ADMIN';
 
   const employee = await prisma.employee.findUnique({
     where: { id },
-    include: {
-      contracts: { orderBy: { traineeSejak: 'desc' } },
-    },
+    include: { contracts: { orderBy: { traineeSelesai: 'desc' } } },
   });
-
   if (!employee) notFound();
 
-  // --- LOGIKA KALKULASI ---
-  const totalMonths = employee.contracts.reduce((acc, curr) => {
-    const start = new Date(curr.traineeSejak);
-    const end = new Date(curr.traineeSelesai);
-    return acc + differenceInMonths(end, start);
-  }, 0);
-
+  const totalMonths = employee.contracts.reduce((acc, c) => acc + differenceInMonths(new Date(c.traineeSelesai), new Date(c.traineeSejak)), 0);
   const years = Math.floor(totalMonths / 12);
   const months = totalMonths % 12;
-  const akumulasiTeks = `${years > 0 ? `${years} Tahun ` : ""}${months} Bulan`;
-
   const latestContract = employee.contracts[0];
-  const daysToExpiry = latestContract 
-    ? differenceInDays(new Date(latestContract.traineeSelesai), new Date()) 
-    : 0;
+  const daysToExpiry = latestContract ? differenceInDays(new Date(latestContract.traineeSelesai), new Date()) : 0;
 
   return (
-    <>
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 sticky top-0 z-10 font-sans">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbPage>Profil Karyawan</BreadcrumbPage></BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </header>
-
-      <main className="flex-1 bg-slate-50 p-6 md:p-8 space-y-6 font-sans">
-        <div className="max-w-5xl mx-auto space-y-6">
-          
-          {/* TOP BAR: Navigasi & Aksi */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <Link href="/karyawan">
-              <Button variant="ghost" size="sm" className="gap-2 font-bold text-slate-500 hover:text-slate-900">
-                <ChevronLeft className="h-4 w-4" /> Kembali ke Database
-              </Button>
+    <div style={{ fontFamily: F }}>
+      {/* NAV + ACTIONS */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <Link href="/karyawan" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: '#64748B', textDecoration: 'none' }}>
+          <ChevronLeft size={18} /> Kembali ke Data Karyawan
+        </Link>
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link href={`/karyawan/${id}/edit`} style={{ textDecoration: 'none' }}>
+              <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#475569', background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
+                <Pencil size={14} /> Edit Profil
+              </button>
             </Link>
-
-            {/* ACTION BUTTONS: Hanya muncul jika Role = ADMIN */}
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Link href={`/karyawan/${id}/edit`}>
-                  <Button variant="outline" className="gap-2 border-slate-200 font-bold uppercase text-[11px] tracking-wider shadow-none">
-                    <Pencil className="w-3.5 h-3.5" /> Edit Profil
-                  </Button>
-                </Link>
-                <Link href={`/karyawan/${id}/kontrak`}>
-                  <Button className="gap-2 bg-blue-700 hover:bg-blue-800 font-bold uppercase text-[11px] tracking-wider shadow-lg shadow-blue-100">
-                    <PlusCircle className="w-3.5 h-3.5" /> Perbarui Kontrak
-                  </Button>
-                </Link>
-              </div>
-            )}
+            <Link href={`/karyawan/${id}/kontrak`} style={{ textDecoration: 'none' }}>
+              <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#1E293B', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
+                <PlusCircle size={14} /> Perbarui Kontrak
+              </button>
+            </Link>
           </div>
+        )}
+      </div>
 
-          {/* PROFIL CARD (Identitas Utama) */}
-          <Card className="border-none shadow-sm overflow-hidden bg-white">
-            <CardContent className="p-0">
-              <div className="flex flex-col md:flex-row items-center gap-6 p-6">
-                <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-slate-100 border-4 border-slate-50 shadow-inner shrink-0">
-                  {employee.image ? (
-                    <img src={employee.image} alt={employee.namaLengkap} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                      <UserCircle2 className="w-20 h-20" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 text-center md:text-left space-y-2">
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                    <h1 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">{employee.namaLengkap}</h1>
-                    <Badge className={employee.status === 'AKTIF' ? 'bg-emerald-500 shadow-none' : 'bg-red-500 shadow-none'}>
-                      {employee.status}
-                    </Badge>
-                    {/* Badge Role Indicator */}
-                    {!isAdmin && (
-                      <Badge variant="outline" className="text-slate-400 border-slate-200">
-                        Mode Viewer
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-slate-500 font-medium">
-                    <div className="flex items-center gap-1.5 uppercase tracking-tighter">
-                      <Contact2 className="w-4 h-4 text-slate-400" /> NIK: {employee.nik || 'Belum Terdaftar'}
-                    </div>
-                    <div className="flex items-center gap-1.5 uppercase tracking-tighter">
-                      <MapPin className="w-4 h-4 text-slate-400" /> {employee.cabang} ({employee.ba})
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 border-t bg-slate-50/50">
-                <div className="p-4 flex items-center gap-4 border-b md:border-b-0 md:border-r border-slate-100">
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><Clock className="h-5 w-5" /></div>
-                  <div>
-                    <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest leading-none mb-1">Masa Kerja Akumulasi</p>
-                    <p className="text-lg font-black text-blue-900 leading-none">{akumulasiTeks}</p>
-                  </div>
-                </div>
-                <div className={`p-4 flex items-center gap-4 ${daysToExpiry <= 30 ? "bg-red-50/50" : "bg-emerald-50/50"}`}>
-                  <div className={`p-2 rounded-lg ${daysToExpiry <= 30 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}><CalendarDays className="h-5 w-5" /></div>
-                  <div>
-                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${daysToExpiry <= 30 ? "text-red-600" : "text-emerald-600"}`}>Sisa Kontrak Terakhir</p>
-                    <p className={`text-lg font-black leading-none ${daysToExpiry <= 30 ? "text-red-900" : "text-emerald-900"}`}>{daysToExpiry > 0 ? `${daysToExpiry} Hari` : "Habis"}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* RIWAYAT KONTRAK */}
-          <ContractList 
-            employee={employee} 
-            contracts={employee.contracts} 
-          />
-          
+      {/* PROFILE CARD */}
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 20 }}>
+        <div style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ width: 80, height: 80, borderRadius: 16, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+            {employee.image ? <img src={employee.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={36} color="#94A3B8" />}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', margin: 0 }}>{employee.namaLengkap}</h1>
+              <StatusBadge status={employee.status} days={daysToExpiry} />
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: '#64748B' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CreditCard size={14} color="#94A3B8" /> NIK: {employee.nik || '-'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} color="#94A3B8" /> {employee.cabang}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Phone size={14} color="#94A3B8" /> {employee.noHp || '-'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Building2 size={14} color="#94A3B8" /> {latestContract?.posisi || '-'}</span>
+            </div>
+          </div>
         </div>
-      </main>
-    </>
+
+        {/* MASA KERJA + SISA KONTRAK */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid #F1F5F9' }}>
+          <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12, borderRight: '1px solid #F1F5F9' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={18} color="#3B82F6" />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Masa Kerja Akumulasi</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1E293B' }}>{years > 0 ? `${years} Tahun ` : ''}{months} Bulan</div>
+            </div>
+          </div>
+          <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12, background: daysToExpiry <= 30 ? '#FEF2F2' : '#F0FDF4' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: daysToExpiry <= 30 ? '#FEE2E2' : '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CalendarDays size={18} color={daysToExpiry <= 30 ? '#DC2626' : '#059669'} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: daysToExpiry <= 30 ? '#DC2626' : '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sisa Kontrak</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1E293B' }}>{daysToExpiry > 0 ? `${daysToExpiry} Hari` : 'Habis'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== ALL DATA — 3 SECTIONS ===== */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+        {/* IDENTITAS PRIBADI */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20 }}>
+          <SectionTitle icon={<User size={14} color="#3B82F6" />} title="Identitas Pribadi" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+            <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
+            <InfoItem label="NIK Karyawan" value={employee.nik || '-'} />
+            <InfoItem label="No KTP" value={employee.noKtp} mono />
+            <InfoItem label="Tanggal Lahir" value={employee.tglLahir ? format(new Date(employee.tglLahir), 'dd MMMM yyyy') : '-'} />
+            <InfoItem label="Nama Ibu Kandung" value={employee.namaIbu} />
+            <InfoItem label="No HP / WhatsApp" value={employee.noHp || '-'} />
+            <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
+            <InfoItem label="Status" value={employee.status} />
+          </div>
+        </div>
+
+        {/* DATA OPERASIONAL */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20 }}>
+          <SectionTitle icon={<Building2 size={14} color="#10B981" />} title="Data Operasional" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+            <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
+            <InfoItem label="BA Cabang" value={employee.baCabang} />
+            <InfoItem label="Region" value={employee.region} />
+            <InfoItem label="Cabang" value={employee.cabang} />
+            <InfoItem label="Form Consent" value={employee.formConsent} />
+            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '-'} />
+          </div>
+        </div>
+      </div>
+
+      {/* DOKUMEN & META */}
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20, marginBottom: 20 }}>
+        <SectionTitle icon={<FileCheck size={14} color="#F97316" />} title="Dokumen & Metadata" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px 20px' }}>
+          <DocStatus label="Foto Karyawan" available={!!employee.image} />
+          <DocStatus label="Scan KTP" available={!!employee.ktpPath} />
+          <DocStatus label="Scan KK" available={!!employee.kkPath} />
+          <InfoItem label="Form Consent" value={employee.formConsent} />
+          <InfoItem label="Data ID" value={employee.id.substring(0, 12) + '...'} mono />
+          <InfoItem label="Dibuat" value={format(new Date(employee.createdAt), 'dd MMM yyyy, HH:mm')} />
+          <InfoItem label="Diperbarui" value={format(new Date(employee.updatedAt), 'dd MMM yyyy, HH:mm')} />
+          <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
+        </div>
+      </div>
+
+      {/* RIWAYAT KONTRAK */}
+      <ContractList employee={employee} contracts={employee.contracts} />
+    </div>
+  );
+}
+
+/* ============ SUB-COMPONENTS ============ */
+
+function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+      <div style={{ width: 26, height: 26, borderRadius: 6, background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0 }}>{title}</h3>
+    </div>
+  );
+}
+
+function InfoItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: mono ? 'monospace' : 'inherit' }}>{value}</div>
+    </div>
+  );
+}
+
+function StatusBadge({ status, days }: { status: string; days: number }) {
+  let bg = '#ECFDF5', color = '#059669', border = '#A7F3D0', text = 'Aktif';
+  if (status !== 'AKTIF') { bg = '#FEF2F2'; color = '#DC2626'; border = '#FECACA'; text = 'Non-Aktif'; }
+  else if (days < 0) { bg = '#FEF2F2'; color = '#DC2626'; border = '#FECACA'; text = 'Expired'; }
+  else if (days <= 30) { bg = '#FFF7ED'; color = '#EA580C'; border = '#FED7AA'; text = 'Segera Habis'; }
+  return <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: bg, color, border: `1px solid ${border}` }}>{text}</span>;
+}
+
+function DocStatus({ label, available }: { label: string; available: boolean }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: available ? '#059669' : '#DC2626' }}>
+        {available ? <CheckCircle2 size={14} color="#059669" /> : <XCircle size={14} color="#DC2626" />}
+        {available ? 'Tersedia' : 'Belum ada'}
+      </div>
+    </div>
   );
 }

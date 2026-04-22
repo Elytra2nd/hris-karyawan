@@ -1,17 +1,19 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"; // Tambahkan SidebarInset
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function LayoutWrapper({ 
   children, 
-  role 
+  role,
+  username,
 }: { 
   children: React.ReactNode; 
-  role?: string 
+  role?: string;
+  username?: string;
 }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
@@ -23,13 +25,18 @@ export default function LayoutWrapper({
           {children}
         </main>
       ) : (
-        <SidebarProvider role={role}>
+        <SidebarProvider role={role} username={username}>
           <AppSidebar />
-          {/* Gunakan SidebarInset jika kamu pakai Shadcn Sidebar terbaru. 
-            Jika tidak, gunakan wrapper div dengan margin left yang responsif.
-          */}
-          <SidebarInset className="flex flex-col min-h-screen bg-slate-50 overflow-x-hidden">
-            <main className="flex-1 p-4 md:p-8 w-full max-w-[1600px] mx-auto">
+          <SidebarInset style={{ 
+            display: 'flex', flexDirection: 'column', 
+            minHeight: '100vh', backgroundColor: '#FAFBFC',
+            overflowX: 'hidden',
+          }}>
+            <main style={{ 
+              flex: 1, padding: '24px 32px', 
+              width: '100%', maxWidth: 1400, margin: '0 auto',
+              fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
+            }}>
               {children}
             </main>
           </SidebarInset>

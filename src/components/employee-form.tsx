@@ -2,23 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { addMonths, format } from 'date-fns';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Info } from 'lucide-react';
+
+const F = "'Satoshi', 'Inter', system-ui, sans-serif";
 
 export function EmployeeForm({ action }: { action: (formData: FormData) => void }) {
   const [posisi, setPosisi] = useState<string>('');
   const [tglMulai, setTglMulai] = useState<string>('');
   const [tglSelesai, setTglSelesai] = useState<string>('');
 
-  // Logika Otomatisasi Tanggal Selesai
   useEffect(() => {
     if (posisi && tglMulai) {
       const startDate = new Date(tglMulai);
@@ -29,139 +21,113 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
   }, [posisi, tglMulai]);
 
   return (
-    <form action={action} className="space-y-8">
-      {/* Bagian 1: Data Operasional */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-slate-700 border-b pb-2">A. Data Operasional</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="ba">BA</Label>
-            <Input id="ba" name="ba" placeholder="Contoh: BA-01" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="baCabang">BA Cabang</Label>
-            <Input id="baCabang" name="baCabang" placeholder="Contoh: BAC-01" required />
-          </div>
-          <div className="space-y-2">
-            <Label>Region</Label>
-            <Select name="region" required>
-              <SelectTrigger><SelectValue placeholder="Pilih Region" /></SelectTrigger>
-              <SelectContent>
-                {["KALIMANTAN", "SUMATERA", "JAWA", "SULAWESI", "PAPUA"].map(r => (
-                  <SelectItem key={r} value={r}>{r}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Cabang</Label>
-            <Select name="cabang" required>
-              <SelectTrigger><SelectValue placeholder="Pilih Cabang" /></SelectTrigger>
-              <SelectContent>
-                {["PONTIANAK", "SINGKAWANG", "KETAPANG", "SINTANG", "SAMPIT", "BANJARMASIN"].map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <form action={action} style={{ fontFamily: F }}>
+      {/* A. DATA OPERASIONAL */}
+      <SectionHeader letter="A" title="Data Operasional" color="#3B82F6" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+        <Field label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required />
+        <Field label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required />
+        <SelectField label="Region" name="region" required options={["PONTIANAK", "KALIMANTAN", "SUMATERA", "JAWA", "SULAWESI", "PAPUA"]} />
+        <SelectField label="Cabang" name="cabang" required options={["SAMBAS", "PONTIANAK", "SINGKAWANG", "KETAPANG", "SINTANG", "SAMPIT", "BANJARMASIN"]} />
+      </div>
+
+      {/* B. IDENTITAS KARYAWAN */}
+      <SectionHeader letter="B" title="Identitas Karyawan" color="#10B981" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+        <Field label="Nama Lengkap (sesuai KTP)" name="namaLengkap" placeholder="Nama lengkap" required />
+        <Field label="NIK Karyawan" name="nik" placeholder="Diisi oleh HO" />
+        <Field label="No KTP" name="noKtp" placeholder="16 digit" required />
+        <Field label="Tanggal Lahir" name="tglLahir" type="date" required />
+        <Field label="Nama Ibu Kandung" name="namaIbu" placeholder="Sesuai KTP" required />
+        <Field label="No HP / WhatsApp" name="noHp" placeholder="08xxx" required />
+        <Field label="No Jamsostek" name="noJamsostek" placeholder="Opsional" />
+        <SelectField label="Form Consent" name="formConsent" required options={["ADA", "TIDAK ADA"]} />
+      </div>
+
+      {/* C. KONTRAK PERTAMA */}
+      <SectionHeader letter="C" title="Kontrak Pertama" color="#F97316" />
+      <div style={{ marginBottom: 16 }}>
+        <label style={labelStyle}>Posisi / Jabatan</label>
+        <select name="posisi" required onChange={e => setPosisi(e.target.value)} value={posisi} style={{ ...inputStyle, cursor: 'pointer' }}>
+          <option value="">Pilih Jabatan</option>
+          <option value="SALESMAN">SALESMAN (6 Bulan)</option>
+          <option value="ADMINISTRASI">ADMINISTRASI (3 Bulan)</option>
+          <option value="SUPERVISOR">SUPERVISOR (6 Bulan)</option>
+          <option value="MANAGER">MANAGER (6 Bulan)</option>
+          <option value="STAFF IT">STAFF IT (6 Bulan)</option>
+          <option value="TEKNISI">TEKNISI (6 Bulan)</option>
+        </select>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+        <div>
+          <label style={labelStyle}>Mulai Kontrak (Trainee Sejak)</label>
+          <input name="traineeSejak" type="date" required onChange={e => setTglMulai(e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Akhir Kontrak (Otomatis)</label>
+          <input name="traineeSelesai" type="date" value={tglSelesai} readOnly required style={{ ...inputStyle, background: '#F1F5F9', color: '#3B82F6', fontWeight: 600 }} />
         </div>
       </div>
 
-      {/* Bagian 2: Identitas */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-slate-700 border-b pb-2">B. Identitas Karyawan</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="namaLengkap">Nama Lengkap</Label>
-            <Input id="namaLengkap" name="namaLengkap" placeholder="Sesuai KTP" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nik">NIK Karyawan</Label>
-            <Input id="nik" name="nik" placeholder="Diisi oleh HO" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="noKtp">No KTP</Label>
-            <Input id="noKtp" name="noKtp" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tglLahir">Tanggal Lahir</Label>
-            <Input id="tglLahir" name="tglLahir" type="date" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="namaIbu">Nama Ibu Kandung</Label>
-            <Input id="namaIbu" name="namaIbu" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="noHp">No HP / WhatsApp</Label>
-            <Input id="noHp" name="noHp" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="noJamsostek">No Jamsostek</Label>
-            <Input id="noJamsostek" name="noJamsostek" />
-          </div>
-          <div className="space-y-2">
-            <Label>Form Consent</Label>
-            <Select name="formConsent" required>
-              <SelectTrigger><SelectValue placeholder="Status Dokumen" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ADA">ADA</SelectItem>
-                <SelectItem value="TIDAK ADA">TIDAK ADA</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* INFO */}
+      {posisi && (
+        <div style={{ padding: '12px 16px', background: '#EFF6FF', borderRadius: 10, marginBottom: 20, fontSize: 13, color: '#1D4ED8', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Info size={16} color="#3B82F6" />
+          <span>Jabatan <strong>{posisi}</strong> otomatis kontrak <strong>{posisi === 'ADMINISTRASI' ? '3' : '6'} bulan</strong> dari tanggal mulai.</span>
         </div>
-      </div>
+      )}
 
-      {/* Bagian 3: Kontrak Pertama */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-slate-700 border-b pb-2">C. Kontrak Pertama</h3>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Posisi / Jabatan</Label>
-            <Select name="posisi" onValueChange={setPosisi} required>
-              <SelectTrigger><SelectValue placeholder="Pilih Jabatan" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SALESMAN">SALESMAN (6 Bulan)</SelectItem>
-                <SelectItem value="ADMINISTRASI">ADMINISTRASI (3 Bulan)</SelectItem>
-                <SelectItem value="SUPERVISOR">SUPERVISOR (6 Bulan)</SelectItem>
-                <SelectItem value="MANAGER">MANAGER (6 Bulan)</SelectItem>
-                <SelectItem value="STAFF IT">STAFF IT (6 Bulan)</SelectItem>
-                <SelectItem value="TEKNISI">TEKNISI (6 Bulan)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="traineeSejak">Mulai Kontrak</Label>
-              <Input 
-                id="traineeSejak" 
-                name="traineeSejak" 
-                type="date" 
-                onChange={(e) => setTglMulai(e.target.value)}
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="traineeSelesai">Akhir Kontrak (Otomatis)</Label>
-              <Input 
-                id="traineeSelesai" 
-                name="traineeSelesai" 
-                type="date" 
-                value={tglSelesai} 
-                readOnly 
-                className="bg-slate-100 font-medium text-blue-700"
-                required 
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-4">
-        <Button type="submit" className="w-full h-12 text-lg">
-          Simpan Data Karyawan
-        </Button>
-      </div>
+      {/* SUBMIT */}
+      <button type="submit" style={{
+        width: '100%', height: 48, fontSize: 15, fontWeight: 700, color: '#fff',
+        background: '#1E293B', border: 'none', borderRadius: 10, cursor: 'pointer',
+        fontFamily: F, letterSpacing: '0.02em',
+      }}>
+        Simpan Data Karyawan
+      </button>
     </form>
   );
 }
+
+/* ============ FORM COMPONENTS ============ */
+
+function SectionHeader({ letter, title, color }: { letter: string; title: string; color: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid #F1F5F9' }}>
+      <div style={{ width: 24, height: 24, borderRadius: 6, background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{letter}</div>
+      <span style={{ fontSize: 14, fontWeight: 600, color: '#1E293B' }}>{title}</span>
+    </div>
+  );
+}
+
+function Field({ label, name, placeholder, type = 'text', required }: { label: string; name: string; placeholder?: string; type?: string; required?: boolean }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label} {required && <span style={{ color: '#DC2626' }}>*</span>}</label>
+      <input name={name} type={type} placeholder={placeholder} required={required} style={inputStyle} />
+    </div>
+  );
+}
+
+function SelectField({ label, name, required, options }: { label: string; name: string; required?: boolean; options: string[] }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label} {required && <span style={{ color: '#DC2626' }}>*</span>}</label>
+      <select name={name} required={required} style={{ ...inputStyle, cursor: 'pointer' }}>
+        <option value="">Pilih...</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6,
+  textTransform: 'uppercase', letterSpacing: '0.03em',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', height: 40, padding: '0 12px', fontSize: 14, color: '#1E293B',
+  border: '1px solid #E2E8F0', borderRadius: 8, outline: 'none', background: '#fff',
+  fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
+};

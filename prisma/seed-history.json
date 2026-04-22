@@ -1,0 +1,566 @@
+[
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "PERTIWI SAFITRI",
+    "tempatLahir": "SB KOLAM",
+    "tglLahir": "2004-05-04",
+    "namaIbu": "ELI",
+    "noKtp": "6101034405040002",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-01-02",
+        "traineeSelesai": "2024-06-30",
+        "contractNumber": "LO/PERJ/HRD-H730/011/VII/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-07-01",
+        "traineeSelesai": "2024-12-31",
+        "contractNumber": "LO/PERJ/HRD-H730/011/VII/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-02-01",
+        "traineeSelesai": "2025-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/002/I/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/007/VIII/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-03-01",
+        "traineeSelesai": "2026-08-31",
+        "contractNumber": "LO/PERJ/HRD-H730/009/III/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "ELSA GUSTIANA",
+    "tempatLahir": "SENYAWAN",
+    "tglLahir": "2002-08-20",
+    "namaIbu": "HALIJAH",
+    "noKtp": "6101046008020005",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2023-02-01",
+        "traineeSelesai": "2023-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/016/IX/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2023-08-01",
+        "traineeSelesai": "2024-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/016/IX/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-03-01",
+        "traineeSelesai": "2024-08-31",
+        "contractNumber": "LO/PERJ/HRD-H730/016/IX/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-09-01",
+        "traineeSelesai": "2025-02-28",
+        "contractNumber": "LO/PERJ/HRD-H730/016/IX/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-04-01",
+        "traineeSelesai": "2025-09-30",
+        "contractNumber": "LO/PERJ/HRD-H730/006/IV/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-10-01",
+        "traineeSelesai": "2026-03-31",
+        "contractNumber": "LO/PERJ/HRD-H730/013/X/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "NADIYA",
+    "tempatLahir": "JAWAI LAUT",
+    "tglLahir": "2000-09-11",
+    "namaIbu": "HAZIMA",
+    "noKtp": "6101165109000001",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-10-01",
+        "traineeSelesai": "2025-03-31",
+        "contractNumber": "LO/PERJ/HRD-H730/018/X/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-04-01",
+        "traineeSelesai": "2025-09-30",
+        "contractNumber": "LO/PERJ/HRD-H730/005/IV/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-11-01",
+        "traineeSelesai": "2026-04-30",
+        "contractNumber": "LO/PERJ/HRD-H730/016/XI/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "TITI REISTIKA",
+    "tempatLahir": "MATANG TERAP",
+    "tglLahir": "2001-04-12",
+    "namaIbu": "SUPRIHARTINI",
+    "noKtp": "6101165204010001",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2024-10-01",
+        "traineeSelesai": "2025-03-31",
+        "contractNumber": "LO/PERJ/HRD-H730/019/X/2024"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-04-01",
+        "traineeSelesai": "2025-09-30",
+        "contractNumber": "LO/PERJ/HRD-H730/003/IV/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-11-01",
+        "traineeSelesai": "2026-04-30",
+        "contractNumber": "LO/PERJ/HRD-H730/017/XI/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "HERIANTO",
+    "tempatLahir": "SEPINGGAN JIRAK",
+    "tglLahir": "2002-02-21",
+    "namaIbu": "WAHDAH",
+    "noKtp": "6101132102020001",
+    "contracts": [
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2021-09-01",
+        "traineeSelesai": "2022-02-28",
+        "contractNumber": "LO.PERJ/HRD-MEK/071/IX/21"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2022-03-01",
+        "traineeSelesai": "2022-08-31",
+        "contractNumber": "LO.PERJ/HRD-MEK II/024/III/22"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2022-10-01",
+        "traineeSelesai": "2023-03-31",
+        "contractNumber": "LO.PERJ/HRD-MEK III/099/X/22"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2023-04-01",
+        "traineeSelesai": "2023-09-30",
+        "contractNumber": "LO.PERJ/HRD-MEK IV/073/IV/23"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2023-11-01",
+        "traineeSelesai": "2024-04-30",
+        "contractNumber": "LO.PERJ/HRD-MEK V/112/XI/23"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-05-01",
+        "traineeSelesai": "2024-10-31",
+        "contractNumber": "LO.PERJ/HRD-MEK VI/047/VI/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-12-01",
+        "traineeSelesai": "2025-05-31",
+        "contractNumber": "LO.PERJ/HRD-MEK-VII/111/XII/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2025-06-01",
+        "traineeSelesai": "2025-11-30",
+        "contractNumber": "LO.PERJ/HRD-MEK-VIII/066/VI/25"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2026-01-01",
+        "traineeSelesai": "2026-06-30",
+        "contractNumber": "LO.PERJ/HRD-MEK-IX/029/I/26"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "GILANG ANANDITA",
+    "tempatLahir": "MENSERE",
+    "tglLahir": "2003-05-04",
+    "namaIbu": "YESI YANTI",
+    "noKtp": "6101040405030001",
+    "contracts": [
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2023-05-01",
+        "traineeSelesai": "2023-10-31",
+        "contractNumber": "LO.PERJ/HRD-MEK/060/V/23"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2023-11-01",
+        "traineeSelesai": "2024-04-30",
+        "contractNumber": "LO.PERJ/HRD-MEK II/133/XI/23"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-06-01",
+        "traineeSelesai": "2024-11-30",
+        "contractNumber": "LO.PERJ/HRD-MEK III/046/VI/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-12-01",
+        "traineeSelesai": "2025-05-31",
+        "contractNumber": "LO.PERJ/HRD-MEK IV/132/XII/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2025-07-01",
+        "traineeSelesai": "2025-12-31",
+        "contractNumber": "LO.PERJ/HRD-MEK V/067/VII/25"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2026-01-01",
+        "traineeSelesai": "2026-06-30",
+        "contractNumber": "LO.PERJ/HRD-MEK VI/005/I/26"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "ANGGI PRATAMA RIDNUR",
+    "tempatLahir": "SEMPARUK",
+    "tglLahir": "2003-07-09",
+    "namaIbu": "NURHALIMAH",
+    "noKtp": "6101130907030002",
+    "contracts": [
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2023-07-01",
+        "traineeSelesai": "2023-12-31",
+        "contractNumber": "LO.PERJ/HRD-MEK/080/VII/23"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-01-01",
+        "traineeSelesai": "2024-06-30",
+        "contractNumber": "LO.PERJ/HRD-MEK II/008/I/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2024-08-01",
+        "traineeSelesai": "2025-01-30",
+        "contractNumber": "LO.PERJ/HRD-MEK III/086/VIII/24"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2025-02-01",
+        "traineeSelesai": "2025-07-31",
+        "contractNumber": "LO.PERJ/HRD-MEK IV/019/II/25"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2025-09-01",
+        "traineeSelesai": "2026-02-28",
+        "contractNumber": "LO.PERJ/HRD-MEK V/068/IX/25"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2026-03-01",
+        "traineeSelesai": "2026-08-31",
+        "contractNumber": "LO.PERJ/HRD-MEK VI/028/III/26"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "NUDIALIS SOLATA",
+    "tempatLahir": "NANGA KANTUK",
+    "tglLahir": "1990-04-23",
+    "namaIbu": "FATMAWATI",
+    "noKtp": "6101032004900002",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-04-01",
+        "traineeSelesai": "2025-09-30",
+        "contractNumber": "LO/PERJ/HRD-H730/007/IV/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-10-01",
+        "traineeSelesai": "2026-03-31",
+        "contractNumber": "LO/PERJ/HRD-H730/014/X/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "YUDA",
+    "tempatLahir": "CEPALA",
+    "tglLahir": "2006-04-22",
+    "namaIbu": "RUSNAH",
+    "noKtp": "6101122204060001",
+    "contracts": [
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO.PERJ/HRD-MEK/100/VIII/25"
+      },
+      {
+        "posisi": "MEKANIK",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO.PERJ/HRD-MEK II/013/II/26"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "BIO LESRAK ADILIATRA",
+    "tempatLahir": "SERUMPUN",
+    "tglLahir": "1991-02-09",
+    "namaIbu": "DAKHLIA",
+    "noKtp": "6101180902910000",
+    "contracts": [
+      {
+        "posisi": "SALESMAN",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/001/VIII/2025"
+      },
+      {
+        "posisi": "SALESMAN",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/001/II/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "RISA",
+    "tempatLahir": "SEMAYONG",
+    "tglLahir": "1989-07-07",
+    "namaIbu": "MAUZIAH",
+    "noKtp": "6101024707890005",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/003/VIII/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/003/II/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "FITRI DEWI",
+    "tempatLahir": "SENTEBANG",
+    "tglLahir": "2005-06-24",
+    "namaIbu": "CICI",
+    "noKtp": "6101036406050002",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/004/VIII/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/002/II/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "NOPA,S.PD.K",
+    "tempatLahir": "SAMBAS",
+    "tglLahir": "1986-05-13",
+    "namaIbu": "SINAH",
+    "noKtp": "6101101312860002",
+    "contracts": [
+      {
+        "posisi": "SALESMAN",
+        "traineeSejak": "2025-08-01",
+        "traineeSelesai": "2026-01-31",
+        "contractNumber": "LO/PERJ/HRD-H730/006/VIII/2025"
+      },
+      {
+        "posisi": "SALESMAN",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/005/II/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "NOVI DAMAYANTI",
+    "tempatLahir": "SENTEBANG",
+    "tglLahir": "2002-11-10",
+    "namaIbu": "SARKIAH",
+    "noKtp": "6101034911030001",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-09-01",
+        "traineeSelesai": "2026-02-28",
+        "contractNumber": "LO/PERJ/HRD-H730/010/IX/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-03-01",
+        "traineeSelesai": "2026-08-31",
+        "contractNumber": "LO/PERJ/HRD-H730/007/III/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "MEMEY",
+    "tempatLahir": "SEBURING",
+    "tglLahir": "2002-02-01",
+    "namaIbu": "RAHMAWATI",
+    "noKtp": "6101134102060001",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-09-01",
+        "traineeSelesai": "2026-02-28",
+        "contractNumber": "LO/PERJ/HRD-H730/011/IX/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-03-01",
+        "traineeSelesai": "2026-08-31",
+        "contractNumber": "LO/PERJ/HRD-H730/006/III/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "WULAN DARI",
+    "tempatLahir": "SENYAWAN",
+    "tglLahir": "1994-07-04",
+    "namaIbu": "RUMIAH",
+    "noKtp": "6101044908950003",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2025-09-01",
+        "traineeSelesai": "2026-02-28",
+        "contractNumber": "LO/PERJ/HRD-H730/012/IX/2025"
+      },
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-03-01",
+        "traineeSelesai": "2026-08-31",
+        "contractNumber": "LO/PERJ/HRD-H730/008/III/2026"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "JANA WIJAYA",
+    "tempatLahir": "SEMELAGI",
+    "tglLahir": "1993-04-05",
+    "namaIbu": "ARNA",
+    "noKtp": "6172020504930002",
+    "contracts": [
+      {
+        "posisi": "TEAM LEADER",
+        "traineeSejak": "2025-09-01",
+        "traineeSelesai": "2026-02-28",
+        "contractNumber": "LO/PERJ/HCD/KSM-H730/008/IX/2025"
+      }
+    ]
+  },
+  {
+    "ba": "H730",
+    "baCabang": "SAMBAS",
+    "region": "PONTIANAK",
+    "namaLengkap": "ADINDA",
+    "tempatLahir": "TEBAS SUNGAI",
+    "tglLahir": "2003-11-24",
+    "namaIbu": "NURSINTA",
+    "noKtp": "6101125801020001",
+    "contracts": [
+      {
+        "posisi": "SALESGIRL",
+        "traineeSejak": "2026-02-01",
+        "traineeSelesai": "2026-07-31",
+        "contractNumber": "LO/PERJ/HRD-H730/004/II/2026"
+      }
+    ]
+  }
+]

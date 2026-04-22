@@ -4,7 +4,7 @@ import LayoutWrapper from '@/components/layout-wrapper';
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const session = await verifySession();
   return (
-    <LayoutWrapper role={session?.role}>
+    <LayoutWrapper role={session?.role} username={session?.username}>
       {children}
     </LayoutWrapper>
   );

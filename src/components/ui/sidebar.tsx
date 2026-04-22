@@ -40,6 +40,7 @@ type SidebarContextProps = {
   isMobile: boolean
   toggleSidebar: () => void
   role?: string // Tambahan untuk RBAC
+  username?: string
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -63,12 +64,14 @@ function SidebarProvider({
   style,
   children,
   role, // Menerima role dari Server Layout
+  username,
   ...props
 }: React.ComponentProps<"div"> & {
   defaultOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
   role?: string
+  username?: string
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
@@ -119,8 +122,9 @@ function SidebarProvider({
       setOpenMobile,
       toggleSidebar,
       role,
+      username,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, role]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, role, username]
   )
 
   return (
