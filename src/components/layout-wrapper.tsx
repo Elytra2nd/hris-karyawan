@@ -1,22 +1,23 @@
-'use client';
+'use client'
 
-import { usePathname } from 'next/navigation';
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
+import { usePathname } from 'next/navigation'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
+import { Separator } from '@/components/ui/separator'
 
-export default function LayoutWrapper({ 
-  children, 
+export default function LayoutWrapper({
+  children,
   role,
   username,
-}: { 
-  children: React.ReactNode; 
-  role?: string;
-  username?: string;
+}: {
+  children: React.ReactNode
+  role?: string
+  username?: string
 }) {
-  const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const pathname = usePathname()
+  const isLoginPage = pathname === '/login'
 
   return (
     <TooltipProvider>
@@ -27,16 +28,21 @@ export default function LayoutWrapper({
       ) : (
         <SidebarProvider role={role} username={username}>
           <AppSidebar />
-          <SidebarInset style={{ 
-            display: 'flex', flexDirection: 'column', 
-            minHeight: '100vh', backgroundColor: '#FAFBFC',
-            overflowX: 'hidden',
-          }}>
-            <main style={{ 
-              flex: 1, padding: '24px 32px', 
-              width: '100%', maxWidth: 1400, margin: '0 auto',
-              fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
-            }}>
+
+          <SidebarInset className="flex flex-col min-h-svh bg-gray-50/50 overflow-x-hidden">
+            {/* ─── Top Header ─── */}
+            <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 bg-white border-b border-gray-200 px-4">
+              {/* Hamburger untuk mobile */}
+              <SidebarTrigger className="-ml-1 text-gray-500 hover:text-primary" />
+              <Separator orientation="vertical" className="h-4 mx-1" />
+              {/* Breadcrumb / page context bisa diletakkan di sini nanti */}
+              <span className="text-xs text-muted-foreground hidden sm:block">
+                HRIS Karyawan Trainee
+              </span>
+            </header>
+
+            {/* ─── Page Content ─── */}
+            <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
               {children}
             </main>
           </SidebarInset>
@@ -44,5 +50,5 @@ export default function LayoutWrapper({
       )}
       <Toaster position="top-center" richColors closeButton />
     </TooltipProvider>
-  );
+  )
 }

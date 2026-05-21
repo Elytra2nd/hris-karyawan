@@ -1,152 +1,345 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { signOut } from 'next-auth/react'
 import {
-  LayoutDashboard, Users, UserPlus, FileSpreadsheet,
-  History, UserCog, ChevronDown, Search, Settings,
-  HelpCircle, Link2, LogOut, User,
-} from "lucide-react";
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  Settings,
+  Shield,
+  ClipboardList,
+  LogOut,
+  ChevronDown,
+  CalendarDays,
+  Clock,
+  Plane,
+  Banknote,
+  Receipt,
+  HandCoins,
+  Target,
+  Star,
+  MessageSquare,
+  Lock,
+} from 'lucide-react'
 import {
-  Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarAdminOnly, useSidebar,
-} from "@/components/ui/sidebar";
-import Link from "next/link";
-import { signOut } from 'next-auth/react';
-import { ExportExcelButton } from "./export-excel-button";
-
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarAdminOnly,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
-  const [mounted, setMounted] = useState(false);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ employee: true, admin: true });
-  const { role, username } = useSidebar();
-  const isAdmin = role === 'ADMIN';
-  const pathname = usePathname();
-  useEffect(() => { setMounted(true); }, []);
+  const [mounted, setMounted] = useState(false)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    karyawan: true,
+    administrasi: true,
+  })
+  const { role, username } = useSidebar()
+  const isAdmin = role === 'ADMIN'
+  const pathname = usePathname()
 
-  const toggle = (key: string) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
-  const active = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
+  useEffect(() => { setMounted(true) }, [])
 
-  if (!mounted) return <Sidebar><SidebarHeader /><SidebarContent /></Sidebar>;
+  const toggle = (key: string) =>
+    setOpenSections(p => ({ ...p, [key]: !p[key] }))
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href)
+
+  if (!mounted) return (
+    <Sidebar>
+      <SidebarHeader />
+      <SidebarContent />
+    </Sidebar>
+  )
+
+  const initials = (username || 'U')[0].toUpperCase()
 
   return (
-    <Sidebar style={{ fontFamily: F }}>
-      {/* ===== LOGO ===== */}
-      <SidebarHeader style={{ padding: '14px 16px 12px', borderBottom: '1px solid #F1F5F9' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/astra-logo.png" alt="Astra" style={{ height: 22, objectFit: 'contain' }} />
-            <div style={{ width: 1, height: 18, background: '#E2E8F0' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, color: '#64748B', letterSpacing: '0.02em' }}>HRIS</span>
+    <Sidebar>
+      {/* ─── Header: Module Switcher + Logo ─── */}
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-3 space-y-3">
+        {/* Module Switcher */}
+        <div className="flex items-center gap-1.5">
+          <button className="px-3 py-1 text-xs font-semibold rounded-md bg-primary text-primary-foreground">
+            HRIS
+          </button>
+          <button
+            disabled
+            className="px-3 py-1 text-xs font-medium rounded-md text-gray-400 border border-gray-200 cursor-not-allowed"
+            title="Segera hadir"
+          >
+            ATS
+          </button>
+        </div>
+
+        {/* Logo & App Name */}
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/astra-logo.png"
+            alt="Astra Motor Kalbar"
+            className="h-6 object-contain"
+          />
+          <div className="h-4 w-px bg-gray-200" />
+          <div>
+            <p className="text-sm font-bold text-gray-900 leading-none">HRIS</p>
+            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
+              Astra Motor Kalbar
+            </p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent style={{ padding: 0, backgroundColor: '#fff', flex: 1, overflowY: 'auto' }}>
-        {/* SEARCH */}
-        <div style={{ padding: '12px 12px 8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13, color: '#94A3B8' }}>
-            <Search size={14} />
-            <span>Search...</span>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
-              <kbd style={{ padding: '1px 5px', borderRadius: 4, border: '1px solid #E2E8F0', fontSize: 10, color: '#94A3B8', background: '#F8FAFC' }}>⌘</kbd>
-              <kbd style={{ padding: '1px 5px', borderRadius: 4, border: '1px solid #E2E8F0', fontSize: 10, color: '#94A3B8', background: '#F8FAFC' }}>F</kbd>
-            </div>
-          </div>
+      {/* ─── Navigation ─── */}
+      <SidebarContent className="px-3 py-4 overflow-y-auto space-y-5">
+
+        {/* ── Umum ── */}
+        <div>
+          <p className="px-2 mb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Umum
+          </p>
+          <nav className="space-y-0.5">
+            <NavItem
+              href="/"
+              icon={<LayoutDashboard size={16} />}
+              label="Dashboard"
+              active={isActive('/')}
+            />
+          </nav>
         </div>
 
-        {/* ===== BEST PRACTICE SIDEBAR ORDER ===== */}
-        {/* 1. Dashboard (overview first) */}
-        <div style={{ padding: '4px 8px' }}>
-          <NavItem href="/" icon={<LayoutDashboard size={18} />} label="Dashboard" active={active('/')} />
+        {/* ── Karyawan ── */}
+        <div>
+          <SectionHeader
+            label="Karyawan"
+            open={openSections.karyawan}
+            onToggle={() => toggle('karyawan')}
+          />
+          {openSections.karyawan && (
+            <nav className="mt-1 space-y-0.5">
+              <NavItem
+                href="/karyawan"
+                icon={<Users size={16} />}
+                label="Data Karyawan"
+                active={isActive('/karyawan') && !pathname.includes('tambah')}
+              />
+              {isAdmin && (
+                <NavItem
+                  href="/karyawan/tambah"
+                  icon={<UserPlus size={16} />}
+                  label="Tambah Karyawan"
+                  active={isActive('/karyawan/tambah')}
+                />
+              )}
+            </nav>
+          )}
         </div>
 
-        {/* 2. Employee Data (core feature) */}
-        <Section title="Karyawan" icon={<Users size={15} />} open={openSections.employee} onToggle={() => toggle('employee')}>
-          <SubItem href="/karyawan" label="Data Karyawan" active={active('/karyawan') && !pathname.includes('tambah')} />
-          {isAdmin && <SubItem href="/karyawan/tambah" label="Tambah Karyawan" active={active('/karyawan/tambah')} />}
-        </Section>
-
-        {/* 3. Admin Section */}
+        {/* ── Administrasi (Admin only) ── */}
         <SidebarAdminOnly>
-          <Section title="Administrasi" icon={<Settings size={15} />} open={openSections.admin} onToggle={() => toggle('admin')}>
-            <SubItem href="/admin/users" label="Management User" active={active('/admin/users')} />
-            <SubItem href="/admin/audit-log" label="Log Aktivitas" active={active('/admin/audit-log')} />
-            <div style={{ padding: '2px 0' }}>
-              <ExportExcelButton variant="sidebar" />
-            </div>
-          </Section>
+          <div>
+            <SectionHeader
+              label="Administrasi"
+              open={openSections.administrasi}
+              onToggle={() => toggle('administrasi')}
+            />
+            {openSections.administrasi && (
+              <nav className="mt-1 space-y-0.5">
+                <NavItem
+                  href="/admin/users"
+                  icon={<Shield size={16} />}
+                  label="Manajemen Pengguna"
+                  active={isActive('/admin/users')}
+                />
+                <NavItem
+                  href="/admin/audit-log"
+                  icon={<ClipboardList size={16} />}
+                  label="Log Aktivitas"
+                  active={isActive('/admin/audit-log')}
+                />
+                <NavItem
+                  href="/admin/settings"
+                  icon={<Settings size={16} />}
+                  label="Pengaturan"
+                  active={isActive('/admin/settings')}
+                />
+              </nav>
+            )}
+          </div>
         </SidebarAdminOnly>
+
+        {/* ── Waktu — Coming Soon ── */}
+        <div>
+          <SectionHeaderDisabled label="Waktu" comingSoon="Q3 2026" />
+          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
+            <NavItemDisabled icon={<CalendarDays size={16} />} label="Jadwal & Shift" />
+            <NavItemDisabled icon={<Plane size={16} />} label="Cuti" />
+            <NavItemDisabled icon={<Clock size={16} />} label="Lembur" />
+          </nav>
+        </div>
+
+        {/* ── Keuangan — Coming Soon ── */}
+        <div>
+          <SectionHeaderDisabled label="Keuangan" comingSoon="Q4 2026" />
+          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
+            <NavItemDisabled icon={<Banknote size={16} />} label="Penggajian" />
+            <NavItemDisabled icon={<Receipt size={16} />} label="Reimbursement" />
+            <NavItemDisabled icon={<HandCoins size={16} />} label="Kasbon" />
+          </nav>
+        </div>
+
+        {/* ── Kinerja — Coming Soon ── */}
+        <div>
+          <SectionHeaderDisabled label="Kinerja" comingSoon="2027" />
+          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
+            <NavItemDisabled icon={<Target size={16} />} label="KPI & OKR" />
+            <NavItemDisabled icon={<Star size={16} />} label="Penilaian Kinerja" />
+            <NavItemDisabled icon={<MessageSquare size={16} />} label="Umpan Balik" />
+          </nav>
+        </div>
+
       </SidebarContent>
 
-      {/* ===== USER FOOTER ===== */}
-      <SidebarFooter style={{ padding: '12px', borderTop: '1px solid #F1F5F9' }}>
-        <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
-          display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 8px',
-          borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
-        }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1E293B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>
-            {(username || 'U')[0].toUpperCase()}
+      {/* ─── Footer: User Info + Logout ─── */}
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        <div className="flex items-center gap-2.5">
+          {/* Avatar */}
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+            {initials}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{username || 'User'}</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>{role || 'VIEWER'}</div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate leading-none">
+              {username || 'Pengguna'}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-none">
+              {role === 'ADMIN' ? 'Administrator' : 'Pemirsa'}
+            </p>
           </div>
-          <LogOut size={14} color="#DC2626" />
-        </button>
+
+          {/* Logout */}
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            title="Keluar"
+          >
+            <LogOut size={15} />
+          </button>
+        </div>
+
+        {/* Branding */}
+        <p className="mt-3 text-[10px] text-gray-400 text-center">
+          HRIS Karyawan Trainee · v1.0
+        </p>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
 
-/* ============ REUSABLE COMPONENTS ============ */
+/* ─────────────────────────────────────────────
+   Sub-components
+───────────────────────────────────────────── */
 
-function Section({ title, icon, open, onToggle, children }: {
-  title: string; icon: React.ReactNode; open: boolean; onToggle: () => void; children: React.ReactNode;
+function SectionHeader({
+  label,
+  open,
+  onToggle,
+}: {
+  label: string
+  open: boolean
+  onToggle: () => void
 }) {
   return (
-    <div style={{ padding: '4px 8px' }}>
-      <button onClick={onToggle} style={{
-        display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 8px',
-        borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer',
-        fontSize: 13, fontWeight: 600, color: '#475569', textAlign: 'left',
-      }}>
-        <span style={{ display: 'flex', color: '#94A3B8' }}>{icon}</span>
-        {title}
-        <ChevronDown size={14} color="#94A3B8" style={{ marginLeft: 'auto', transform: open ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
-      </button>
-      {open && <div style={{ paddingLeft: 4 }}>{children}</div>}
+    <button
+      onClick={onToggle}
+      className="flex items-center justify-between w-full px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
+    >
+      {label}
+      <ChevronDown
+        size={13}
+        className={cn(
+          'text-gray-400 transition-transform duration-200',
+          open ? 'rotate-0' : '-rotate-90'
+        )}
+      />
+    </button>
+  )
+}
+
+function SectionHeaderDisabled({
+  label,
+  comingSoon,
+}: {
+  label: string
+  comingSoon: string
+}) {
+  return (
+    <div className="flex items-center justify-between w-full px-2 py-1">
+      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        {label}
+      </span>
+      <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wide">
+        {comingSoon}
+      </span>
     </div>
-  );
+  )
 }
 
-function NavItem({ href, icon, label, active: isActive }: {
-  href: string; icon: React.ReactNode; label: string; active: boolean;
+function NavItem({
+  href,
+  icon,
+  label,
+  active,
+}: {
+  href: string
+  icon: React.ReactNode
+  label: string
+  active: boolean
 }) {
   return (
-    <Link href={href} style={{ textDecoration: 'none' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px', borderRadius: 8, marginBottom: 1,
-        fontSize: 13, fontWeight: isActive ? 600 : 500, color: isActive ? '#1E293B' : '#64748B',
-        backgroundColor: isActive ? '#F1F5F9' : 'transparent', transition: 'all 0.15s', cursor: 'pointer',
-      }}>
-        <span style={{ display: 'flex', color: isActive ? '#1E293B' : '#94A3B8' }}>{icon}</span>
-        {label}
-      </div>
+    <Link
+      href={href}
+      className={cn(
+        'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
+        active
+          ? 'bg-accent text-primary font-semibold'
+          : 'text-gray-600 hover:bg-accent hover:text-primary font-medium'
+      )}
+    >
+      <span
+        className={cn(
+          'shrink-0',
+          active ? 'text-primary' : 'text-gray-400'
+        )}
+      >
+        {icon}
+      </span>
+      {label}
     </Link>
-  );
+  )
 }
 
-function SubItem({ href, label, active: isActive }: { href: string; label: string; active: boolean; }) {
+function NavItemDisabled({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode
+  label: string
+}) {
   return (
-    <Link href={href} style={{ textDecoration: 'none' }}>
-      <div style={{
-        padding: '6px 8px 6px 36px', fontSize: 13, borderRadius: 6, marginBottom: 1,
-        fontWeight: isActive ? 700 : 400, color: isActive ? '#1E293B' : '#64748B',
-        cursor: 'pointer', transition: 'all 0.15s',
-      }}>
-        {label}
-      </div>
-    </Link>
-  );
+    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-gray-400 font-medium cursor-not-allowed">
+      <span className="shrink-0 text-gray-300">
+        <Lock size={14} />
+      </span>
+      {label}
+    </div>
+  )
 }
