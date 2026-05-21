@@ -26,6 +26,7 @@ export default async function AuditLogPage() {
     }
   };
 
+
   const actionBadge = (action: string) => {
     const styles: Record<string, { bg: string; color: string; border: string }> = {
       'CREATE': { bg: '#ECFDF5', color: '#059669', border: '#A7F3D0' },
