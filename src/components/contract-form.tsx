@@ -1,93 +1,137 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { addMonths, format } from 'date-fns';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react'
+import { addMonths, format } from 'date-fns'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { Loader2, Info, CalendarCheck } from 'lucide-react'
+
+const POSISI_OPTIONS = [
+  { value: 'SALESMAN', label: 'Salesman', months: 6 },
+  { value: 'ADMINISTRASI', label: 'Administrasi', months: 3 },
+  { value: 'SUPERVISOR', label: 'Supervisor', months: 6 },
+  { value: 'MANAGER', label: 'Manager', months: 6 },
+  { value: 'STAFF IT', label: 'Staff IT', months: 6 },
+  { value: 'TEKNISI', label: 'Teknisi', months: 6 },
+]
 
 interface ContractFormProps {
-  employeeId: string;
-  action: (id: string, formData: FormData) => Promise<void>;
+  employeeId: string
+  action: (id: string, formData: FormData) => Promise<void>
 }
 
 export function ContractForm({ employeeId, action }: ContractFormProps) {
-  const [posisi, setPosisi] = useState<string>('');
-  const [tglMulai, setTglMulai] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [tglSelesai, setTglSelesai] = useState<string>('');
+  const [posisi, setPosisi] = useState('')
+  const [tglMulai, setTglMulai] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [tglSelesai, setTglSelesai] = useState('')
+  const [isPending, setIsPending] = useState(false)
 
-  // Logika Otomatisasi Tanggal (Aturan Bisnis 2)
   useEffect(() => {
     if (posisi && tglMulai) {
-      const startDate = new Date(tglMulai);
-      // Jika Admin 3 bulan, selain itu (Salesman dll) 6 bulan
-      const monthsToAdd = posisi === 'ADMINISTRASI' ? 3 : 6;
-      const endDate = addMonths(startDate, monthsToAdd);
-      
-      setTglSelesai(format(endDate, 'yyyy-MM-dd'));
+      const opt = POSISI_OPTIONS.find(p => p.value === posisi)
+      const months = opt?.months ?? 6
+      setTglSelesai(format(addMonths(new Date(tglMulai), months), 'yyyy-MM-dd'))
     }
-  }, [posisi, tglMulai]);
+  }, [posisi, tglMulai])
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsPending(true)
+    await action(employeeId, formData)
+  }
+
+  const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)
 
   return (
-    <form action={(formData) => action(employeeId, formData)} className="space-y-6">
+    <form action={handleSubmit} className="space-y-5">
+
+      {/* Posisi */}
       <div className="space-y-2">
-        <Label>Posisi / Jabatan Baru</Label>
-        <Select name="posisi" onValueChange={(value) => setPosisi(value)} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Pilih Jabatan" />
+        <Label htmlFor="posisi" className="form-label">
+          Posisi / Jabatan Baru <span className="text-red-500">*</span>
+        </Label>
+        <Select name="posisi" required onValueChange={setPosisi}>
+          <SelectTrigger id="posisi" className="h-9 text-sm bg-white">
+            <SelectValue placeholder="Pilih jabatan..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="SALESMAN">SALESMAN (6 Bulan)</SelectItem>
-            <SelectItem value="ADMINISTRASI">ADMINISTRASI (3 Bulan)</SelectItem>
-            <SelectItem value="SUPERVISOR">SUPERVISOR (6 Bulan)</SelectItem>
-            <SelectItem value="MANAGER">MANAGER (6 Bulan)</SelectItem>
-            <SelectItem value="STAFF IT">STAFF IT (6 Bulan)</SelectItem>
-            <SelectItem value="TEKNISI">TEKNISI (6 Bulan)</SelectItem>
+            {POSISI_OPTIONS.map(p => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
+                <span className="ml-2 text-xs text-muted-foreground">({p.months} bln)</span>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
+      {/* Tanggal */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="traineeSejak">Mulai Kontrak</Label>
-          <Input 
-            id="traineeSejak" 
-            name="traineeSejak" 
-            type="date" 
+          <Label htmlFor="traineeSejak" className="form-label">
+            Mulai Kontrak <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="traineeSejak"
+            name="traineeSejak"
+            type="date"
             value={tglMulai}
-            onChange={(e) => setTglMulai(e.target.value)}
-            required 
+            onChange={e => setTglMulai(e.target.value)}
+            required
+            className="h-9 text-sm"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="traineeSelesai">Akhir Kontrak (Otomatis)</Label>
-          <Input 
-            id="traineeSelesai" 
-            name="traineeSelesai" 
-            type="date" 
+          <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
+            Akhir Kontrak
+            <span className="text-[10px] font-normal text-primary bg-blue-50 px-1.5 py-0.5 rounded">
+              Otomatis
+            </span>
+          </Label>
+          <Input
+            id="traineeSelesai"
+            name="traineeSelesai"
+            type="date"
             value={tglSelesai}
-            readOnly // User tidak perlu isi manual, tapi tetap terkirim di FormData
-            className="bg-slate-100 font-semibold text-blue-700"
-            required 
+            readOnly
+            required={!!tglMulai && !!posisi}
+            className="h-9 text-sm bg-blue-50/50 text-primary font-semibold cursor-not-allowed"
           />
-          <p className="text-[10px] text-slate-500 italic">
-            *Dihitung otomatis berdasarkan aturan jabatan.
-          </p>
         </div>
       </div>
 
-      <div className="pt-4">
-        <Button type="submit" className="w-full h-12 text-lg">
-          Terbitkan Kontrak Baru
-        </Button>
-      </div>
+      {/* Info tip */}
+      {posisi ? (
+        <div className="flex items-start gap-2.5 rounded-md bg-blue-50 border border-blue-100 px-3.5 py-3">
+          <Info size={14} className="text-primary shrink-0 mt-0.5" />
+          <p className="text-sm text-blue-700">
+            Jabatan <strong>{selectedOpt?.label}</strong> mendapat kontrak{' '}
+            <strong>{selectedOpt?.months} bulan</strong> dari tanggal mulai.
+          </p>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2.5 rounded-md bg-gray-50 border border-gray-200 px-3.5 py-3">
+          <CalendarCheck size={14} className="text-gray-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-muted-foreground">
+            Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
+          </p>
+        </div>
+      )}
+
+      {/* Submit */}
+      <button
+        type="submit"
+        disabled={isPending || !posisi || !tglMulai}
+        className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+      >
+        {isPending ? (
+          <><Loader2 size={15} className="animate-spin" /> Menerbitkan...</>
+        ) : (
+          'Terbitkan Kontrak Baru'
+        )}
+      </button>
     </form>
-  );
+  )
 }

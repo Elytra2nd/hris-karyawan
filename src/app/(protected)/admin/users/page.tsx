@@ -1,122 +1,160 @@
-import { getUsers } from '@/app/actions/user';
-import { ShieldCheck, Shield, User, Users, Clock, Activity } from "lucide-react";
-import { CreateUserModal } from "@/components/create-user-modal";
-import { DeleteUserButton } from "@/components/delete-user-button";
-import { format } from 'date-fns';
-
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+import { getUsers } from '@/app/actions/user'
+import { ShieldCheck, Shield, Users, Clock, Activity, Info } from 'lucide-react'
+import { CreateUserModal } from '@/components/create-user-modal'
+import { DeleteUserButton } from '@/components/delete-user-button'
+import { format } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
 
 export default async function UserManagementPage() {
-  const users = await getUsers();
-  const adminCount = users.filter(u => u.role === 'ADMIN').length;
-  const viewerCount = users.filter(u => u.role === 'VIEWER').length;
+  const users = await getUsers()
+  const adminCount = users.filter(u => u.role === 'ADMIN').length
+  const viewerCount = users.filter(u => u.role === 'VIEWER').length
 
   return (
-    <div style={{ fontFamily: F }}>
-      {/* HEADER */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+    <div className="space-y-6">
+
+      {/* ─── Header ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', margin: 0 }}>Management User</h1>
-          <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 2 }}>Kelola akses pengguna sistem HRIS</p>
+          <h1 className="text-2xl font-bold text-gray-900">Manajemen Pengguna</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Kelola akses pengguna sistem HRIS
+          </p>
         </div>
         <CreateUserModal />
       </div>
 
-      {/* STAT CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Users size={20} color="#3B82F6" />
+      {/* ─── Stat Cards ─── */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <Users className="h-5 w-5 text-white" />
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1E293B' }}>{users.length}</div>
-            <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>Total User</div>
+            <p className="text-2xl font-bold text-white leading-none">{users.length}</p>
+            <p className="text-xs text-blue-100 mt-1">Total Pengguna</p>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={20} color="#D97706" />
+
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+            <ShieldCheck className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1E293B' }}>{adminCount}</div>
-            <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>Administrator</div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{adminCount}</p>
+            <p className="text-xs text-muted-foreground mt-1">Administrator</p>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Shield size={20} color="#64748B" />
+
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+            <Shield className="h-5 w-5 text-gray-500" />
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1E293B' }}>{viewerCount}</div>
-            <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>Viewer</div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{viewerCount}</p>
+            <p className="text-xs text-muted-foreground mt-1">Pemirsa</p>
           </div>
         </div>
       </div>
 
-      {/* INFO */}
-      <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#1D4ED8', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Activity size={16} color="#3B82F6" />
-        <span><strong>Admin</strong> dapat menambah, edit, dan hapus data karyawan. <strong>Viewer</strong> hanya dapat melihat data.</span>
+      {/* ─── Info Banner ─── */}
+      <div className="flex items-start gap-2.5 rounded-md bg-blue-50 border border-blue-100 px-4 py-3">
+        <Info size={15} className="text-primary shrink-0 mt-0.5" />
+        <p className="text-sm text-blue-700">
+          <strong>Admin</strong> dapat menambah, edit, dan hapus data karyawan.{' '}
+          <strong>Pemirsa</strong> hanya dapat melihat data tanpa bisa melakukan perubahan.
+        </p>
       </div>
 
-      {/* TABLE */}
-      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+      {/* ─── Table ─── */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <table className="w-full">
           <thead>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <th style={thS}>Username</th>
-              <th style={{ ...thS, textAlign: 'center' }}>Role</th>
-              <th style={thS}>Dibuat</th>
-              <th style={{ ...thS, textAlign: 'center', width: 80 }}>Aksi</th>
+            <tr className="border-b border-gray-200 bg-blue-50/60">
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Pengguna
+              </th>
+              <th className="px-5 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Role
+              </th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Dibuat
+              </th>
+              <th className="px-5 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-16">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody>
-            {users.map((user, i) => (
-              <tr key={user.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                <td style={tdS}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: user.role === 'ADMIN' ? '#FFFBEB' : '#F1F5F9',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: `1px solid ${user.role === 'ADMIN' ? '#FDE68A' : '#E2E8F0'}`,
-                    }}>
-                      <User size={16} color={user.role === 'ADMIN' ? '#D97706' : '#94A3B8'} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, color: '#1E293B', fontSize: 14 }}>{user.username}</div>
-                      <div style={{ fontSize: 11, color: '#94A3B8' }}>User #{i + 1}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ ...tdS, textAlign: 'center' }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                    background: user.role === 'ADMIN' ? '#FFFBEB' : '#F1F5F9',
-                    color: user.role === 'ADMIN' ? '#D97706' : '#64748B',
-                    border: `1px solid ${user.role === 'ADMIN' ? '#FDE68A' : '#E2E8F0'}`,
-                  }}>
-                    {user.role === 'ADMIN' ? <ShieldCheck size={12} /> : <Shield size={12} />}
-                    {user.role}
-                  </span>
-                </td>
-                <td style={tdS}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B' }}>
-                    <Clock size={12} color="#94A3B8" />
-                    {user.createdAt ? format(new Date(user.createdAt), 'dd MMM yyyy') : '-'}
-                  </div>
-                </td>
-                <td style={{ ...tdS, textAlign: 'center' }}>
-                  <DeleteUserButton id={user.id} username={user.username} />
+          <tbody className="divide-y divide-gray-100">
+            {users.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-5 py-16 text-center">
+                  <Users size={32} className="mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm font-semibold text-gray-500">Belum ada pengguna</p>
                 </td>
               </tr>
-            ))}
+            ) : (
+              users.map((user, i) => (
+                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                  {/* User info */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
+                        user.role === 'ADMIN'
+                          ? 'bg-amber-50 border-amber-200 text-amber-700'
+                          : 'bg-gray-50 border-gray-200 text-gray-500'
+                      }`}>
+                        {user.username[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{user.username}</p>
+                        <p className="text-xs text-muted-foreground">Pengguna #{i + 1}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Role chip */}
+                  <td className="px-5 py-4 text-center">
+                    {user.role === 'ADMIN' ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                        <ShieldCheck size={11} />
+                        Admin
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                        <Shield size={11} />
+                        Pemirsa
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Dibuat */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                      <Clock size={12} className="text-gray-400 shrink-0" />
+                      {user.createdAt
+                        ? format(new Date(user.createdAt), 'dd MMM yyyy', { locale: localeID })
+                        : '—'}
+                    </div>
+                  </td>
+
+                  {/* Aksi */}
+                  <td className="px-5 py-4 text-center">
+                    <DeleteUserButton id={user.id} username={user.username} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+          <p className="text-xs text-muted-foreground">
+            {users.length} pengguna terdaftar · {adminCount} admin · {viewerCount} pemirsa
+          </p>
+        </div>
       </div>
     </div>
-  );
+  )
 }
-
-const thS: React.CSSProperties = { padding: '10px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748B', background: '#FAFBFC' };
-const tdS: React.CSSProperties = { padding: '12px 16px', fontSize: 14, color: '#475569' };

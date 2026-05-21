@@ -1,40 +1,116 @@
-import { verifySession } from '@/lib/dal';
-import { prisma } from '@/lib/prisma';
-import { createContract } from '@/app/actions/employee';
-import { ContractForm } from '@/components/contract-form';
-import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
-import { ChevronLeft, AlertTriangle } from 'lucide-react';
+import { verifySession } from '@/lib/dal'
+import { prisma } from '@/lib/prisma'
+import { createContract } from '@/app/actions/employee'
+import { ContractForm } from '@/components/contract-form'
+import Link from 'next/link'
+import { notFound, redirect } from 'next/navigation'
+import { ChevronLeft, AlertTriangle, FileClock, CheckCircle2 } from 'lucide-react'
+import { format, differenceInDays } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
 
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+export default async function TambahKontrakPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await verifySession()
+  if (session?.role !== 'ADMIN') redirect('/karyawan')
 
-export default async function TambahKontrakPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await verifySession();
-  if (session?.role !== 'ADMIN') redirect('/karyawan');
-  const { id } = await params;
-  const employee = await prisma.employee.findUnique({ where: { id }, select: { namaLengkap: true } });
-  if (!employee) notFound();
+  const { id } = await params
+  const employee = await prisma.employee.findUnique({
+    where: { id },
+    select: {
+      namaLengkap: true,
+      cabang: true,
+      status: true,
+      contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
+    },
+  })
+  if (!employee) notFound()
+
+  const latestContract = employee.contracts[0]
+  const daysToExpiry = latestContract
+    ? differenceInDays(new Date(latestContract.traineeSelesai), new Date())
+    : null
 
   return (
-    <div style={{ fontFamily: F }}>
-      <Link href={`/karyawan/${id}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: '#64748B', textDecoration: 'none', marginBottom: 20 }}>
-        <ChevronLeft size={18} /> Kembali
+    <div className="space-y-5">
+
+      {/* ─── Breadcrumb ─── */}
+      <Link
+        href={`/karyawan/${id}`}
+        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+      >
+        <ChevronLeft size={16} />
+        Kembali ke Detail Karyawan
       </Link>
-      <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>Tambah Kontrak Baru</h1>
-        <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 24 }}>
-          Menerbitkan kontrak baru untuk: <strong style={{ color: '#1E293B' }}>{employee.namaLengkap}</strong>
+
+      {/* ─── Page header ─── */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Kelola Kontrak</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Menerbitkan kontrak baru untuk{' '}
+          <span className="font-semibold text-gray-700">{employee.namaLengkap}</span>
+          {employee.cabang && (
+            <span className="text-gray-400"> · {employee.cabang}</span>
+          )}
         </p>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 24, marginBottom: 16 }}>
+      </div>
+
+      <div className="max-w-lg space-y-4">
+
+        {/* Kontrak berjalan saat ini */}
+        {latestContract && (
+          <div className={`rounded-lg border px-4 py-3.5 flex items-start gap-3 ${
+            daysToExpiry !== null && daysToExpiry <= 30
+              ? 'bg-amber-50 border-amber-200'
+              : 'bg-gray-50 border-gray-200'
+          }`}>
+            <FileClock size={16} className={`shrink-0 mt-0.5 ${
+              daysToExpiry !== null && daysToExpiry <= 30 ? 'text-amber-600' : 'text-gray-400'
+            }`} />
+            <div className="text-sm">
+              <p className="font-semibold text-gray-800">Kontrak Berjalan</p>
+              <p className="text-muted-foreground mt-0.5">
+                {latestContract.posisi} ·{' '}
+                {format(new Date(latestContract.traineeSejak), 'dd MMM yyyy', { locale: localeID })}
+                {' → '}
+                {format(new Date(latestContract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
+                {daysToExpiry !== null && (
+                  <span className={`ml-2 font-semibold ${
+                    daysToExpiry < 0 ? 'text-red-600' : daysToExpiry <= 30 ? 'text-amber-600' : 'text-green-600'
+                  }`}>
+                    ({daysToExpiry < 0 ? 'Expired' : `sisa ${daysToExpiry} hari`})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Form card */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
           <ContractForm employeeId={id} action={createContract} />
         </div>
-        <div style={{ display: 'flex', gap: 10, padding: '14px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, fontSize: 13, color: '#92400E' }}>
-          <AlertTriangle size={16} color="#D97706" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <strong>Aturan Kontrak:</strong> Jabatan Administrasi = 3 bulan, lainnya = 6 bulan. Tanggal selesai dihitung otomatis.
+
+        {/* Aturan kontrak */}
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
+          <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800">
+            <p className="font-semibold">Aturan Durasi Kontrak</p>
+            <ul className="mt-1.5 space-y-1 text-amber-700">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-amber-500 shrink-0" />
+                Jabatan <strong>Administrasi</strong> → otomatis <strong>3 bulan</strong>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-amber-500 shrink-0" />
+                Jabatan lainnya → otomatis <strong>6 bulan</strong>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

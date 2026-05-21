@@ -1,27 +1,37 @@
-import { verifySession } from '@/lib/dal';
-import { createEmployee } from '@/app/actions/employee';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { EmployeeForm } from '@/components/employee-form';
-
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+import { verifySession } from '@/lib/dal'
+import { createEmployee } from '@/app/actions/employee'
+import { ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { EmployeeForm } from '@/components/employee-form'
 
 export default async function TambahKaryawanPage() {
-  const session = await verifySession();
-  if (session?.role !== 'ADMIN') redirect('/karyawan');
+  const session = await verifySession()
+  if (session?.role !== 'ADMIN') redirect('/karyawan')
+
   return (
-    <div style={{ fontFamily: F }}>
-      <Link href="/karyawan" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: '#64748B', textDecoration: 'none', marginBottom: 20 }}>
-        <ChevronLeft size={18} /> Kembali
+    <div className="space-y-5">
+      {/* Breadcrumb */}
+      <Link
+        href="/karyawan"
+        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+      >
+        <ChevronLeft size={16} />
+        Kembali ke Data Karyawan
       </Link>
-      <div style={{ maxWidth: 640, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>Tambah Karyawan Baru</h1>
-        <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 24 }}>Input identitas diri dan masa kontrak awal sesuai aturan jabatan.</p>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 24 }}>
-          <EmployeeForm action={createEmployee} />
-        </div>
+
+      {/* Page header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Tambah Karyawan Baru</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Input identitas diri dan masa kontrak awal sesuai aturan jabatan.
+        </p>
+      </div>
+
+      {/* Form container */}
+      <div className="max-w-xl bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <EmployeeForm action={createEmployee} />
       </div>
     </div>
-  );
+  )
 }

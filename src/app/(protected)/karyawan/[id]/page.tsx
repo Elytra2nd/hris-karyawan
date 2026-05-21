@@ -1,184 +1,390 @@
-import { verifySession } from '@/lib/dal';
-import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { differenceInMonths, differenceInDays, format } from 'date-fns';
-import { ChevronLeft, User, MapPin, Phone, CreditCard, Clock, CalendarDays, Pencil, PlusCircle, Building2, FileCheck, Shield, CheckCircle2, XCircle } from 'lucide-react';
-import { ContractList } from '@/components/contract-list';
+import { verifySession } from '@/lib/dal'
+import { prisma } from '@/lib/prisma'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { differenceInMonths, differenceInDays, format } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
+import {
+  ChevronLeft, User, MapPin, Phone, CreditCard, Clock,
+  CalendarDays, Pencil, PlusCircle, Building2, FileCheck,
+  CheckCircle2, XCircle, AlertTriangle, FileImage, FileText,
+  Fingerprint, Hash,
+} from 'lucide-react'
+import { ContractList } from '@/components/contract-list'
+import { cn } from '@/lib/utils'
 
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
-
-export default async function DetailKaryawanPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await verifySession();
-  const { id } = await params;
-  const isAdmin = session?.role === 'ADMIN';
+export default async function DetailKaryawanPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await verifySession()
+  const { id } = await params
+  const isAdmin = session?.role === 'ADMIN'
 
   const employee = await prisma.employee.findUnique({
     where: { id },
     include: { contracts: { orderBy: { traineeSelesai: 'desc' } } },
-  });
-  if (!employee) notFound();
+  })
+  if (!employee) notFound()
 
-  const totalMonths = employee.contracts.reduce((acc, c) => acc + differenceInMonths(new Date(c.traineeSelesai), new Date(c.traineeSejak)), 0);
-  const years = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
-  const latestContract = employee.contracts[0];
-  const daysToExpiry = latestContract ? differenceInDays(new Date(latestContract.traineeSelesai), new Date()) : 0;
+  const totalMonths = employee.contracts.reduce(
+    (acc, c) =>
+      acc + differenceInMonths(new Date(c.traineeSelesai), new Date(c.traineeSejak)),
+    0
+  )
+  const years = Math.floor(totalMonths / 12)
+  const months = totalMonths % 12
+  const latestContract = employee.contracts[0]
+  const daysToExpiry = latestContract
+    ? differenceInDays(new Date(latestContract.traineeSelesai), new Date())
+    : 0
+
+  const isExpired = daysToExpiry < 0
+  const isKritis = !isExpired && daysToExpiry <= 14
+  const isMendekat = !isExpired && daysToExpiry > 14 && daysToExpiry <= 30
+
+  const getStatusChip = () => {
+    if (employee.status !== 'AKTIF')
+      return <span className="chip-nonaktif">Non-Aktif</span>
+    if (isExpired) return <span className="chip-expired">Expired</span>
+    if (isKritis || isMendekat) return <span className="chip-warning">Segera Habis</span>
+    return <span className="chip-aktif">Aktif</span>
+  }
 
   return (
-    <div style={{ fontFamily: F }}>
-      {/* NAV + ACTIONS */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <Link href="/karyawan" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: '#64748B', textDecoration: 'none' }}>
-          <ChevronLeft size={18} /> Kembali ke Data Karyawan
+    <div className="space-y-5">
+
+      {/* ─── Breadcrumb & Actions ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Link
+          href="/karyawan"
+          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+        >
+          <ChevronLeft size={16} />
+          Kembali ke Data Karyawan
         </Link>
+
         {isAdmin && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Link href={`/karyawan/${id}/edit`} style={{ textDecoration: 'none' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#475569', background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
-                <Pencil size={14} /> Edit Profil
+          <div className="flex items-center gap-2">
+            <Link href={`/karyawan/${id}/edit`}>
+              <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                <Pencil size={14} />
+                Edit Profil
               </button>
             </Link>
-            <Link href={`/karyawan/${id}/kontrak`} style={{ textDecoration: 'none' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#1E293B', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
-                <PlusCircle size={14} /> Perbarui Kontrak
+            <Link href={`/karyawan/${id}/kontrak`}>
+              <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 transition-colors shadow-sm">
+                <PlusCircle size={14} />
+                Kelola Kontrak
               </button>
             </Link>
           </div>
         )}
       </div>
 
-      {/* PROFILE CARD */}
-      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 20 }}>
-        <div style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ width: 80, height: 80, borderRadius: 16, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-            {employee.image ? <img src={employee.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={36} color="#94A3B8" />}
+      {/* ─── Profile Card ─── */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        {/* Top: Avatar + Info */}
+        <div className="flex items-start gap-5 p-6">
+          {/* Avatar */}
+          <div className="h-20 w-20 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
+            {employee.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={employee.image}
+                alt={employee.namaLengkap}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <User size={32} className="text-primary/40" />
+            )}
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', margin: 0 }}>{employee.namaLengkap}</h1>
-              <StatusBadge status={employee.status} days={daysToExpiry} />
+
+          {/* Name + Meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap mb-2">
+              <h1 className="text-xl font-bold text-gray-900">{employee.namaLengkap}</h1>
+              {getStatusChip()}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: '#64748B' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CreditCard size={14} color="#94A3B8" /> NIK: {employee.nik || '-'}</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} color="#94A3B8" /> {employee.cabang}</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Phone size={14} color="#94A3B8" /> {employee.noHp || '-'}</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Building2 size={14} color="#94A3B8" /> {latestContract?.posisi || '-'}</span>
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <CreditCard size={13} className="text-gray-400" />
+                NIK: <span className="font-medium text-gray-700 font-mono">{employee.nik || '—'}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin size={13} className="text-gray-400" />
+                {employee.cabang}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Phone size={13} className="text-gray-400" />
+                {employee.noHp || '—'}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Building2 size={13} className="text-gray-400" />
+                {latestContract?.posisi || '—'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* MASA KERJA + SISA KONTRAK */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12, borderRight: '1px solid #F1F5F9' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={18} color="#3B82F6" />
+        {/* Bottom: Metrics Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 border-t border-gray-100">
+          {/* Masa kerja */}
+          <div className="flex items-center gap-3 px-6 py-4 sm:border-r border-gray-100">
+            <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+              <Clock size={17} className="text-primary" />
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Masa Kerja Akumulasi</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#1E293B' }}>{years > 0 ? `${years} Tahun ` : ''}{months} Bulan</div>
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">
+                Masa Kerja Akumulasi
+              </p>
+              <p className="text-base font-bold text-gray-900 mt-0.5">
+                {years > 0 ? `${years} Tahun ` : ''}
+                {months} Bulan
+                {totalMonths === 0 && ' (Baru)'}
+              </p>
             </div>
           </div>
-          <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12, background: daysToExpiry <= 30 ? '#FEF2F2' : '#F0FDF4' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: daysToExpiry <= 30 ? '#FEE2E2' : '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CalendarDays size={18} color={daysToExpiry <= 30 ? '#DC2626' : '#059669'} />
+
+          {/* Sisa kontrak */}
+          <div className={cn(
+            'flex items-center gap-3 px-6 py-4',
+            isKritis ? 'bg-red-50' : isMendekat ? 'bg-amber-50' : 'bg-gray-50/50'
+          )}>
+            <div className={cn(
+              'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
+              isKritis ? 'bg-red-100' : isMendekat ? 'bg-amber-100' : 'bg-green-50'
+            )}>
+              <CalendarDays
+                size={17}
+                className={cn(
+                  isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
+                )}
+              />
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: daysToExpiry <= 30 ? '#DC2626' : '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sisa Kontrak</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#1E293B' }}>{daysToExpiry > 0 ? `${daysToExpiry} Hari` : 'Habis'}</div>
+              <p className={cn(
+                'text-[10px] font-semibold uppercase tracking-widest',
+                isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
+              )}>
+                Sisa Kontrak
+              </p>
+              <p className="text-base font-bold text-gray-900 mt-0.5">
+                {isExpired ? 'Kontrak Habis' : `${daysToExpiry} Hari`}
+                {latestContract && (
+                  <span className="text-xs font-normal text-muted-foreground ml-2">
+                    s/d {format(new Date(latestContract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ===== ALL DATA — 3 SECTIONS ===== */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-        {/* IDENTITAS PRIBADI */}
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20 }}>
-          <SectionTitle icon={<User size={14} color="#3B82F6" />} title="Identitas Pribadi" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+      {/* ─── Kritis Warning Banner ─── */}
+      {(isKritis || isMendekat) && (
+        <div className={cn(
+          'flex items-start gap-3 rounded-lg border px-4 py-3.5',
+          isKritis ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+        )}>
+          <AlertTriangle className={cn('h-5 w-5 shrink-0 mt-0.5', isKritis ? 'text-red-600' : 'text-amber-600')} />
+          <div>
+            <p className={cn('text-sm font-semibold', isKritis ? 'text-red-800' : 'text-amber-800')}>
+              {isKritis
+                ? `Kontrak berakhir dalam ${daysToExpiry} hari!`
+                : `Kontrak berakhir dalam ${daysToExpiry} hari`}
+            </p>
+            <p className={cn('text-sm mt-0.5', isKritis ? 'text-red-600' : 'text-amber-600')}>
+              Segera koordinasikan perpanjangan atau penyelesaian kontrak dengan karyawan.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Data Sections: 2-col ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        {/* Identitas Pribadi */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+            <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+              <User className="h-4 w-4 text-primary" />
+            </div>
+            <h2 className="text-base font-semibold text-gray-800">Identitas Pribadi</h2>
+          </div>
+          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
-            <InfoItem label="NIK Karyawan" value={employee.nik || '-'} />
+            <InfoItem label="NIK Karyawan" value={employee.nik || '—'} mono />
             <InfoItem label="No KTP" value={employee.noKtp} mono />
-            <InfoItem label="Tanggal Lahir" value={employee.tglLahir ? format(new Date(employee.tglLahir), 'dd MMMM yyyy') : '-'} />
+            <InfoItem
+              label="Tanggal Lahir"
+              value={
+                employee.tglLahir
+                  ? format(new Date(employee.tglLahir), 'dd MMMM yyyy', { locale: localeID })
+                  : '—'
+              }
+            />
             <InfoItem label="Nama Ibu Kandung" value={employee.namaIbu} />
-            <InfoItem label="No HP / WhatsApp" value={employee.noHp || '-'} />
-            <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
-            <InfoItem label="Status" value={employee.status} />
+            <InfoItem label="No HP / WhatsApp" value={employee.noHp || '—'} />
+            <InfoItem label="No Jamsostek" value={employee.noJamsostek || '—'} mono />
+            <InfoItem
+              label="Status Karyawan"
+              value={employee.status}
+              valueClassName={employee.status === 'AKTIF' ? 'text-green-700 font-semibold' : 'text-red-600 font-semibold'}
+            />
           </div>
         </div>
 
-        {/* DATA OPERASIONAL */}
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20 }}>
-          <SectionTitle icon={<Building2 size={14} color="#10B981" />} title="Data Operasional" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+        {/* Data Operasional */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+            <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-green-600" />
+            </div>
+            <h2 className="text-base font-semibold text-gray-800">Data Operasional</h2>
+          </div>
+          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
             <InfoItem label="Region" value={employee.region} />
             <InfoItem label="Cabang" value={employee.cabang} />
-            <InfoItem label="Form Consent" value={employee.formConsent} />
-            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '-'} />
+            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '—'} />
+            <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
+            <InfoItem
+              label="Dibuat"
+              value={format(new Date(employee.createdAt), 'dd MMM yyyy', { locale: localeID })}
+            />
+            <InfoItem
+              label="Diperbarui"
+              value={format(new Date(employee.updatedAt), 'dd MMM yyyy, HH:mm', { locale: localeID })}
+            />
           </div>
         </div>
       </div>
 
-      {/* DOKUMEN & META */}
-      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: 20, marginBottom: 20 }}>
-        <SectionTitle icon={<FileCheck size={14} color="#F97316" />} title="Dokumen & Metadata" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px 20px' }}>
-          <DocStatus label="Foto Karyawan" available={!!employee.image} />
-          <DocStatus label="Scan KTP" available={!!employee.ktpPath} />
-          <DocStatus label="Scan KK" available={!!employee.kkPath} />
-          <InfoItem label="Form Consent" value={employee.formConsent} />
-          <InfoItem label="Data ID" value={employee.id.substring(0, 12) + '...'} mono />
-          <InfoItem label="Dibuat" value={format(new Date(employee.createdAt), 'dd MMM yyyy, HH:mm')} />
-          <InfoItem label="Diperbarui" value={format(new Date(employee.updatedAt), 'dd MMM yyyy, HH:mm')} />
-          <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
+      {/* ─── Dokumen ─── */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+          <div className="h-7 w-7 rounded-md bg-orange-50 flex items-center justify-center">
+            <FileCheck className="h-4 w-4 text-orange-500" />
+          </div>
+          <h2 className="text-base font-semibold text-gray-800">Dokumen</h2>
+        </div>
+        <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <DocCard
+            label="Foto Karyawan"
+            icon={<FileImage size={22} className="text-blue-400" />}
+            available={!!employee.image}
+            href={employee.image || undefined}
+          />
+          <DocCard
+            label="Scan KTP"
+            icon={<Fingerprint size={22} className="text-indigo-400" />}
+            available={!!employee.ktpPath}
+            href={employee.ktpPath || undefined}
+          />
+          <DocCard
+            label="Scan KK"
+            icon={<FileText size={22} className="text-violet-400" />}
+            available={!!employee.kkPath}
+            href={employee.kkPath || undefined}
+          />
+          <DocCard
+            label="Form Consent"
+            icon={<Hash size={22} className="text-teal-400" />}
+            available={!!employee.formConsent}
+            customValue={employee.formConsent || undefined}
+          />
         </div>
       </div>
 
-      {/* RIWAYAT KONTRAK */}
+      {/* ─── Riwayat Kontrak ─── */}
       <ContractList employee={employee} contracts={employee.contracts} />
+
     </div>
-  );
+  )
 }
 
-/* ============ SUB-COMPONENTS ============ */
+/* ─────────────────────────────────────────────
+   Sub-components
+───────────────────────────────────────────── */
 
-function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-      <div style={{ width: 26, height: 26, borderRadius: 6, background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
-      <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0 }}>{title}</h3>
-    </div>
-  );
-}
-
-function InfoItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: mono ? 'monospace' : 'inherit' }}>{value}</div>
-    </div>
-  );
-}
-
-function StatusBadge({ status, days }: { status: string; days: number }) {
-  let bg = '#ECFDF5', color = '#059669', border = '#A7F3D0', text = 'Aktif';
-  if (status !== 'AKTIF') { bg = '#FEF2F2'; color = '#DC2626'; border = '#FECACA'; text = 'Non-Aktif'; }
-  else if (days < 0) { bg = '#FEF2F2'; color = '#DC2626'; border = '#FECACA'; text = 'Expired'; }
-  else if (days <= 30) { bg = '#FFF7ED'; color = '#EA580C'; border = '#FED7AA'; text = 'Segera Habis'; }
-  return <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: bg, color, border: `1px solid ${border}` }}>{text}</span>;
-}
-
-function DocStatus({ label, available }: { label: string; available: boolean }) {
+function InfoItem({
+  label,
+  value,
+  mono = false,
+  valueClassName,
+}: {
+  label: string
+  value: string
+  mono?: boolean
+  valueClassName?: string
+}) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: available ? '#059669' : '#DC2626' }}>
-        {available ? <CheckCircle2 size={14} color="#059669" /> : <XCircle size={14} color="#DC2626" />}
-        {available ? 'Tersedia' : 'Belum ada'}
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+        {label}
+      </p>
+      <p className={cn(
+        'text-sm font-medium text-gray-800',
+        mono && 'font-mono',
+        valueClassName
+      )}>
+        {value || '—'}
+      </p>
+    </div>
+  )
+}
+
+function DocCard({
+  label,
+  icon,
+  available,
+  href,
+  customValue,
+}: {
+  label: string
+  icon: React.ReactNode
+  available: boolean
+  href?: string
+  customValue?: string
+}) {
+  return (
+    <div className={cn(
+      'rounded-lg border p-4 flex flex-col items-center text-center gap-2',
+      available ? 'border-green-200 bg-green-50/50' : 'border-gray-200 bg-gray-50/50'
+    )}>
+      <div className={cn(
+        'h-10 w-10 rounded-lg flex items-center justify-center',
+        available ? 'bg-white' : 'bg-gray-100'
+      )}>
+        {icon}
       </div>
+      <p className="text-[11px] font-semibold text-gray-600 leading-tight">{label}</p>
+      {customValue ? (
+        <p className="text-xs text-gray-700 font-mono">{customValue}</p>
+      ) : available ? (
+        href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-semibold text-green-700 flex items-center gap-1 hover:underline"
+          >
+            <CheckCircle2 size={11} /> Tersedia
+          </a>
+        ) : (
+          <span className="text-[11px] font-semibold text-green-700 flex items-center gap-1">
+            <CheckCircle2 size={11} /> Tersedia
+          </span>
+        )
+      ) : (
+        <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
+          <XCircle size={11} /> Belum ada
+        </span>
+      )}
     </div>
-  );
+  )
 }

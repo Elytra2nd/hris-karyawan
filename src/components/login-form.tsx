@@ -1,159 +1,125 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Loader2, Lock, User, Shield, ArrowRight, AlertCircle } from 'lucide-react';
-
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
+import {
+  Loader2, Lock, User, Eye, EyeOff,
+  AlertCircle, ArrowRight, Shield,
+} from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function LoginForm() {
-  const router = useRouter();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [focused, setFocused] = useState<string | null>(null);
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get('username') as string;
-    const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget)
+    const username = formData.get('username') as string
+    const password = formData.get('password') as string
 
     try {
-      const res = await signIn('credentials', {
-        redirect: false,
-        username,
-        password,
-      });
+      const res = await signIn('credentials', { redirect: false, username, password })
 
       if (res?.error) {
-        setError('Username atau password salah.');
-        setLoading(false);
+        setError('Username atau password salah. Silakan coba lagi.')
+        setLoading(false)
       } else if (res?.ok) {
-        // Force full page navigation with cookie refresh
-        window.location.replace('/');
+        window.location.replace('/')
       }
     } catch {
-      setError('Terjadi kesalahan. Coba lagi.');
-      setLoading(false);
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div style={{ width: '100%', maxWidth: 420, fontFamily: F }}>
+    <div className="w-full max-w-sm">
 
-      {/* BRANDING */}
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: 16,
-        }}>
-          <img src="/astra-logo.png" alt="Astra" style={{ height: 48, objectFit: 'contain' }} />
-        </div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1E293B', margin: 0, letterSpacing: '-0.02em' }}>
+      {/* ─── Branding ─── */}
+      <div className="text-center mb-8">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/astra-logo.png"
+          alt="Astra Motor Kalimantan Barat"
+          className="h-12 object-contain mx-auto mb-5"
+        />
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           HRIS Karyawan
         </h1>
-        <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 4, fontWeight: 500 }}>
+        <p className="text-sm text-muted-foreground mt-1">
           Astra Motor Kalimantan Barat
         </p>
       </div>
 
-      {/* CARD */}
-      <div style={{
-        background: '#fff', borderRadius: 16, overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-        border: '1px solid #E2E8F0',
-      }}>
-        {/* Accent line */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #1E293B 0%, #3B82F6 50%, #1E293B 100%)' }} />
+      {/* ─── Card ─── */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        {/* Accent bar — biru Astra */}
+        <div className="h-1 bg-primary w-full" />
 
-        <div style={{ padding: '32px 28px' }}>
-          {/* Title */}
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1E293B', margin: 0 }}>
-              Masuk ke Sistem
-            </h2>
-            <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 4 }}>
-              Masukkan kredensial untuk mengakses database
+        <div className="px-7 pt-7 pb-8">
+          <div className="mb-6 text-center">
+            <h2 className="text-base font-semibold text-gray-800">Masuk ke Sistem</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Masukkan kredensial akun Anda
             </p>
           </div>
 
-          {/* FORM */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+
             {/* Username */}
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 6, letterSpacing: '0.02em' }}>
-                Username
-              </label>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '0 14px', height: 46, borderRadius: 10,
-                border: `1.5px solid ${focused === 'user' ? '#3B82F6' : '#E2E8F0'}`,
-                background: focused === 'user' ? '#fff' : '#F8FAFC',
-                transition: 'all 0.15s',
-                boxShadow: focused === 'user' ? '0 0 0 3px rgba(59,130,246,0.1)' : 'none',
-              }}>
-                <User size={16} color={focused === 'user' ? '#3B82F6' : '#94A3B8'} style={{ transition: 'color 0.15s' }} />
-                <input
+            <div className="space-y-2">
+              <Label htmlFor="username" className="form-label">Username</Label>
+              <div className="relative">
+                <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Input
+                  id="username"
                   name="username"
                   type="text"
                   placeholder="Masukkan username"
                   required
                   disabled={loading}
                   autoComplete="username"
-                  onFocus={() => setFocused('user')}
-                  onBlur={() => setFocused(null)}
-                  style={{
-                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                    fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: F,
-                  }}
+                  className="pl-9 h-10 text-sm"
                 />
               </div>
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 6, letterSpacing: '0.02em' }}>
-                Password
-              </label>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '0 14px', height: 46, borderRadius: 10,
-                border: `1.5px solid ${focused === 'pass' ? '#3B82F6' : '#E2E8F0'}`,
-                background: focused === 'pass' ? '#fff' : '#F8FAFC',
-                transition: 'all 0.15s',
-                boxShadow: focused === 'pass' ? '0 0 0 3px rgba(59,130,246,0.1)' : 'none',
-              }}>
-                <Lock size={16} color={focused === 'pass' ? '#3B82F6' : '#94A3B8'} style={{ transition: 'color 0.15s' }} />
-                <input
+            <div className="space-y-2">
+              <Label htmlFor="password" className="form-label">Password</Label>
+              <div className="relative">
+                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Input
+                  id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Masukkan password"
                   required
                   disabled={loading}
                   autoComplete="current-password"
-                  onFocus={() => setFocused('pass')}
-                  onBlur={() => setFocused(null)}
-                  style={{
-                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                    fontSize: 14, fontWeight: 500, color: '#1E293B', fontFamily: F,
-                  }}
+                  className="pl-9 pr-10 h-10 text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
 
             {/* Error */}
             {error && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '10px 14px', borderRadius: 10, marginBottom: 18,
-                background: '#FEF2F2', border: '1px solid #FECACA',
-                fontSize: 13, fontWeight: 500, color: '#DC2626',
-              }}>
-                <AlertCircle size={14} />
+              <div className="flex items-center gap-2.5 rounded-md bg-red-50 border border-red-200 px-3.5 py-2.5 text-sm text-red-700">
+                <AlertCircle size={14} className="shrink-0" />
                 {error}
               </div>
             )}
@@ -162,50 +128,32 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width: '100%', height: 48, borderRadius: 10, border: 'none',
-                background: loading ? '#94A3B8' : '#1E293B',
-                color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
-                fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(30,41,59,0.15)',
-              }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#334155'; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#1E293B'; }}
+              className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2"
             >
               {loading ? (
-                <>
-                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                  Memverifikasi...
-                </>
+                <><Loader2 size={15} className="animate-spin" /> Memverifikasi...</>
               ) : (
-                <>
-                  Masuk
-                  <ArrowRight size={16} />
-                </>
+                <>Masuk <ArrowRight size={15} /></>
               )}
             </button>
           </form>
 
           {/* Security note */}
-          <div style={{
-            marginTop: 24, padding: '12px 0', borderTop: '1px solid #F1F5F9',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            fontSize: 11, color: '#CBD5E1', fontWeight: 500,
-          }}>
+          <div className="mt-6 pt-5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-xs text-gray-400">
             <Lock size={10} />
             Koneksi terenkripsi · Sesi aman
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 4px 0', fontSize: 11, color: '#CBD5E1', fontWeight: 500,
-      }}>
-        <span>&copy; 2026 Astra Motor Kalimantan Barat</span>
-        <span>HRIS v2.1</span>
+      {/* ─── Footer ─── */}
+      <div className="flex items-center justify-between mt-5 px-1 text-xs text-gray-400">
+        <span>© 2026 Astra Motor Kalimantan Barat</span>
+        <span className="flex items-center gap-1">
+          <Shield size={10} />
+          HRIS v2.1
+        </span>
       </div>
     </div>
-  );
+  )
 }

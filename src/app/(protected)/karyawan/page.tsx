@@ -1,433 +1,805 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useMemo } from 'react';
-import { getEmployees, deleteEmployee } from '@/app/actions/employee';
+import { useState, useEffect, useMemo } from 'react'
+import { getEmployees, deleteEmployee } from '@/app/actions/employee'
 import {
   Loader2, Eye, Pencil, FileClock, Trash2, Search,
-  SlidersHorizontal, ArrowUpDown, Plus, MoreVertical,
-  ChevronLeft, ChevronRight, User, ChevronDown,
-} from "lucide-react";
-import Link from 'next/link';
-import { useSidebar } from "@/components/ui/sidebar";
+  SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
+  Plus, MoreVertical, ChevronLeft, ChevronRight,
+  Download, User, XCircle, CheckCircle2, Clock, AlertTriangle,
+  Phone,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useSidebar } from '@/components/ui/sidebar'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { differenceInDays } from 'date-fns';
-import { ExportExcelButton } from '@/components/export-excel-button';
+} from '@/components/ui/alert-dialog'
+import { toast } from 'sonner'
+import { differenceInDays, format } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
+import { ExportExcelButton } from '@/components/export-excel-button'
+import { cn } from '@/lib/utils'
 
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
-const PER_PAGE = 10;
-
-type SortKey = 'namaLengkap' | 'nik' | 'posisi' | 'cabang' | 'traineeSelesai' | '';
+const PER_PAGE = 10
+type SortKey = 'namaLengkap' | 'nik' | 'posisi' | 'cabang' | 'traineeSelesai' | ''
 
 export default function DataKaryawanPage() {
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [cabang, setCabang] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState(0);
-  const [sortCol, setSortCol] = useState<SortKey>('');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [showFilter, setShowFilter] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [cabang, setCabang] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const [sortCol, setSortCol] = useState<SortKey>('')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [showFilter, setShowFilter] = useState(false)
 
-  const { role } = useSidebar();
-  const isAdmin = role === 'ADMIN';
+  const { role } = useSidebar()
+  const isAdmin = role === 'ADMIN'
 
   const fetchData = async () => {
-    setLoading(true);
-    const data = await getEmployees({ search, cabang, status: statusFilter });
-    setEmployees(data);
-    setLoading(false);
-    setPage(1);
-  };
-  useEffect(() => { fetchData(); }, [search, cabang, statusFilter]);
+    setLoading(true)
+    const data = await getEmployees({ search, cabang, status: statusFilter })
+    setEmployees(data)
+    setLoading(false)
+    setPage(1)
+  }
+  useEffect(() => { fetchData() }, [search, cabang, statusFilter])
 
-  // Unique cabang values for filter
-  const cabangOptions = useMemo(() => [...new Set(employees.map(e => e.cabang))].sort(), [employees]);
+  const cabangOptions = useMemo(
+    () => [...new Set(employees.map((e) => e.cabang))].sort(),
+    [employees]
+  )
+
+  const now = new Date()
 
   const stats = useMemo(() => {
-    const now = new Date();
-    const total = employees.length;
-    const aktif = employees.filter(e => {
-      const c = e.contracts?.[0];
-      if (!c || e.status !== 'AKTIF') return false;
-      return differenceInDays(new Date(c.traineeSelesai), now) >= 0;
-    }).length;
-    const nonAktif = total - aktif;
-    const segera = employees.filter(e => {
-      const c = e.contracts?.[0];
-      if (!c) return false;
-      const d = differenceInDays(new Date(c.traineeSelesai), now);
-      return d >= 0 && d <= 30;
-    }).length;
-    return { total, aktif, nonAktif, segera };
-  }, [employees]);
+    const total = employees.length
+    const aktif = employees.filter((e) => {
+      const c = e.contracts?.[0]
+      if (!c || e.status !== 'AKTIF') return false
+      return differenceInDays(new Date(c.traineeSelesai), now) >= 0
+    }).length
+    const segera = employees.filter((e) => {
+      const c = e.contracts?.[0]
+      if (!c) return false
+      const d = differenceInDays(new Date(c.traineeSelesai), now)
+      return d >= 0 && d <= 30
+    }).length
+    return { total, aktif, nonAktif: total - aktif, segera }
+  }, [employees])
 
-  // Sort logic
   const sortedEmployees = useMemo(() => {
-    if (!sortCol) return employees;
+    if (!sortCol) return employees
     return [...employees].sort((a, b) => {
-      let va: any, vb: any;
-      if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi || ''; vb = b.contracts?.[0]?.posisi || ''; }
-      else if (sortCol === 'traineeSelesai') { va = a.contracts?.[0]?.traineeSelesai || ''; vb = b.contracts?.[0]?.traineeSelesai || ''; }
-      else { va = a[sortCol] || ''; vb = b[sortCol] || ''; }
-      if (typeof va === 'string') va = va.toLowerCase();
-      if (typeof vb === 'string') vb = vb.toLowerCase();
-      if (va < vb) return sortDir === 'asc' ? -1 : 1;
-      if (va > vb) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [employees, sortCol, sortDir]);
+      let va: any, vb: any
+      if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi || ''; vb = b.contracts?.[0]?.posisi || '' }
+      else if (sortCol === 'traineeSelesai') { va = a.contracts?.[0]?.traineeSelesai || ''; vb = b.contracts?.[0]?.traineeSelesai || '' }
+      else { va = a[sortCol] || ''; vb = b[sortCol] || '' }
+      if (typeof va === 'string') va = va.toLowerCase()
+      if (typeof vb === 'string') vb = vb.toLowerCase()
+      if (va < vb) return sortDir === 'asc' ? -1 : 1
+      if (va > vb) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [employees, sortCol, sortDir])
 
-  const totalPages = Math.ceil(sortedEmployees.length / PER_PAGE);
-  const rows = sortedEmployees.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const totalPages = Math.ceil(sortedEmployees.length / PER_PAGE)
+  const rows = sortedEmployees.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   const pageNums = useMemo(() => {
-    const p: (number | string)[] = [];
-    if (totalPages <= 5) { for (let i = 1; i <= totalPages; i++) p.push(i); }
-    else {
-      p.push(1);
-      if (page > 3) p.push('...');
-      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i);
-      if (page < totalPages - 2) p.push('...');
-      p.push(totalPages);
+    const p: (number | string)[] = []
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) p.push(i)
+    } else {
+      p.push(1)
+      if (page > 3) p.push('...')
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i)
+      if (page < totalPages - 2) p.push('...')
+      p.push(totalPages)
     }
-    return p;
-  }, [page, totalPages]);
+    return p
+  }, [page, totalPages])
 
   const handleSort = (col: SortKey) => {
-    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    else { setSortCol(col); setSortDir('asc'); }
-  };
+    if (sortCol === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortCol(col); setSortDir('asc') }
+  }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!isAdmin) { toast.error("Akses Ditolak"); return; }
-    setIsDeleting(id);
+    if (!isAdmin) { toast.error('Akses ditolak'); return }
+    setIsDeleting(id)
     try {
-      const r = await deleteEmployee(id);
-      if (r.success) { toast.success(`${name} telah dihapus.`); await fetchData(); }
-      else toast.error(r.error || "Gagal menghapus.");
-    } catch { toast.error("Gagal menghubungkan ke server."); }
-    finally { setIsDeleting(null); }
-  };
+      const r = await deleteEmployee(id)
+      if (r.success) { toast.success(`${name} berhasil dihapus`); await fetchData() }
+      else toast.error(r.error || 'Gagal menghapus')
+    } catch { toast.error('Gagal menghubungkan ke server') }
+    finally { setIsDeleting(null) }
+  }
 
-  const fmtDate = (s: string) => !s ? '-' : new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const fmtDate = (s: string) =>
+    !s ? '-' : format(new Date(s), 'dd MMM yyyy', { locale: localeID })
 
-  const badge = (emp: any) => {
-    if (emp.status !== 'AKTIF') return <Badge bg="#FEF2F2" color="#DC2626" border="#FECACA">Non-Aktif</Badge>;
-    const c = emp.contracts?.[0];
-    if (c) {
-      const d = differenceInDays(new Date(c.traineeSelesai), new Date());
-      if (d < 0) return <Badge bg="#FEF2F2" color="#DC2626" border="#FECACA">Expired</Badge>;
-      if (d <= 30) return <Badge bg="#FFF7ED" color="#EA580C" border="#FED7AA">Segera Habis</Badge>;
+  const getStatusChip = (emp: any) => {
+    if (emp.status !== 'AKTIF') {
+      return <span className="chip-nonaktif">Non-Aktif</span>
     }
-    return <Badge bg="#ECFDF5" color="#059669" border="#A7F3D0">Aktif</Badge>;
-  };
+    const c = emp.contracts?.[0]
+    if (c) {
+      const d = differenceInDays(new Date(c.traineeSelesai), now)
+      if (d < 0) return <span className="chip-expired">Expired</span>
+      if (d <= 30) return <span className="chip-warning">Segera Habis</span>
+    }
+    return <span className="chip-aktif">Aktif</span>
+  }
 
-  const tabs = ['Daftar Karyawan', 'Directory', 'ORG Chart'];
+  const getDaysBadge = (emp: any) => {
+    const c = emp.contracts?.[0]
+    if (!c) return null
+    const d = differenceInDays(new Date(c.traineeSelesai), now)
+    if (d < 0) {
+      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600"><XCircle size={11} /> Expired</span>
+    }
+    if (d <= 14) {
+      return <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600"><AlertTriangle size={11} /> {d}h</span>
+    }
+    if (d <= 30) {
+      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Clock size={11} /> {d}h</span>
+    }
+    if (d <= 90) {
+      return <span className="text-[11px] font-medium text-gray-500">{d}h</span>
+    }
+    return <span className="inline-flex items-center gap-1 text-[11px] text-green-600"><CheckCircle2 size={11} /> {d}h</span>
+  }
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortCol !== col) return <ArrowUpDown size={13} className="ml-1 text-gray-300 inline-block" />
+    return sortDir === 'asc'
+      ? <ArrowUp size={13} className="ml-1 text-primary inline-block" />
+      : <ArrowDown size={13} className="ml-1 text-primary inline-block" />
+  }
 
   return (
-    <div style={{ fontFamily: F }}>
-      {/* ===== TOP HEADER ===== */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', margin: 0 }}>Karyawan</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className="space-y-5">
+
+      {/* ─── Page Header ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Data Karyawan</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manajemen data trainee Astra Motor Kalimantan Barat
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
           {isAdmin && <ExportExcelButton variant="default" />}
           {isAdmin && (
-            <Link href="/karyawan/tambah" style={{ textDecoration: 'none' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', fontSize: 14, fontWeight: 600, backgroundColor: '#1E293B', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
-                <Plus size={16} /> Tambah baru
+            <Link href="/karyawan/tambah">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
+                <Plus size={15} />
+                Tambah Karyawan
               </button>
             </Link>
           )}
         </div>
       </div>
 
-      {/* VIEWER INFO */}
+      {/* ─── Viewer Notice ─── */}
       {!isAdmin && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0', marginBottom: 16, fontSize: 13, color: '#64748B' }}>
-          <Eye size={14} color="#94A3B8" />
-          <span>Mode <strong>Viewer</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-600">
+          <Eye size={15} className="text-gray-400 shrink-0" />
+          <span>Mode <strong>Pemirsa</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
         </div>
       )}
 
-      {/* ===== TABS + SEARCH/FILTER/SORT ===== */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 0 }}>
-          {tabs.map((t, i) => (
-            <button key={t} onClick={() => setActiveTab(i)} style={{
-              padding: '10px 16px', fontSize: 14, fontWeight: activeTab === i ? 600 : 400,
-              color: activeTab === i ? '#1E293B' : '#94A3B8', background: 'none', border: 'none',
-              borderBottom: activeTab === i ? '2px solid #1E293B' : '2px solid transparent',
-              cursor: 'pointer', fontFamily: F, marginBottom: -1,
-            }}>{t}</button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 8 }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..."
-              style={{ width: 180, height: 36, paddingLeft: 32, paddingRight: 10, fontSize: 13, border: '1px solid #E2E8F0', borderRadius: 8, outline: 'none', fontFamily: F, color: '#475569' }} />
+      {/* ─── Stat Cards ─── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={<User size={18} className="text-white" />}
+          iconBg="bg-primary"
+          value={stats.total}
+          label="Total Karyawan"
+          primary
+        />
+        <StatCard
+          icon={<CheckCircle2 size={18} className="text-green-600" />}
+          iconBg="bg-green-50"
+          value={stats.aktif}
+          label="Karyawan Aktif"
+        />
+        <StatCard
+          icon={<Clock size={18} className="text-amber-500" />}
+          iconBg="bg-amber-50"
+          value={stats.segera}
+          label="Kontrak ≤ 30 hari"
+          highlight={stats.segera > 0}
+        />
+        <StatCard
+          icon={<XCircle size={18} className="text-gray-400" />}
+          iconBg="bg-gray-50"
+          value={stats.nonAktif}
+          label="Non-Aktif"
+        />
+      </div>
+
+      {/* ─── Search + Filter Toolbar ─── */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama, NIK, atau posisi..."
+              className="w-full h-9 pl-9 pr-3 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-gray-400"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <XCircle size={14} />
+              </button>
+            )}
           </div>
-          <button onClick={() => setShowFilter(!showFilter)} style={{ ...btnOutline, gap: 6, background: showFilter ? '#F1F5F9' : '#fff' }}>
-            <SlidersHorizontal size={14} /> Filter
-          </button>
+
+          {/* Sort dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button style={{ ...btnOutline, gap: 6 }}>
-                <ArrowUpDown size={14} /> Sort
+              <button className={cn(
+                'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
+                sortCol
+                  ? 'border-primary text-primary bg-accent font-semibold'
+                  : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50'
+              )}>
+                <ArrowUpDown size={14} />
+                Urutkan
+                {sortCol && <span className="ml-1 text-xs">({sortCol === 'namaLengkap' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol})</span>}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" style={{ fontFamily: F, minWidth: 180 }}>
-              <DropdownMenuItem onClick={() => handleSort('namaLengkap')} className="cursor-pointer text-sm">
-                Nama {sortCol === 'namaLengkap' && (sortDir === 'asc' ? '↑' : '↓')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('nik')} className="cursor-pointer text-sm">
-                NIK {sortCol === 'nik' && (sortDir === 'asc' ? '↑' : '↓')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('posisi')} className="cursor-pointer text-sm">
-                Posisi {sortCol === 'posisi' && (sortDir === 'asc' ? '↑' : '↓')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('cabang')} className="cursor-pointer text-sm">
-                Cabang {sortCol === 'cabang' && (sortDir === 'asc' ? '↑' : '↓')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('traineeSelesai')} className="cursor-pointer text-sm">
-                Trainee Selesai {sortCol === 'traineeSelesai' && (sortDir === 'asc' ? '↑' : '↓')}
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-48">
+              {[
+                { key: 'namaLengkap', label: 'Nama Lengkap' },
+                { key: 'nik', label: 'NIK' },
+                { key: 'posisi', label: 'Posisi' },
+                { key: 'cabang', label: 'Cabang' },
+                { key: 'traineeSelesai', label: 'Tanggal Selesai' },
+              ].map(({ key, label }) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleSort(key as SortKey)}
+                  className="cursor-pointer text-sm justify-between"
+                >
+                  {label}
+                  {sortCol === key && (
+                    <span className="text-primary font-bold">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { setSortCol(''); setSortDir('asc'); }} className="cursor-pointer text-sm text-slate-400">
-                Reset
+              <DropdownMenuItem
+                onClick={() => { setSortCol(''); setSortDir('asc') }}
+                className="cursor-pointer text-sm text-muted-foreground"
+              >
+                Reset urutan
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </div>
 
-      {/* ===== FILTER ROW ===== */}
-      {showFilter && (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#FAFBFC', borderRadius: 10, border: '1px solid #F1F5F9' }}>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cabang</label>
-            <select value={cabang} onChange={e => setCabang(e.target.value)} style={selectStyle}>
-              <option value="">Semua Cabang</option>
-              {cabangOptions.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
-              <option value="">Semua Status</option>
-              <option value="AKTIF">Aktif</option>
-              <option value="NON-AKTIF">Non-Aktif</option>
-            </select>
-          </div>
-          <button onClick={() => { setCabang(''); setStatusFilter(''); setShowFilter(false); }} style={{ ...btnOutline, alignSelf: 'flex-end', fontSize: 12, height: 34, color: '#94A3B8' }}>
-            Reset Filter
+          {/* Filter toggle */}
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className={cn(
+              'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
+              showFilter
+                ? 'border-primary text-primary bg-accent font-semibold'
+                : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50'
+            )}
+          >
+            <SlidersHorizontal size={14} />
+            Filter
+            {(cabang || statusFilter) && (
+              <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
+            )}
           </button>
         </div>
-      )}
 
-      {/* ===== STAT CARDS ===== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
-        <StatCard icon="#94A3B8" bg="#F1F5F9" value={stats.total} delta={`+${stats.total}`} deltaColor="#059669" label="Total karyawan" />
-        <StatCard icon="#059669" bg="#ECFDF5" value={stats.aktif} delta={`+${stats.aktif}`} deltaColor="#059669" label="Karyawan aktif" />
-        <StatCard icon="#DC2626" bg="#FEF2F2" value={stats.nonAktif} delta={`-${stats.nonAktif}`} deltaColor="#DC2626" label="Non-aktif" />
-        <StatCard icon="#D97706" bg="#FFFBEB" value={stats.segera} delta={`+${stats.segera}`} deltaColor="#D97706" label="Kontrak segera habis" />
+        {/* Filter Panel */}
+        {showFilter && (
+          <div className="flex flex-wrap gap-3 px-4 py-3 rounded-md bg-gray-50 border border-gray-200">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cabang</label>
+              <select
+                value={cabang}
+                onChange={(e) => setCabang(e.target.value)}
+                className="h-8 px-2 pr-7 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+              >
+                <option value="">Semua Cabang</option>
+                {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="h-8 px-2 pr-7 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+              >
+                <option value="">Semua Status</option>
+                <option value="AKTIF">Aktif</option>
+                <option value="NON-AKTIF">Non-Aktif</option>
+              </select>
+            </div>
+            {(cabang || statusFilter) && (
+              <button
+                onClick={() => { setCabang(''); setStatusFilter('') }}
+                className="self-end h-8 px-3 text-xs font-semibold text-gray-500 hover:text-red-600 border border-gray-200 rounded-md bg-white hover:bg-red-50 transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ===== TABLE ===== */}
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 1000 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <TH w={40} align="center"><input type="checkbox" style={{ width: 16, height: 16, accentColor: '#1E293B' }} /></TH>
-              <TH w="22%" onClick={() => handleSort('namaLengkap')} sortable>Nama Lengkap <SortArrow col="namaLengkap" current={sortCol} dir={sortDir} /></TH>
-              <TH w="9%" onClick={() => handleSort('nik')} sortable>NIK <SortArrow col="nik" current={sortCol} dir={sortDir} /></TH>
-              <TH w="10%" onClick={() => handleSort('posisi')} sortable>Posisi <SortArrow col="posisi" current={sortCol} dir={sortDir} /></TH>
-              <TH w="8%" onClick={() => handleSort('cabang')} sortable>Cabang <SortArrow col="cabang" current={sortCol} dir={sortDir} /></TH>
-              <TH w="11%">Trainee Sejak</TH>
-              <TH w="11%" onClick={() => handleSort('traineeSelesai')} sortable>Trainee Selesai <SortArrow col="traineeSelesai" current={sortCol} dir={sortDir} /></TH>
-              <TH w="8%" align="center">Status</TH>
-              <TH w={36}></TH>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={9} style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
-                <Loader2 size={22} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 8px' }} />
-                <div style={{ fontSize: 13 }}>Memuat data...</div>
-              </td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: '#94A3B8', fontSize: 13 }}>Tidak ada data ditemukan.</td></tr>
-            ) : rows.map((emp: any) => {
-              const c = emp.contracts?.[0];
-              return (
-                <tr key={emp.id} style={{ borderBottom: '1px solid #F1F5F9' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#FAFBFC'}
-                  onMouseLeave={e => e.currentTarget.style.background = ''}
+      {/* ─── Table (Desktop) ─── */}
+      <div className="hidden md:block bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[960px]">
+            <thead>
+              <tr className="border-b border-gray-200 bg-blue-50/60">
+                <th className="w-10 px-4 py-3 text-center">
+                  <input type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-primary" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('namaLengkap')}
                 >
-                  <TD align="center"><input type="checkbox" style={{ width: 16, height: 16, accentColor: '#1E293B' }} /></TD>
-                  <TD>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <User size={16} color="#94A3B8" />
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, color: '#1E293B', fontSize: 14, lineHeight: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.namaLengkap}</div>
-                        <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>{emp.noHp || '-'}</div>
-                      </div>
-                    </div>
-                  </TD>
-                  <TD>
-                    <Link href={`/karyawan/${emp.id}`} style={{ color: '#3B82F6', fontWeight: 500, fontSize: 13, textDecoration: 'underline' }}>
-                      {emp.nik || '-'}
-                    </Link>
-                  </TD>
+                  Nama Karyawan <SortIcon col="namaLengkap" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('nik')}
+                >
+                  NIK <SortIcon col="nik" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('posisi')}
+                >
+                  Posisi <SortIcon col="posisi" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('cabang')}
+                >
+                  Cabang <SortIcon col="cabang" />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Trainee Sejak
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('traineeSelesai')}
+                >
+                  Selesai <SortIcon col="traineeSelesai" />
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Sisa
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="w-10 px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="py-16 text-center">
+                    <Loader2 size={24} className="animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Memuat data...</p>
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-16 text-center">
+                    <Search size={32} className="mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm font-semibold text-gray-500">Tidak ada data ditemukan</p>
+                    <p className="text-xs text-muted-foreground mt-1">Coba ubah filter atau kata kunci pencarian</p>
+                  </td>
+                </tr>
+              ) : (
+                rows.map((emp: any) => {
+                  const c = emp.contracts?.[0]
+                  const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
+                  const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
+                  const isMendekat = daysLeft !== null && daysLeft > 14 && daysLeft <= 30
 
-                  <TD>{c?.posisi || '-'}</TD>
-                  <TD>{emp.cabang}</TD>
-                  <TD>{c ? fmtDate(c.traineeSejak) : '-'}</TD>
-                  <TD>{c ? fmtDate(c.traineeSelesai) : '-'}</TD>
-                  <TD align="center">{badge(emp)}</TD>
-                  <TD align="center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#94A3B8' }}>
-                          <MoreVertical size={16} />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48" style={{ fontFamily: F }}>
-                        <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                          <Link href={`/karyawan/${emp.id}`}><Eye className="w-4 h-4 text-slate-500" /> Lihat detail</Link>
-                        </DropdownMenuItem>
-                        {isAdmin && (<>
+                  return (
+                    <tr
+                      key={emp.id}
+                      className={cn(
+                        'hover:bg-gray-50 transition-colors group',
+                        isKritis && 'bg-red-50/40',
+                        isMendekat && !isKritis && 'bg-amber-50/30',
+                      )}
+                    >
+                      <td className="px-4 py-3.5 text-center">
+                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-primary" />
+                      </td>
+                      {/* Nama */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-3">
+                          {emp.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={emp.image} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                              <User size={15} className="text-primary" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+                              {emp.namaLengkap}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{emp.noHp || '—'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      {/* NIK */}
+                      <td className="px-4 py-3.5">
+                        <Link
+                          href={`/karyawan/${emp.id}`}
+                          className="text-sm font-mono text-primary hover:underline font-medium"
+                        >
+                          {emp.nik || '—'}
+                        </Link>
+                      </td>
+                      {/* Posisi */}
+                      <td className="px-4 py-3.5 text-sm text-gray-700">
+                        {c?.posisi || '—'}
+                      </td>
+                      {/* Cabang */}
+                      <td className="px-4 py-3.5 text-sm text-gray-700">{emp.cabang}</td>
+                      {/* Sejak */}
+                      <td className="px-4 py-3.5 text-sm text-gray-600">{c ? fmtDate(c.traineeSejak) : '—'}</td>
+                      {/* Selesai */}
+                      <td className={cn(
+                        'px-4 py-3.5 text-sm font-medium',
+                        isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-gray-700'
+                      )}>
+                        {c ? fmtDate(c.traineeSelesai) : '—'}
+                      </td>
+                      {/* Sisa hari */}
+                      <td className="px-4 py-3.5 text-center">
+                        {getDaysBadge(emp)}
+                      </td>
+                      {/* Status */}
+                      <td className="px-4 py-3.5 text-center">
+                        {getStatusChip(emp)}
+                      </td>
+                      {/* Action */}
+                      <td className="px-4 py-3.5 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                              <MoreVertical size={16} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
+                              <Link href={`/karyawan/${emp.id}`}>
+                                <Eye className="h-4 w-4 text-gray-400" />
+                                Lihat Detail
+                              </Link>
+                            </DropdownMenuItem>
+                            {isAdmin && (
+                              <>
+                                <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
+                                  <Link href={`/karyawan/${emp.id}/edit`}>
+                                    <Pencil className="h-4 w-4 text-gray-400" />
+                                    Edit Profil
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
+                                  <Link href={`/karyawan/${emp.id}/kontrak`}>
+                                    <FileClock className="h-4 w-4 text-gray-400" />
+                                    Kelola Kontrak
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem
+                                      className="gap-2 cursor-pointer text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      Hapus Data
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Data <strong>{emp.namaLengkap}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(emp.id, emp.namaLengkap)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                        disabled={isDeleting === emp.id}
+                                      >
+                                        {isDeleting === emp.id
+                                          ? <Loader2 size={14} className="animate-spin mr-1.5 inline" />
+                                          : null}
+                                        Ya, Hapus
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 0 && !loading && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+            <p className="text-xs text-muted-foreground">
+              {sortedEmployees.length === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, sortedEmployees.length)}`} dari{' '}
+              <span className="font-semibold text-gray-700">{sortedEmployees.length}</span> karyawan
+            </p>
+            <div className="flex items-center gap-1">
+              <PgBtn onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}>
+                <ChevronLeft size={14} />
+              </PgBtn>
+              {pageNums.map((p, i) =>
+                typeof p === 'number' ? (
+                  <PgBtn key={i} active={page === p} onClick={() => setPage(p)}>
+                    {p}
+                  </PgBtn>
+                ) : (
+                  <span key={i} className="px-1 text-gray-400 text-sm select-none">···</span>
+                )
+              )}
+              <PgBtn onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>
+                <ChevronRight size={14} />
+              </PgBtn>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Mobile Card View ─── */}
+      <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-2">
+            <Loader2 size={24} className="animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Memuat data...</p>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
+            <Search size={32} className="text-gray-300" />
+            <p className="text-sm font-semibold text-gray-500">Tidak ada data ditemukan</p>
+            <p className="text-xs text-muted-foreground">Coba ubah filter atau kata kunci</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {rows.map((emp: any) => {
+              const c = emp.contracts?.[0]
+              const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
+              const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
+
+              return (
+                <div
+                  key={emp.id}
+                  className={cn(
+                    'px-4 py-4 flex items-start gap-3',
+                    isKritis && 'bg-red-50/40'
+                  )}
+                >
+                  {/* Avatar */}
+                  <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <User size={16} className="text-primary" />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{emp.namaLengkap}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {c?.posisi || '—'} · {emp.cabang}
+                        </p>
+                      </div>
+                      {getStatusChip(emp)}
+                    </div>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                      {emp.nik && (
+                        <span className="text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                          {emp.nik}
+                        </span>
+                      )}
+                      {c && (
+                        <span className="text-xs text-gray-500">
+                          Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-gray-700')}>
+                            {fmtDate(c.traineeSelesai)}
+                          </span>
+                        </span>
+                      )}
+                      {getDaysBadge(emp)}
+                    </div>
+                  </div>
+
+                  {/* Action */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 mt-0.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <MoreVertical size={16} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
+                        <Link href={`/karyawan/${emp.id}`}>
+                          <Eye className="h-4 w-4 text-gray-400" /> Lihat Detail
+                        </Link>
+                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <>
                           <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                            <Link href={`/karyawan/${emp.id}/edit`}><Pencil className="w-4 h-4 text-slate-500" /> Edit profil</Link>
+                            <Link href={`/karyawan/${emp.id}/edit`}>
+                              <Pencil className="h-4 w-4 text-gray-400" /> Edit Profil
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                            <Link href={`/karyawan/${emp.id}/kontrak`}><FileClock className="w-4 h-4 text-slate-500" /> Perbarui kontrak</Link>
+                            <Link href={`/karyawan/${emp.id}/kontrak`}>
+                              <FileClock className="h-4 w-4 text-gray-400" /> Kelola Kontrak
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="gap-2 cursor-pointer text-sm text-red-600 focus:text-red-600 focus:bg-red-50" onSelect={e => e.preventDefault()}>
-                                <Trash2 className="w-4 h-4" /> Hapus data
+                              <DropdownMenuItem
+                                className="gap-2 cursor-pointer text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                <Trash2 className="h-4 w-4" /> Hapus Data
                               </DropdownMenuItem>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-                                <AlertDialogDescription>Data <strong>{emp.namaLengkap}</strong> akan dihapus permanen.</AlertDialogDescription>
+                                <AlertDialogDescription>
+                                  Data <strong>{emp.namaLengkap}</strong> akan dihapus permanen.
+                                </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(emp.id, emp.namaLengkap)} className="bg-red-600 hover:bg-red-700 text-white">Ya, hapus</AlertDialogAction>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(emp.id, emp.namaLengkap)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Ya, Hapus
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        </>)}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TD>
-                </tr>
-              );
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )
             })}
-          </tbody>
-        </table>
-        </div>
-        {/* PAGINATION */}
-        {totalPages > 0 && !loading && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid #E2E8F0', fontSize: 13, color: '#64748B' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span>{PER_PAGE} records</span>
-              <ChevronDown size={12} />
+          </div>
+        )}
+
+        {/* Mobile Pagination */}
+        {totalPages > 1 && !loading && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+            <p className="text-xs text-muted-foreground">
+              Hal. {page} / {totalPages}
+            </p>
+            <div className="flex items-center gap-2">
+              <PgBtn onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}>
+                <ChevronLeft size={14} />
+              </PgBtn>
+              <PgBtn onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>
+                <ChevronRight size={14} />
+              </PgBtn>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <PgBtn onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}><ChevronLeft size={14} /></PgBtn>
-              {pageNums.map((p, i) => typeof p === 'number'
-                ? <PgBtn key={i} active={page === p} onClick={() => setPage(p)}>{p}</PgBtn>
-                : <span key={i} style={{ padding: '0 4px', color: '#94A3B8' }}>...</span>
-              )}
-              <PgBtn onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}><ChevronRight size={14} /></PgBtn>
-            </div>
-            <span>{(page - 1) * PER_PAGE + 1} - {Math.min(page * PER_PAGE, sortedEmployees.length)}</span>
           </div>
         )}
       </div>
+
     </div>
-  );
+  )
 }
 
-/* ============ SUB-COMPONENTS ============ */
+/* ─────────────────────────────────────────────
+   Sub-components
+───────────────────────────────────────────── */
 
-function StatCard({ icon, bg, value, delta, deltaColor, label }: { icon: string; bg: string; value: number; delta: string; deltaColor: string; label: string; }) {
+function StatCard({
+  icon,
+  iconBg,
+  value,
+  label,
+  primary = false,
+  highlight = false,
+}: {
+  icon: React.ReactNode
+  iconBg: string
+  value: number
+  label: string
+  primary?: boolean
+  highlight?: boolean
+}) {
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px 16px' }}>
-      <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-        <User size={20} color={icon} />
+    <div className={cn(
+      'rounded-lg p-4 flex items-center gap-3 shadow-sm',
+      primary
+        ? 'bg-primary'
+        : highlight
+          ? 'bg-white border border-amber-200'
+          : 'bg-white border border-gray-200'
+    )}>
+      <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconBg)}>
+        {icon}
       </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: 28, fontWeight: 700, color: '#1E293B', lineHeight: 1 }}>{value.toLocaleString()}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: deltaColor }}>{delta}</span>
+      <div>
+        <p className={cn('text-2xl font-bold leading-none', primary ? 'text-white' : 'text-gray-900')}>
+          {value.toLocaleString('id-ID')}
+        </p>
+        <p className={cn('text-xs mt-1', primary ? 'text-blue-100' : 'text-muted-foreground')}>
+          {label}
+        </p>
       </div>
-      <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 4, fontWeight: 500 }}>{label}</p>
     </div>
-  );
+  )
 }
 
-function Badge({ bg, color, border, children }: { bg: string; color: string; border: string; children: React.ReactNode; }) {
-  return <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, backgroundColor: bg, color, border: `1px solid ${border}` }}>{children}</span>;
-}
-
-function SortArrow({ col, current, dir }: { col: string; current: string; dir: string; }) {
-  if (col !== current) return <ArrowUpDown size={12} color="#CBD5E1" style={{ marginLeft: 4, verticalAlign: 'middle' }} />;
-  return <span style={{ marginLeft: 4, fontSize: 12, color: '#1E293B' }}>{dir === 'asc' ? '↑' : '↓'}</span>;
-}
-
-function TH({ children, w, align, onClick, sortable }: { children?: React.ReactNode; w?: number | string; align?: string; onClick?: () => void; sortable?: boolean; }) {
-  return <th onClick={onClick} style={{
-    padding: '10px 12px', textAlign: (align as any) || 'left', fontSize: 12, fontWeight: 500,
-    color: '#64748B', background: '#FAFBFC', whiteSpace: 'nowrap', width: w,
-    cursor: sortable ? 'pointer' : 'default', userSelect: 'none',
-  }}>{children}</th>;
-}
-
-function TD({ children, align }: { children?: React.ReactNode; align?: string; }) {
-  return <td style={{ padding: '12px 12px', fontSize: 14, color: '#475569', textAlign: (align as any) || 'left', whiteSpace: 'nowrap' }}>{children}</td>;
-}
-
-function PgBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void; }) {
+function PgBtn({
+  children,
+  active,
+  disabled,
+  onClick,
+}: {
+  children: React.ReactNode
+  active?: boolean
+  disabled?: boolean
+  onClick?: () => void
+}) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{
-      width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: 6, border: active ? '1px solid #1E293B' : '1px solid #E2E8F0',
-      background: active ? '#1E293B' : '#fff', color: active ? '#fff' : disabled ? '#CBD5E1' : '#475569',
-      fontSize: 13, fontWeight: 500, cursor: disabled ? 'default' : 'pointer',
-    }}>{children}</button>
-  );
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'h-7 min-w-7 px-2 flex items-center justify-center rounded-md text-xs font-medium border transition-colors',
+        active
+          ? 'bg-primary text-white border-primary'
+          : disabled
+            ? 'text-gray-300 border-gray-200 bg-white cursor-not-allowed'
+            : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer'
+      )}
+    >
+      {children}
+    </button>
+  )
 }
-
-const btnOutline: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', height: 36, padding: '0 12px',
-  fontSize: 13, fontWeight: 500, color: '#475569', background: '#fff',
-  border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer',
-  fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
-};
-
-const selectStyle: React.CSSProperties = {
-  height: 34, padding: '0 28px 0 10px', fontSize: 13, border: '1px solid #E2E8F0',
-  borderRadius: 8, backgroundColor: '#fff', color: '#475569',
-  appearance: 'none' as const, cursor: 'pointer', outline: 'none', fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
-};

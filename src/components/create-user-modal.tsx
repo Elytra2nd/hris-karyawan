@@ -1,81 +1,129 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { createUser } from '@/app/actions/user';
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter 
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
-  Select, SelectContent,SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from 'react'
+import { createUser } from '@/app/actions/user'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogTrigger, DialogDescription,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { Plus, Loader2, ShieldCheck, Shield } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function CreateUserModal() {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    
-    const formData = new FormData(event.currentTarget);
+    event.preventDefault()
+    setLoading(true)
+    const formData = new FormData(event.currentTarget)
     try {
-      const result = await createUser(formData);
+      const result = await createUser(formData)
       if (result.success) {
-        toast.success("User berhasil dibuat");
-        setOpen(false);
+        toast.success('Akun pengguna berhasil dibuat')
+        setOpen(false)
+      } else {
+        toast.error('Gagal membuat akun')
       }
-    } catch (error) {
-      toast.error("Gagal membuat user");
+    } catch {
+      toast.error('Terjadi kesalahan. Coba lagi.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-700 hover:bg-blue-800 font-bold uppercase text-[11px] tracking-widest shadow-lg shadow-blue-100">
-          <Plus className="w-4 h-4 mr-2" /> Tambah Akun
-        </Button>
+        <button className="flex items-center gap-2 h-9 px-4 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
+          <Plus size={15} />
+          Tambah Akun
+        </button>
       </DialogTrigger>
-      <DialogContent className="font-sans">
+
+      <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black uppercase tracking-tighter">Tambah User Baru</DialogTitle>
+          <DialogTitle className="text-base font-semibold">Tambah Pengguna Baru</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Buat akun untuk Admin atau Pemirsa sistem HRIS.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input id="username" name="username" placeholder="Masukkan username..." required />
+            <Label htmlFor="username" className="form-label">
+              Username <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="username"
+              name="username"
+              placeholder="Masukkan username..."
+              required
+              className="h-9 text-sm"
+              autoComplete="off"
+            />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" required />
+            <Label htmlFor="password" className="form-label">
+              Password <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder="Min. 6 karakter"
+              className="h-9 text-sm"
+              autoComplete="new-password"
+            />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="role">Role Akses</Label>
+            <Label htmlFor="role" className="form-label">
+              Role Akses
+            </Label>
             <Select name="role" defaultValue="VIEWER">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Role" />
+              <SelectTrigger id="role" className="h-9 text-sm bg-white">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ADMIN">ADMIN (Full Access)</SelectItem>
-                <SelectItem value="VIEWER">VIEWER (Read Only)</SelectItem>
+                <SelectItem value="ADMIN">
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck size={13} className="text-amber-600" />
+                    Admin — Akses penuh
+                  </span>
+                </SelectItem>
+                <SelectItem value="VIEWER">
+                  <span className="flex items-center gap-2">
+                    <Shield size={13} className="text-gray-500" />
+                    Pemirsa — Lihat saja
+                  </span>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <DialogFooter className="pt-4">
-            <Button type="submit" className="w-full bg-blue-700 font-bold" disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              SIMPAN AKUN
-            </Button>
-          </DialogFooter>
+
+          <div className="pt-2 border-t border-gray-100">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <><Loader2 size={14} className="animate-spin" /> Menyimpan...</>
+              ) : (
+                'Simpan Akun'
+              )}
+            </button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

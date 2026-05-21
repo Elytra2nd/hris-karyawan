@@ -199,4 +199,9 @@
   .card-standard {
     @apply bg-white border border-gray-200 rounded-lg shadow-sm;
   }
+
+  /* ─── Form label standar ─── */
+  .form-label {
+    @apply text-xs font-semibold text-gray-600 uppercase tracking-wider;
+  }
 }
