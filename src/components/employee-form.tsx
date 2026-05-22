@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { addMonths, format } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
 import { Info, Building2, User, FileSignature, CalendarCheck, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import { SelectCombobox } from '@/components/ui/select-combobox'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const POSISI_OPTIONS = [
   { value: 'SALESMAN', label: 'Salesman', months: 6 },
@@ -22,7 +22,15 @@ const POSISI_OPTIONS = [
 const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
 const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
 
-export function EmployeeForm({ action }: { action: (formData: FormData) => void }) {
+interface Department { id: string; name: string; code: string }
+
+export function EmployeeForm({
+  action,
+  departments = [],
+}: {
+  action: (formData: FormData) => void
+  departments?: Department[]
+}) {
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState('')
   const [tglSelesai, setTglSelesai] = useState('')
@@ -66,33 +74,46 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
             <Label htmlFor="region" className="form-label">
               Region <span className="text-red-500">*</span>
             </Label>
-            <Select name="region" required>
-              <SelectTrigger id="region" className="h-9 text-sm bg-white">
-                <SelectValue placeholder="Pilih region..." />
-              </SelectTrigger>
-              <SelectContent>
-                {REGION_OPTIONS.map(r => (
-                  <SelectItem key={r} value={r}>{r}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectCombobox
+              id="region"
+              name="region"
+              required
+              options={REGION_OPTIONS}
+              placeholder="Pilih region..."
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="cabang" className="form-label">
               Cabang <span className="text-red-500">*</span>
             </Label>
-            <Select name="cabang" required>
-              <SelectTrigger id="cabang" className="h-9 text-sm bg-white">
-                <SelectValue placeholder="Pilih cabang..." />
-              </SelectTrigger>
-              <SelectContent>
-                {CABANG_OPTIONS.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectCombobox
+              id="cabang"
+              name="cabang"
+              required
+              options={CABANG_OPTIONS}
+              placeholder="Pilih cabang..."
+            />
           </div>
         </div>
+
+        {/* Departemen — tampil hanya jika ada data */}
+        {departments.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="departmentId" className="form-label">
+              Departemen
+              <span className="ml-1.5 text-[10px] text-muted-foreground font-normal">(opsional)</span>
+            </Label>
+            <SelectCombobox
+              id="departmentId"
+              name="departmentId"
+              options={[
+                { value: '', label: 'Tidak ditugaskan' },
+                ...departments.map(d => ({ value: d.id, label: d.name, hint: d.code })),
+              ]}
+              placeholder="Pilih departemen..."
+            />
+          </div>
+        )}
       </section>
 
       {/* ─── B. Identitas Karyawan ─── */}
@@ -119,10 +140,12 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
             name="noKtp" placeholder="16 digit angka" required
             className="font-mono"
           />
-          <FormField
-            id="tglLahir" label="Tanggal Lahir"
-            name="tglLahir" type="date" required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="tglLahir" className="form-label">
+              Tanggal Lahir <span className="text-red-500">*</span>
+            </Label>
+            <DatePicker id="tglLahir" name="tglLahir" required placeholder="Pilih tanggal lahir" />
+          </div>
           <FormField
             id="namaIbu" label="Nama Ibu Kandung"
             name="namaIbu" placeholder="Sesuai KTP" required
@@ -140,15 +163,13 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
             <Label htmlFor="formConsent" className="form-label">
               Form Consent <span className="text-red-500">*</span>
             </Label>
-            <Select name="formConsent" required>
-              <SelectTrigger id="formConsent" className="h-9 text-sm bg-white">
-                <SelectValue placeholder="Pilih..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ADA">ADA</SelectItem>
-                <SelectItem value="TIDAK ADA">TIDAK ADA</SelectItem>
-              </SelectContent>
-            </Select>
+            <SelectCombobox
+              id="formConsent"
+              name="formConsent"
+              required
+              options={['ADA', 'TIDAK ADA']}
+              placeholder="Pilih..."
+            />
           </div>
         </div>
       </section>
@@ -166,19 +187,19 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
           <Label htmlFor="posisi" className="form-label">
             Posisi / Jabatan <span className="text-red-500">*</span>
           </Label>
-          <Select name="posisi" required onValueChange={setPosisi}>
-            <SelectTrigger id="posisi" className="h-9 text-sm bg-white">
-              <SelectValue placeholder="Pilih jabatan..." />
-            </SelectTrigger>
-            <SelectContent>
-              {POSISI_OPTIONS.map(p => (
-                <SelectItem key={p.value} value={p.value}>
-                  {p.label}
-                  <span className="ml-2 text-xs text-muted-foreground">({p.months} bln)</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectCombobox
+            id="posisi"
+            name="posisi"
+            required
+            value={posisi}
+            onValueChange={setPosisi}
+            options={POSISI_OPTIONS.map(p => ({
+              value: p.value,
+              label: p.label,
+              hint: `${p.months} bln`,
+            }))}
+            placeholder="Pilih jabatan..."
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -186,13 +207,13 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
             <Label htmlFor="traineeSejak" className="form-label">
               Mulai Kontrak <span className="text-red-500">*</span>
             </Label>
-            <Input
+            <DatePicker
               id="traineeSejak"
               name="traineeSejak"
-              type="date"
               required
-              className="h-9 text-sm"
-              onChange={e => setTglMulai(e.target.value)}
+              value={tglMulai}
+              onValueChange={setTglMulai}
+              placeholder="Pilih tanggal mulai"
             />
           </div>
           <div className="space-y-2">
@@ -202,15 +223,14 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
                 Otomatis
               </span>
             </Label>
-            <Input
-              id="traineeSelesai"
-              name="traineeSelesai"
-              type="date"
-              readOnly
-              value={tglSelesai}
-              required={!!tglMulai}
-              className="h-9 text-sm bg-blue-50/50 text-primary font-semibold cursor-not-allowed"
-            />
+            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50/50 px-3 text-sm font-semibold text-primary">
+              <span className="truncate">
+                {tglSelesai
+                  ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
+                  : 'Pilih posisi & tanggal'}
+              </span>
+              <CalendarCheck size={14} className="opacity-70 shrink-0" />
+            </div>
           </div>
         </div>
 

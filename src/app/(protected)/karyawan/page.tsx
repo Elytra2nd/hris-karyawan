@@ -24,6 +24,11 @@ import { toast } from 'sonner'
 import { differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { ExportExcelButton } from '@/components/export-excel-button'
+import { ImportExcelButton } from '@/components/import-excel-button'
+import {
+  Pagination, PaginationContent, PaginationItem, PaginationLink,
+  PaginationPrevious, PaginationNext, PaginationEllipsis,
+} from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
 
 const PER_PAGE = 10
@@ -179,6 +184,7 @@ export default function DataKaryawanPage() {
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && <ExportExcelButton variant="default" />}
+          {isAdmin && <ImportExcelButton />}
           {isAdmin && (
             <Link href="/karyawan/tambah">
               <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
@@ -565,23 +571,37 @@ export default function DataKaryawanPage() {
               {sortedEmployees.length === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, sortedEmployees.length)}`} dari{' '}
               <span className="font-semibold text-gray-700">{sortedEmployees.length}</span> karyawan
             </p>
-            <div className="flex items-center gap-1">
-              <PgBtn onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}>
-                <ChevronLeft size={14} />
-              </PgBtn>
-              {pageNums.map((p, i) =>
-                typeof p === 'number' ? (
-                  <PgBtn key={i} active={page === p} onClick={() => setPage(p)}>
-                    {p}
-                  </PgBtn>
-                ) : (
-                  <span key={i} className="px-1 text-gray-400 text-sm select-none">···</span>
-                )
-              )}
-              <PgBtn onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>
-                <ChevronRight size={14} />
-              </PgBtn>
-            </div>
+            <Pagination className="mx-0 w-auto">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) setPage(page - 1) }}
+                    className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {pageNums.map((p, i) =>
+                  typeof p === 'number' ? (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        isActive={page === p}
+                        onClick={(e: React.MouseEvent) => { e.preventDefault(); setPage(p) }}
+                        className="cursor-pointer"
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={i}><PaginationEllipsis /></PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) setPage(page + 1) }}
+                    className={page >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </div>

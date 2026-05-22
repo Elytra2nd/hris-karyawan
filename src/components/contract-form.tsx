@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { addMonths, format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import { SelectCombobox } from '@/components/ui/select-combobox'
+import { DatePicker } from '@/components/ui/date-picker'
+import { id as localeID } from 'date-fns/locale'
 import { Loader2, Info, CalendarCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -59,19 +59,19 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         <Label htmlFor="posisi" className="form-label">
           Posisi / Jabatan Baru <span className="text-red-500">*</span>
         </Label>
-        <Select name="posisi" required onValueChange={setPosisi}>
-          <SelectTrigger id="posisi" className="h-9 text-sm bg-white">
-            <SelectValue placeholder="Pilih jabatan..." />
-          </SelectTrigger>
-          <SelectContent>
-            {POSISI_OPTIONS.map(p => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.label}
-                <span className="ml-2 text-xs text-muted-foreground">({p.months} bln)</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SelectCombobox
+          id="posisi"
+          name="posisi"
+          required
+          value={posisi}
+          onValueChange={setPosisi}
+          options={POSISI_OPTIONS.map(p => ({
+            value: p.value,
+            label: p.label,
+            hint: `${p.months} bln`,
+          }))}
+          placeholder="Pilih jabatan..."
+        />
       </div>
 
       {/* Tanggal */}
@@ -80,14 +80,13 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           <Label htmlFor="traineeSejak" className="form-label">
             Mulai Kontrak <span className="text-red-500">*</span>
           </Label>
-          <Input
+          <DatePicker
             id="traineeSejak"
             name="traineeSejak"
-            type="date"
-            value={tglMulai}
-            onChange={e => setTglMulai(e.target.value)}
             required
-            className="h-9 text-sm"
+            value={tglMulai}
+            onValueChange={setTglMulai}
+            placeholder="Pilih tanggal mulai"
           />
         </div>
         <div className="space-y-2">
@@ -97,15 +96,14 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
               Otomatis
             </span>
           </Label>
-          <Input
-            id="traineeSelesai"
-            name="traineeSelesai"
-            type="date"
-            value={tglSelesai}
-            readOnly
-            required={!!tglMulai && !!posisi}
-            className="h-9 text-sm bg-blue-50/50 text-primary font-semibold cursor-not-allowed"
-          />
+          <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50/50 px-3 text-sm font-semibold text-primary">
+            <span className="truncate">
+              {tglSelesai
+                ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
+                : 'Pilih posisi & tanggal'}
+            </span>
+            <CalendarCheck size={14} className="opacity-70 shrink-0" />
+          </div>
         </div>
       </div>
 

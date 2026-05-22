@@ -7,6 +7,17 @@ datasource db {
   provider = "mysql"
 }
 
+model Department {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  code      String     @unique
+  createdAt DateTime   @default(now())
+  employees Employee[]
+
+  @@index([code])
+  @@map("department")
+}
+
 model Contract {
   id             String   @id @default(cuid())
   employeeId     String
@@ -19,36 +30,39 @@ model Contract {
   employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Contract_employeeId_fkey")
 
   @@index([employeeId], map: "Contract_employeeId_fkey")
-  @@index([traineeSelesai])              // Query kontrak hampir habis
+  @@index([traineeSelesai])
   @@map("contract")
 }
 
 model Employee {
-  id          String     @id @default(cuid())
-  ba          String
-  baCabang    String
-  region      String
-  cabang      String
-  namaLengkap String
-  status      String     @default("AKTIF")
-  nik         String?
-  noJamsostek String?
-  noKtp       String
-  tglLahir    String
-  namaIbu     String
-  noHp        String
-  formConsent String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  image       String?
-  kkPath      String?
-  ktpPath     String?
-  contracts   Contract[]
+  id           String      @id @default(cuid())
+  ba           String
+  baCabang     String
+  region       String
+  cabang       String
+  namaLengkap  String
+  status       String      @default("AKTIF")
+  nik          String?
+  noJamsostek  String?
+  noKtp        String
+  tglLahir     String
+  namaIbu      String
+  noHp         String
+  formConsent  String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  image        String?
+  kkPath       String?
+  ktpPath      String?
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  contracts    Contract[]
 
-  @@index([status])                      // Filter by status
-  @@index([cabang])                      // Filter by cabang
-  @@index([status, cabang])              // Dashboard groupBy query
-  @@index([namaLengkap])                 // Search by name
+  @@index([status])
+  @@index([cabang])
+  @@index([status, cabang])
+  @@index([namaLengkap])
+  @@index([departmentId])
   @@map("employee")
 }
 
@@ -56,7 +70,7 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique(map: "User_username_key")
   password  String
-  role      String
+  role      String   @default("VIEWER")
   createdAt DateTime @default(now())
 
   @@map("user")
@@ -72,8 +86,8 @@ model AuditLog {
   details   String   @db.Text
   createdAt DateTime @default(now())
 
-  @@index([action])                      // Filter by action type
-  @@index([createdAt])                   // Sort/range query
-  @@index([entityId])                    // Per-entity audit trail
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityId])
   @@map("auditlog")
 }

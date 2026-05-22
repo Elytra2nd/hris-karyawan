@@ -5,7 +5,14 @@ export const POSISI_VALID = ['SALESMAN', 'ADMINISTRASI', 'SUPERVISOR', 'MANAGER'
 export const REGION_VALID = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA'] as const
 export const CABANG_VALID = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN'] as const
 export const STATUS_VALID = ['AKTIF', 'NON-AKTIF'] as const
-export const ROLE_VALID = ['ADMIN', 'VIEWER'] as const
+
+// Roles — in ascending privilege order
+// VIEWER       : read-only
+// HR_STAFF     : add/edit employees, no delete, no user management
+// HR_MANAGER   : full employee CRUD + contracts, no user management
+// ADMIN        : everything (user management, audit log, departments)
+export const ROLE_VALID = ['ADMIN', 'HR_MANAGER', 'HR_STAFF', 'VIEWER'] as const
+export type AppRole = (typeof ROLE_VALID)[number]
 
 // ─── Employee Schema (Create) ─────────────────────────────────────────────────
 export const createEmployeeSchema = z.object({
@@ -56,8 +63,10 @@ export const createUserSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, 'Username hanya boleh huruf, angka, dan underscore'),
   password: z
     .string()
-    .min(6, 'Password minimal 6 karakter')
-    .max(100),
+    .min(8, 'Password minimal 8 karakter')
+    .max(100)
+    .regex(/[A-Z]/, 'Password harus mengandung minimal 1 huruf kapital')
+    .regex(/[0-9]/, 'Password harus mengandung minimal 1 angka'),
   role: z.enum(ROLE_VALID, { message: 'Role tidak valid' }),
 })
 

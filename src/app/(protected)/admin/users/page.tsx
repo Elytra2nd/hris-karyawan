@@ -2,13 +2,31 @@ import { getUsers } from '@/app/actions/user'
 import { ShieldCheck, Shield, Users, Clock, Activity, Info } from 'lucide-react'
 import { CreateUserModal } from '@/components/create-user-modal'
 import { DeleteUserButton } from '@/components/delete-user-button'
+import { ResetPasswordButton } from '@/components/reset-password-button'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
+function RoleBadge({ role }: { role: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    ADMIN:      { label: 'Admin',      cls: 'bg-amber-100 text-amber-700' },
+    HR_MANAGER: { label: 'HR Manager', cls: 'bg-blue-100 text-blue-700' },
+    HR_STAFF:   { label: 'HR Staff',   cls: 'bg-green-100 text-green-700' },
+    VIEWER:     { label: 'Pemirsa',    cls: 'bg-gray-100 text-gray-600' },
+  }
+  const { label, cls } = map[role] ?? { label: role, cls: 'bg-gray-100 text-gray-600' }
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
+      <Shield size={11} />
+      {label}
+    </span>
+  )
+}
+
 export default async function UserManagementPage() {
   const users = await getUsers()
-  const adminCount = users.filter(u => u.role === 'ADMIN').length
-  const viewerCount = users.filter(u => u.role === 'VIEWER').length
+  const adminCount   = users.filter(u => u.role === 'ADMIN').length
+  const hrCount      = users.filter(u => u.role === 'HR_MANAGER' || u.role === 'HR_STAFF').length
+  const viewerCount  = users.filter(u => u.role === 'VIEWER').length
 
   return (
     <div className="space-y-6">
@@ -100,9 +118,10 @@ export default async function UserManagementPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
-                        user.role === 'ADMIN'
-                          ? 'bg-amber-50 border-amber-200 text-amber-700'
-                          : 'bg-gray-50 border-gray-200 text-gray-500'
+                        user.role === 'ADMIN'         ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                        user.role === 'HR_MANAGER'    ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                        user.role === 'HR_STAFF'      ? 'bg-green-50 border-green-200 text-green-700' :
+                                                        'bg-gray-50 border-gray-200 text-gray-500'
                       }`}>
                         {user.username[0].toUpperCase()}
                       </div>
@@ -115,17 +134,7 @@ export default async function UserManagementPage() {
 
                   {/* Role chip */}
                   <td className="px-5 py-4 text-center">
-                    {user.role === 'ADMIN' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                        <ShieldCheck size={11} />
-                        Admin
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-                        <Shield size={11} />
-                        Pemirsa
-                      </span>
-                    )}
+                    <RoleBadge role={user.role} />
                   </td>
 
                   {/* Dibuat */}
@@ -139,8 +148,11 @@ export default async function UserManagementPage() {
                   </td>
 
                   {/* Aksi */}
-                  <td className="px-5 py-4 text-center">
-                    <DeleteUserButton id={user.id} username={user.username} />
+                  <td className="px-5 py-4">
+                    <div className="flex items-center justify-center gap-1">
+                      <ResetPasswordButton id={user.id} username={user.username} />
+                      <DeleteUserButton id={user.id} username={user.username} />
+                    </div>
                   </td>
                 </tr>
               ))
@@ -151,7 +163,7 @@ export default async function UserManagementPage() {
         {/* Footer */}
         <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
           <p className="text-xs text-muted-foreground">
-            {users.length} pengguna terdaftar · {adminCount} admin · {viewerCount} pemirsa
+            {users.length} pengguna terdaftar · {adminCount} admin · {hrCount} HR · {viewerCount} pemirsa
           </p>
         </div>
       </div>

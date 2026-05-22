@@ -8,7 +8,8 @@ Sistem HRIS untuk manajemen data karyawan trainee PT Astra Motor Kalimantan Bara
 - **Database:** MariaDB via Prisma 7.x (`@prisma/adapter-mariadb`)
 - **Auth:** NextAuth v4 (CredentialsProvider, JWT strategy, 8-jam session)
 - **Validation:** Zod v4 — gunakan `.issues` (bukan `.errors`), `{ message: '' }` untuk enum errors
-- **UI:** shadcn/ui + Tailwind CSS v4
+- **UI:** shadcn/ui + COSS UI primitives (Cal.com) + Tailwind CSS v4
+- **COSS primitives in use:** Combobox (searchable select), Calendar+Popover (date picker), Pagination, Drawer, Spinner. Install via `npx shadcn@latest add @coss/<name>`
 - **Charts:** Recharts v3 (sudah terpasang, dipakai di dashboard)
 - **Font:** Satoshi (via `@font-face` di globals.css)
 - **Proxy:** `src/proxy.ts` — Next.js 16 renamed middleware → proxy

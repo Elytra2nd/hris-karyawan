@@ -11,7 +11,9 @@ import {
   Settings,
   Shield,
   ClipboardList,
+  Building2,
   LogOut,
+  UserCog,
   ChevronDown,
   CalendarDays,
   Clock,
@@ -41,7 +43,10 @@ export function AppSidebar() {
     administrasi: true,
   })
   const { role, username } = useSidebar()
-  const isAdmin = role === 'ADMIN'
+  const isAdmin       = role === 'ADMIN'
+  const canManageHR   = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')
+  const canManageData = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
+  const canReadAudit  = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const pathname = usePathname()
 
   useEffect(() => { setMounted(true) }, [])
@@ -130,7 +135,7 @@ export function AppSidebar() {
                 label="Data Karyawan"
                 active={isActive('/karyawan') && !pathname.includes('tambah')}
               />
-              {isAdmin && (
+              {canManageHR && (
                 <NavItem
                   href="/karyawan/tambah"
                   icon={<UserPlus size={16} />}
@@ -142,8 +147,8 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* ── Administrasi (Admin only) ── */}
-        <SidebarAdminOnly>
+        {/* ── Administrasi (HR roles) ── */}
+        <SidebarAdminOnly allowedRoles={['ADMIN', 'HR_MANAGER']}>
           <div>
             <SectionHeader
               label="Administrasi"
@@ -152,18 +157,30 @@ export function AppSidebar() {
             />
             {openSections.administrasi && (
               <nav className="mt-1 space-y-0.5">
-                <NavItem
-                  href="/admin/users"
-                  icon={<Shield size={16} />}
-                  label="Manajemen Pengguna"
-                  active={isActive('/admin/users')}
-                />
-                <NavItem
-                  href="/admin/audit-log"
-                  icon={<ClipboardList size={16} />}
-                  label="Log Aktivitas"
-                  active={isActive('/admin/audit-log')}
-                />
+                {isAdmin && (
+                  <>
+                    <NavItem
+                      href="/admin/users"
+                      icon={<Shield size={16} />}
+                      label="Manajemen Pengguna"
+                      active={isActive('/admin/users')}
+                    />
+                    <NavItem
+                      href="/admin/departments"
+                      icon={<Building2 size={16} />}
+                      label="Departemen"
+                      active={isActive('/admin/departments')}
+                    />
+                  </>
+                )}
+                {canReadAudit && (
+                  <NavItem
+                    href="/admin/audit-log"
+                    icon={<ClipboardList size={16} />}
+                    label="Log Aktivitas"
+                    active={isActive('/admin/audit-log')}
+                  />
+                )}
                 <NavItem
                   href="/admin/settings"
                   icon={<Settings size={16} />}
@@ -221,9 +238,18 @@ export function AppSidebar() {
               {username || 'Pengguna'}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-none">
-              {role === 'ADMIN' ? 'Administrator' : 'Pemirsa'}
+              {{ ADMIN: 'Administrator', HR_MANAGER: 'HR Manager', HR_STAFF: 'HR Staff', VIEWER: 'Pemirsa' }[role ?? ''] ?? role}
             </p>
           </div>
+
+          {/* Profil */}
+          <Link
+            href="/profile"
+            className="p-1.5 rounded-md text-gray-400 hover:text-primary hover:bg-blue-50 transition-colors"
+            title="Profil & Ganti Password"
+          >
+            <UserCog size={15} />
+          </Link>
 
           {/* Logout */}
           <button

@@ -151,11 +151,18 @@ function SidebarProvider({
 }
 
 /**
- * Helper Component: Hanya merender konten jika role adalah ADMIN
+ * Helper Component: Hanya merender konten jika role termasuk dalam allowedRoles.
+ * Default: ADMIN only.
  */
-function SidebarAdminOnly({ children }: { children: React.ReactNode }) {
+function SidebarAdminOnly({
+  children,
+  allowedRoles = ['ADMIN'],
+}: {
+  children: React.ReactNode
+  allowedRoles?: string[]
+}) {
   const { role } = useSidebar()
-  if (role !== "ADMIN") return null
+  if (!role || !allowedRoles.includes(role)) return null
   return <>{children}</>
 }
 

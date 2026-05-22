@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SelectCombobox } from '@/components/ui/select-combobox'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Save, Loader2, Building2, User, UserCircle2, Info } from 'lucide-react'
 import { ImageUpload } from '@/components/image-upload'
 import { toast } from 'sonner'
@@ -11,12 +12,15 @@ import { toast } from 'sonner'
 const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
 const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
 
+interface Department { id: string; name: string; code: string }
+
 interface EditKaryawanFormProps {
   employee: any
   updateAction: (formData: FormData) => void
+  departments?: Department[]
 }
 
-export function EditKaryawanForm({ employee, updateAction }: EditKaryawanFormProps) {
+export function EditKaryawanForm({ employee, updateAction, departments = [] }: EditKaryawanFormProps) {
   const [isPending, setIsPending] = useState(false)
 
   const handleSubmit = async (formData: FormData) => {
@@ -70,27 +74,27 @@ export function EditKaryawanForm({ employee, updateAction }: EditKaryawanFormPro
                   <Label htmlFor="region" className="form-label">
                     Region <span className="text-red-500">*</span>
                   </Label>
-                  <Select name="region" defaultValue={employee.region} required>
-                    <SelectTrigger id="region" className="h-9 text-sm bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REGION_OPTIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <SelectCombobox
+                    id="region"
+                    name="region"
+                    required
+                    value={employee.region}
+                    options={REGION_OPTIONS}
+                    placeholder="Pilih region..."
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cabang" className="form-label">
                     Nama Cabang <span className="text-red-500">*</span>
                   </Label>
-                  <Select name="cabang" defaultValue={employee.cabang} required>
-                    <SelectTrigger id="cabang" className="h-9 text-sm bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CABANG_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <SelectCombobox
+                    id="cabang"
+                    name="cabang"
+                    required
+                    value={employee.cabang}
+                    options={CABANG_OPTIONS}
+                    placeholder="Pilih cabang..."
+                  />
                 </div>
               </div>
             </section>
@@ -137,10 +141,12 @@ export function EditKaryawanForm({ employee, updateAction }: EditKaryawanFormPro
                   <Label htmlFor="tglLahir" className="form-label">
                     Tanggal Lahir <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="tglLahir" name="tglLahir"
-                    type="date" defaultValue={employee.tglLahir}
-                    required className="h-9 text-sm"
+                  <DatePicker
+                    id="tglLahir"
+                    name="tglLahir"
+                    required
+                    value={employee.tglLahir}
+                    placeholder="Pilih tanggal lahir"
                   />
                 </div>
                 <div className="space-y-2">
@@ -175,42 +181,56 @@ export function EditKaryawanForm({ employee, updateAction }: EditKaryawanFormPro
                   <Label htmlFor="formConsent" className="form-label">
                     Form Consent <span className="text-red-500">*</span>
                   </Label>
-                  <Select name="formConsent" defaultValue={employee.formConsent} required>
-                    <SelectTrigger id="formConsent" className="h-9 text-sm bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ADA">ADA</SelectItem>
-                      <SelectItem value="TIDAK ADA">TIDAK ADA</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SelectCombobox
+                    id="formConsent"
+                    name="formConsent"
+                    required
+                    value={employee.formConsent}
+                    options={['ADA', 'TIDAK ADA']}
+                    placeholder="Pilih..."
+                  />
                 </div>
                 {/* Status — hanya di edit form */}
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="status" className="form-label">
                     Status Karyawan <span className="text-red-500">*</span>
                   </Label>
-                  <Select name="status" defaultValue={employee.status} required>
-                    <SelectTrigger id="status" className="h-9 text-sm bg-white max-w-[240px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AKTIF">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> AKTIF
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="NON-AKTIF">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-gray-400 inline-block" /> NON-AKTIF
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="max-w-[240px]">
+                    <SelectCombobox
+                      id="status"
+                      name="status"
+                      required
+                      value={employee.status}
+                      options={['AKTIF', 'NON-AKTIF']}
+                      placeholder="Pilih status..."
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Ubah ke Non-Aktif jika karyawan sudah keluar atau kontrak tidak dilanjutkan.
                   </p>
                 </div>
+
+                {/* Departemen */}
+                {departments.length > 0 && (
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="departmentId" className="form-label">
+                      Departemen
+                      <span className="ml-1.5 text-[10px] text-muted-foreground font-normal">(opsional)</span>
+                    </Label>
+                    <div className="max-w-xs">
+                      <SelectCombobox
+                        id="departmentId"
+                        name="departmentId"
+                        value={employee.departmentId ?? ''}
+                        options={[
+                          { value: '', label: 'Tidak ditugaskan' },
+                          ...departments.map((d: Department) => ({ value: d.id, label: d.name, hint: d.code })),
+                        ]}
+                        placeholder="Pilih departemen..."
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

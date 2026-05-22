@@ -1,13 +1,17 @@
 import { verifySession } from '@/lib/dal'
 import { createEmployee } from '@/app/actions/employee'
+import { getDepartments } from '@/app/actions/department'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { EmployeeForm } from '@/components/employee-form'
+import { hasPermission } from '@/lib/auth-guard'
 
 export default async function TambahKaryawanPage() {
   const session = await verifySession()
-  if (session?.role !== 'ADMIN') redirect('/karyawan')
+  if (!hasPermission(session.role, 'employee_create')) redirect('/karyawan')
+
+  const departments = await getDepartments()
 
   return (
     <div className="space-y-5">
@@ -30,7 +34,7 @@ export default async function TambahKaryawanPage() {
 
       {/* Form container */}
       <div className="max-w-xl bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-        <EmployeeForm action={createEmployee} />
+        <EmployeeForm action={createEmployee} departments={departments} />
       </div>
     </div>
   )

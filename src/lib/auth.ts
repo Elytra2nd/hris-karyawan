@@ -2,6 +2,7 @@ import { NextAuthOptions, DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+import { logger } from './logger';
 
 // Memperluas tipe session NextAuth agar mengenali properti 'role' dan 'username'
 declare module "next-auth" {
@@ -41,15 +42,22 @@ export const authOptions: NextAuthOptions = {
           where: { username: credentials.username },
         });
 
-        if (!user) return null;
+        if (!user) {
+          logger.warn('Login attempt: user not found', { username: credentials.username });
+          return null;
+        }
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
         );
 
-        if (!isPasswordValid) return null;
+        if (!isPasswordValid) {
+          logger.warn('Login attempt: wrong password', { username: credentials.username });
+          return null;
+        }
 
+        logger.info('Login success', { username: user.username, role: user.role });
         return {
           id: user.id,
           username: user.username,

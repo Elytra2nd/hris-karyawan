@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { addMonths } from 'date-fns'
 import { createAuditLog } from '@/lib/audit'
-import { requireAdmin } from '@/lib/auth-guard'
+import { requireAdmin, requirePermission } from '@/lib/auth-guard'
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -24,7 +24,7 @@ function calculateEndDate(posisi: string, startDate: Date): Date {
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
 export async function createEmployee(formData: FormData) {
-  const session = await requireAdmin()
+  const session = await requirePermission('employee_create')
   const raw = formDataToObject(formData)
 
   const parsed = createEmployeeSchema.safeParse(raw)
@@ -42,6 +42,7 @@ export async function createEmployee(formData: FormData) {
 
   const traineeSejak = new Date(traineeSejakRaw)
   const traineeSelesai = calculateEndDate(posisi, traineeSejak)
+  const departmentId = raw['departmentId'] || null
 
   const newEmployee = await prisma.employee.create({
     data: {
@@ -50,6 +51,7 @@ export async function createEmployee(formData: FormData) {
       nik: nik ?? null,
       noJamsostek: noJamsostek ?? null,
       noKtp, tglLahir, namaIbu, noHp, formConsent,
+      departmentId,
       contracts: { create: { posisi, traineeSejak, traineeSelesai } },
     },
   })
@@ -70,7 +72,7 @@ export async function createEmployee(formData: FormData) {
 
 // ─── Update Employee ──────────────────────────────────────────────────────────
 export async function updateEmployee(id: string, formData: FormData) {
-  const session = await requireAdmin()
+  const session = await requirePermission('employee_update')
   const raw = formDataToObject(formData)
 
   const parsed = updateEmployeeSchema.safeParse(raw)
@@ -84,6 +86,8 @@ export async function updateEmployee(id: string, formData: FormData) {
     noJamsostek, formConsent, status,
   } = parsed.data
 
+  const departmentId = raw['departmentId'] || null
+
   await prisma.employee.update({
     where: { id },
     data: {
@@ -91,6 +95,7 @@ export async function updateEmployee(id: string, formData: FormData) {
       nik: nik ?? null,
       noJamsostek: noJamsostek ?? null,
       noKtp, tglLahir, namaIbu, noHp, formConsent,
+      departmentId,
     },
   })
 
@@ -111,7 +116,7 @@ export async function updateEmployee(id: string, formData: FormData) {
 
 // ─── Create Contract ──────────────────────────────────────────────────────────
 export async function createContract(employeeId: string, formData: FormData) {
-  const session = await requireAdmin()
+  const session = await requirePermission('contract_create')
   const raw = formDataToObject(formData)
 
   const parsed = createContractSchema.safeParse(raw)
@@ -144,7 +149,7 @@ export async function createContract(employeeId: string, formData: FormData) {
 // ─── Delete Employee ──────────────────────────────────────────────────────────
 export async function deleteEmployee(id: string): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdmin()
+    const session = await requirePermission('employee_delete')
 
     const employee = await prisma.employee.findUnique({
       where: { id },

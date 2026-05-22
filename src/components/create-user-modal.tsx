@@ -78,10 +78,13 @@ export function CreateUserModal() {
               name="password"
               type="password"
               required
-              placeholder="Min. 6 karakter"
+              placeholder="Min. 8 karakter"
               className="h-9 text-sm"
               autoComplete="new-password"
             />
+            <p className="text-[11px] text-slate-400">
+              Min. 8 karakter, mengandung huruf kapital dan angka
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -96,7 +99,19 @@ export function CreateUserModal() {
                 <SelectItem value="ADMIN">
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={13} className="text-amber-600" />
-                    Admin — Akses penuh
+                    Admin — Akses penuh + manajemen user
+                  </span>
+                </SelectItem>
+                <SelectItem value="HR_MANAGER">
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck size={13} className="text-blue-600" />
+                    HR Manager — CRUD karyawan + kontrak
+                  </span>
+                </SelectItem>
+                <SelectItem value="HR_STAFF">
+                  <span className="flex items-center gap-2">
+                    <Shield size={13} className="text-green-600" />
+                    HR Staff — Tambah & edit karyawan
                   </span>
                 </SelectItem>
                 <SelectItem value="VIEWER">

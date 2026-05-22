@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { Separator } from '@/components/ui/separator'
+import { NotificationBell } from '@/components/notification-bell'
 
 export default function LayoutWrapper({
   children,
@@ -35,10 +36,14 @@ export default function LayoutWrapper({
               {/* Hamburger untuk mobile */}
               <SidebarTrigger className="-ml-1 text-gray-500 hover:text-primary" />
               <Separator orientation="vertical" className="h-4 mx-1" />
-              {/* Breadcrumb / page context bisa diletakkan di sini nanti */}
-              <span className="text-xs text-muted-foreground hidden sm:block">
+              <span className="text-xs text-muted-foreground hidden sm:block flex-1">
                 HRIS Karyawan Trainee
               </span>
+
+              {/* ─── Right-side header actions ─── */}
+              <div className="ml-auto flex items-center gap-1">
+                <NotificationBell />
+              </div>
             </header>
 
             {/* ─── Page Content ─── */}
