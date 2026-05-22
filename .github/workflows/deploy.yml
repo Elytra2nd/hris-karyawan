@@ -1,0 +1,74 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    # Only trigger after CI passes
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false  # Don't cancel deploys mid-flight
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production  # Requires manual approval if configured in GitHub settings
+    # Remove the line below and uncomment 'needs: ci' once CI workflow is in same repo
+    # needs: ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --production=false
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+
+      # ── SSH Deploy ──────────────────────────────────────────────────────────
+      # Adjust this section to match your server setup.
+      # Option A: SSH into VPS and pull + restart
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        if: ${{ secrets.SSH_HOST != '' }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /var/www/hris-karyawan
+            git pull origin main
+            npm ci --production=false
+            npx prisma generate
+            npm run build
+            pm2 restart hris-karyawan || pm2 start npm --name "hris-karyawan" -- start
+            pm2 save
+
+      - name: Notify success
+        if: success()
+        run: echo "Deploy to production successful at $(date)"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "Deploy failed — check logs above"
