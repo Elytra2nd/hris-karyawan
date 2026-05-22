@@ -1,254 +1,208 @@
-'use server';
+'use server'
 
-import { prisma } from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { addMonths } from 'date-fns';
-import { createAuditLog } from '@/lib/audit';
-import { verifySession } from '@/lib/dal';
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { addMonths } from 'date-fns'
+import { createAuditLog } from '@/lib/audit'
+import { requireAdmin } from '@/lib/auth-guard'
+import {
+  createEmployeeSchema,
+  updateEmployeeSchema,
+  createContractSchema,
+  formDataToObject,
+} from '@/lib/validation'
+import { ok, fail, ActionResult } from '@/lib/result'
+import { logger } from '@/lib/logger'
 
-/**
- * Helper untuk menghitung tanggal selesai berdasarkan jabatan
- * Aturan Bisnis: Admin = 3 bulan, Lainnya = 6 bulan 
- */
+// ─── Business Rule: hitung tanggal selesai ────────────────────────────────────
 function calculateEndDate(posisi: string, startDate: Date): Date {
-  const isAdmin = posisi.toLowerCase().includes('admin');
-  return isAdmin ? addMonths(startDate, 3) : addMonths(startDate, 6);
+  return posisi.toLowerCase().includes('admin')
+    ? addMonths(startDate, 3)
+    : addMonths(startDate, 6)
 }
 
-/**
- * Action untuk menambah karyawan baru
- */
+// ─── Create Employee ──────────────────────────────────────────────────────────
 export async function createEmployee(formData: FormData) {
-  const session = await verifySession();
-  
-  const ba = formData.get('ba') as string;
-  const baCabang = formData.get('baCabang') as string;
-  const region = formData.get('region') as string;
-  const cabang = formData.get('cabang') as string;
-  const namaLengkap = formData.get('namaLengkap') as string;
-  
-  const nikRaw = formData.get('nik') as string;
-  const nik = nikRaw?.trim() === '' ? null : nikRaw;
-  
-  const noJamsostekRaw = formData.get('noJamsostek') as string;
-  const noJamsostek = noJamsostekRaw?.trim() === '' ? null : noJamsostekRaw;
+  const session = await requireAdmin()
+  const raw = formDataToObject(formData)
 
-  const noKtp = formData.get('noKtp') as string;
-  const tglLahir = formData.get('tglLahir') as string;
-  const namaIbu = formData.get('namaIbu') as string;
-  const noHp = formData.get('noHp') as string;
-  const formConsent = formData.get('formConsent') as string;
+  const parsed = createEmployeeSchema.safeParse(raw)
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0]?.message ?? 'Data tidak valid'
+    // Server action yang redirect tidak bisa return error — lempar exception
+    throw new Error(firstError)
+  }
 
-  const posisi = formData.get('posisi') as string;
-  const traineeSejakRaw = formData.get('traineeSejak') as string;
-  
-  // Implementasi Otomatisasi Tanggal Selesai 
-  const traineeSejak = new Date(traineeSejakRaw);
-  const traineeSelesai = calculateEndDate(posisi, traineeSejak);
+  const {
+    ba, baCabang, region, cabang, namaLengkap,
+    nik, noKtp, tglLahir, namaIbu, noHp,
+    noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
+  } = parsed.data
+
+  const traineeSejak = new Date(traineeSejakRaw)
+  const traineeSelesai = calculateEndDate(posisi, traineeSejak)
 
   const newEmployee = await prisma.employee.create({
     data: {
-      ba,
-      baCabang,
-      region,
-      cabang,
-      namaLengkap,
+      ba, baCabang, region, cabang, namaLengkap,
       status: 'AKTIF',
-      nik,
-      noJamsostek,
-      noKtp,
-      tglLahir, 
-      namaIbu,
-      noHp,
-      formConsent,
-      contracts: {
-        create: {
-          posisi,
-          traineeSejak,
-          traineeSelesai,
-        },
-      },
+      nik: nik ?? null,
+      noJamsostek: noJamsostek ?? null,
+      noKtp, tglLahir, namaIbu, noHp, formConsent,
+      contracts: { create: { posisi, traineeSejak, traineeSelesai } },
     },
-  });
+  })
 
-  // CATAT KE AUDIT LOG
   await createAuditLog(
     session.id,
     session.username,
     'CREATE',
     'employee',
     newEmployee.id,
-    { nama: namaLengkap, cabang: cabang, posisi: posisi }
-  );
+    { nama: namaLengkap, cabang, posisi }
+  )
 
-  revalidatePath('/');
-  redirect('/');
+  revalidatePath('/')
+  revalidatePath('/karyawan')
+  redirect('/karyawan')
 }
 
-/**
- * Action untuk memperbarui data karyawan
- */
+// ─── Update Employee ──────────────────────────────────────────────────────────
 export async function updateEmployee(id: string, formData: FormData) {
-  const session = await verifySession();
+  const session = await requireAdmin()
+  const raw = formDataToObject(formData)
 
-  const ba = formData.get('ba') as string;
-  const baCabang = formData.get('baCabang') as string;
-  const region = formData.get('region') as string;
-  const cabang = formData.get('cabang') as string;
-  const namaLengkap = formData.get('namaLengkap') as string;
-  
-  const nikRaw = formData.get('nik') as string;
-  const nik = nikRaw?.trim() === '' ? null : nikRaw;
-  
-  const noJamsostekRaw = formData.get('noJamsostek') as string;
-  const noJamsostek = noJamsostekRaw?.trim() === '' ? null : noJamsostekRaw;
+  const parsed = updateEmployeeSchema.safeParse(raw)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? 'Data tidak valid')
+  }
 
-  const noKtp = formData.get('noKtp') as string;
-  const tglLahir = formData.get('tglLahir') as string;
-  const namaIbu = formData.get('namaIbu') as string;
-  const noHp = formData.get('noHp') as string;
-  const formConsent = formData.get('formConsent') as string;
-  const status = formData.get('status') as string;
+  const {
+    ba, baCabang, region, cabang, namaLengkap,
+    nik, noKtp, tglLahir, namaIbu, noHp,
+    noJamsostek, formConsent, status,
+  } = parsed.data
 
   await prisma.employee.update({
     where: { id },
     data: {
-      ba,
-      baCabang,
-      region,
-      cabang,
-      namaLengkap,
-      status, 
-      nik,
-      noJamsostek,
-      noKtp,
-      tglLahir,
-      namaIbu,
-      noHp,
-      formConsent,
+      ba, baCabang, region, cabang, namaLengkap, status,
+      nik: nik ?? null,
+      noJamsostek: noJamsostek ?? null,
+      noKtp, tglLahir, namaIbu, noHp, formConsent,
     },
-  });
+  })
 
-  // CATAT KE AUDIT LOG
   await createAuditLog(
     session.id,
     session.username,
     'UPDATE',
     'employee',
     id,
-    { 
-        updatedFields: Array.from(formData.keys()).filter(key => key !== 'id'),
-        statusTarget: status 
-    }
-  );
+    { updatedFields: Object.keys(parsed.data), statusTarget: status }
+  )
 
-  revalidatePath('/');
-  revalidatePath(`/karyawan/${id}`);
-  redirect(`/karyawan/${id}`);
+  revalidatePath('/')
+  revalidatePath('/karyawan')
+  revalidatePath(`/karyawan/${id}`)
+  redirect(`/karyawan/${id}`)
 }
 
-/**
- * Action untuk menambahkan kontrak baru (Renewal)
- */
+// ─── Create Contract ──────────────────────────────────────────────────────────
 export async function createContract(employeeId: string, formData: FormData) {
-  const session = await verifySession();
-  const posisi = formData.get('posisi') as string;
-  const traineeSejakRaw = formData.get('traineeSejak') as string;
+  const session = await requireAdmin()
+  const raw = formDataToObject(formData)
 
-  // Implementasi Otomatisasi Tanggal Selesai 
-  const traineeSejak = new Date(traineeSejakRaw);
-  const traineeSelesai = calculateEndDate(posisi, traineeSejak);
+  const parsed = createContractSchema.safeParse(raw)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? 'Data kontrak tidak valid')
+  }
+
+  const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
+  const traineeSejak = new Date(traineeSejakRaw)
+  const traineeSelesai = calculateEndDate(posisi, traineeSejak)
 
   const newContract = await prisma.contract.create({
-    data: {
-      posisi,
-      traineeSejak,
-      traineeSelesai,
-      employeeId: employeeId,
-    },
-  });
+    data: { posisi, traineeSejak, traineeSelesai, employeeId },
+  })
 
-  // CATAT KE AUDIT LOG
   await createAuditLog(
     session.id,
     session.username,
     'CREATE',
     'contract',
     newContract.id,
-    { employeeId: employeeId, posisBaru: posisi }
-  );
+    { employeeId, posisiBaru: posisi }
+  )
 
-  revalidatePath(`/karyawan/${employeeId}`);
-  revalidatePath('/');
-  redirect(`/karyawan/${employeeId}`);
+  revalidatePath(`/karyawan/${employeeId}`)
+  revalidatePath('/')
+  redirect(`/karyawan/${employeeId}`)
 }
 
-/**
- * Action untuk menghapus data karyawan
- */
-export async function deleteEmployee(id: string) {
-  const session = await verifySession();
+// ─── Delete Employee ──────────────────────────────────────────────────────────
+export async function deleteEmployee(id: string): Promise<ActionResult<{ id: string }>> {
   try {
-    // Ambil data nama sebelum dihapus untuk record audit
-    const employeeData = await prisma.employee.findUnique({
-      where: { id },
-      select: { namaLengkap: true }
-    });
+    const session = await requireAdmin()
 
-    await prisma.employee.delete({
+    const employee = await prisma.employee.findUnique({
       where: { id },
-    });
-    
-    // CATAT KE AUDIT LOG
+      select: { namaLengkap: true },
+    })
+
+    if (!employee) {
+      return fail('Data karyawan tidak ditemukan', 'NOT_FOUND')
+    }
+
+    await prisma.employee.delete({ where: { id } })
+
     await createAuditLog(
       session.id,
       session.username,
       'DELETE',
       'employee',
       id,
-      { namaTerhapus: employeeData?.namaLengkap || 'Unknown' }
-    );
+      { namaTerhapus: employee.namaLengkap }
+    )
 
-    revalidatePath('/');
-    return { success: true };
-  } catch (error) {
-    console.error("Delete Error:", error);
-    return { success: false, error: 'Gagal menghapus data karyawan' };
+    revalidatePath('/')
+    revalidatePath('/karyawan')
+    return ok({ id })
+  } catch (error: any) {
+    if (error.code === 'UNAUTHORIZED') return fail(error.message, 'UNAUTHORIZED')
+    logger.error('deleteEmployee failed', { error: String(error) })
+    return fail('Gagal menghapus data karyawan', 'SERVER_ERROR')
   }
 }
 
-/**
- * Ambil semua data untuk export (Tanpa Log karena hanya Read)
- */
+// ─── Read: Semua karyawan untuk export ───────────────────────────────────────
 export async function getAllEmployeesForExport() {
   try {
-    const data = await prisma.employee.findMany({
+    return await prisma.employee.findMany({
       include: {
-        contracts: {
-          orderBy: { traineeSelesai: 'desc' },
-          take: 1
-        }
+        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
       },
-      orderBy: { namaLengkap: 'asc' }
-    });
-    return data;
+      orderBy: { namaLengkap: 'asc' },
+    })
   } catch (error) {
-    console.error("Export Error:", error);
-    return [];
+    logger.error('getAllEmployeesForExport failed', { error: String(error) })
+    return []
   }
 }
 
-/**
- * Ambil data karyawan dengan filter (Tanpa Log karena hanya Read)
- */
-export async function getEmployees({ 
-  search = '', 
-  cabang = '', 
-  status = '' 
-}) {
+// ─── Read: Filter karyawan ────────────────────────────────────────────────────
+export async function getEmployees({
+  search = '',
+  cabang = '',
+  status = '',
+}: {
+  search?: string
+  cabang?: string
+  status?: string
+} = {}) {
   try {
-    const data = await prisma.employee.findMany({
+    return await prisma.employee.findMany({
       where: {
         AND: [
           {
@@ -257,21 +211,17 @@ export async function getEmployees({
               { nik: { contains: search } },
             ],
           },
-          cabang ? { cabang: cabang } : {},
-          status ? { status: status } : {},
+          cabang ? { cabang } : {},
+          status ? { status } : {},
         ],
       },
       include: {
-        contracts: {
-          orderBy: { traineeSelesai: 'desc' },
-          take: 1
-        }
+        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
       },
-      orderBy: { namaLengkap: 'asc' }
-    });
-    return data;
+      orderBy: { namaLengkap: 'asc' },
+    })
   } catch (error) {
-    console.error("Fetch Error:", error);
-    return [];
+    logger.error('getEmployees failed', { error: String(error) })
+    return []
   }
 }

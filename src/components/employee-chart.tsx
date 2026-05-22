@@ -1,57 +1,52 @@
-'use client';
+'use client'
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-// Warna untuk tiap bar agar bervariasi
-const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
+const BAR_COLORS = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe']
 
-const chartConfig = {
-  count: {
-    label: "Jumlah Karyawan",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
-
-interface EmployeeChartProps {
-  data: { posisi: string; _count: { posisi: number } }[];
+interface Props {
+  data: [posisi: string, count: number][]
 }
 
-export function EmployeeChart({ data }: EmployeeChartProps) {
-  // Mapping data dari Prisma ke format Recharts
-  const chartData = data.map((item) => ({
-    posisi: item.posisi,
-    jumlah: item._count.posisi,
-  }));
+export function EmployeeChart({ data }: Props) {
+  const chartData = data.map(([posisi, jumlah]) => ({ posisi, jumlah }))
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-48 text-sm text-slate-400 font-bold uppercase tracking-wider">
+        Tidak ada data
+      </div>
+    )
+  }
 
   return (
-    <Card className="border-none shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg">Statistik Jabatan</CardTitle>
-        <CardDescription>Jumlah karyawan aktif berdasarkan posisi</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-75 w-full">
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-slate-200" />
-            <XAxis 
-              dataKey="posisi" 
-              fontSize={12} 
-              tickLine={false} 
-              axisLine={false}
-              tickFormatter={(value) => value.substring(0, 5) + ".."} // Singkat jika terlalu panjang
-            />
-            <YAxis fontSize={12} tickLine={false} axisLine={false} />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="jumlah" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+    <ResponsiveContainer width="100%" height={220}>
+      <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
+        <XAxis
+          dataKey="posisi"
+          tick={{ fontSize: 10, fill: '#94a3b8' }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={v => v.length > 7 ? v.slice(0, 7) + '…' : v}
+        />
+        <YAxis
+          tick={{ fontSize: 10, fill: '#94a3b8' }}
+          tickLine={false}
+          axisLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip
+          formatter={(value) => [`${value} orang`, 'Jumlah']}
+          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+          cursor={{ fill: '#f8fafc' }}
+        />
+        <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} maxBarSize={48}>
+          {chartData.map((_, i) => (
+            <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  )
 }

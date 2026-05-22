@@ -1,4 +1,5 @@
-import { prisma } from './prisma';
+import { prisma } from './prisma'
+import { logger } from './logger'
 
 export async function createAuditLog(
   userId: string,
@@ -18,9 +19,8 @@ export async function createAuditLog(
         entityId,
         details: JSON.stringify(details),
       },
-    });
+    })
   } catch (error) {
-    // Kita gunakan console.error agar tidak menghentikan proses utama jika log gagal
-    console.error("Gagal mencatat audit log:", error);
+    logger.error('createAuditLog failed', { entity, entityId, error: String(error) })
   }
 }

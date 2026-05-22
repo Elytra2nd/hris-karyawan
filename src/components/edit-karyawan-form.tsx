@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Save, Loader2, Building2, User, UserCircle2, Info } from 'lucide-react'
 import { ImageUpload } from '@/components/image-upload'
+import { toast } from 'sonner'
 
 const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
 const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
@@ -20,7 +21,13 @@ export function EditKaryawanForm({ employee, updateAction }: EditKaryawanFormPro
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true)
-    await updateAction(formData)
+    try {
+      await updateAction(formData)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
+      toast.error(msg)
+      setIsPending(false)
+    }
   }
 
   return (

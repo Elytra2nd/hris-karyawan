@@ -1,6 +1,6 @@
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
-import { startOfDay, addDays, format, differenceInDays } from 'date-fns'
+import { startOfDay, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
   Users, UserCheck, UserX, AlertTriangle,
@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { ContractStatusChart } from '@/components/contract-status-chart'
+import { EmployeeChart } from '@/components/employee-chart'
 
 export default async function DashboardPage() {
   const user = await verifySession()
@@ -49,7 +51,6 @@ export default async function DashboardPage() {
   const posisiMap: Record<string, number> = {}
   recentContracts.forEach(c => { posisiMap[c.posisi] = (posisiMap[c.posisi] || 0) + 1 })
   const statsPosisi = Object.entries(posisiMap).sort((a, b) => b[1] - a[1])
-  const maxPosisi = statsPosisi.length > 0 ? Math.max(...statsPosisi.map(s => s[1])) : 1
 
   const cabangMap: Record<string, number> = {}
   recentContracts.forEach(c => { cabangMap[c.employee.cabang] = (cabangMap[c.employee.cabang] || 0) + 1 })
@@ -250,38 +251,23 @@ export default async function DashboardPage() {
             <h2 className="text-base font-semibold text-gray-800">Ringkasan Kontrak Aktif</h2>
           </div>
 
-          <div className="px-5 py-2 divide-y divide-gray-50">
-            <SummaryRow
-              label="Kontrak Aman"
-              sub="> 90 hari tersisa"
-              value={safe.length}
-              dotColor="bg-green-500"
-              valueColor="text-green-700"
-            />
-            <SummaryRow
-              label="Perlu Perhatian"
-              sub="31–90 hari"
-              value={expiring90.length - expiring30.length}
-              dotColor="bg-amber-400"
-              valueColor="text-amber-700"
-            />
-            <SummaryRow
-              label="Kritis"
-              sub="≤ 30 hari"
-              value={expiring30.length}
-              dotColor="bg-red-500"
-              valueColor="text-red-700"
-            />
-            <SummaryRow
-              label="Sudah Berakhir"
-              sub="Kontrak expired"
-              value={expired.length}
-              dotColor="bg-gray-300"
-              valueColor="text-gray-500"
+          <div className="px-4 pt-3">
+            <ContractStatusChart
+              safe={safe.length}
+              warning={expiring90.length - expiring30.length}
+              critical={expiring30.length}
+              expired={expired.length}
             />
           </div>
 
-          <div className="px-5 pt-3 pb-4 mt-1 border-t border-gray-100 space-y-1.5">
+          <div className="px-5 py-2 divide-y divide-gray-50 border-t border-gray-100 mt-1">
+            <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={safe.length} dotColor="bg-green-500" valueColor="text-green-700" />
+            <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={expiring90.length - expiring30.length} dotColor="bg-amber-400" valueColor="text-amber-700" />
+            <SummaryRow label="Kritis" sub="≤ 30 hari" value={expiring30.length} dotColor="bg-red-500" valueColor="text-red-700" />
+            <SummaryRow label="Sudah Berakhir" sub="Expired" value={expired.length} dotColor="bg-gray-300" valueColor="text-gray-500" />
+          </div>
+
+          <div className="px-5 pt-3 pb-4 border-t border-gray-100 space-y-1.5">
             <div className="flex justify-between text-sm">
               <span className="font-semibold text-gray-800">Total Karyawan Aktif</span>
               <span className="font-bold text-gray-900">{activeEmployees}</span>
@@ -308,23 +294,8 @@ export default async function DashboardPage() {
               <p className="text-xs text-muted-foreground">Berdasarkan kontrak terakhir aktif</p>
             </div>
           </div>
-          <div className="px-5 py-4 space-y-3.5">
-            {statsPosisi.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Tidak ada data</p>
-            ) : statsPosisi.map(([posisi, count]) => (
-              <div key={posisi}>
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-sm font-medium text-gray-700">{posisi}</span>
-                  <span className="text-sm font-bold text-gray-900">{count}</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${(count / maxPosisi) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="px-4 pb-4">
+            <EmployeeChart data={statsPosisi} />
           </div>
         </div>
 

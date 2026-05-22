@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { addMonths, format } from 'date-fns'
 import { Info, Building2, User, FileSignature, CalendarCheck, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -37,8 +38,14 @@ export function EmployeeForm({ action }: { action: (formData: FormData) => void 
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true)
-    await action(formData)
-    // redirect akan terjadi di server action, jadi tidak perlu reset
+    try {
+      await action(formData)
+      // redirect terjadi di server action jika berhasil
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
+      toast.error(msg)
+      setIsPending(false)
+    }
   }
 
   return (

@@ -8,6 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Loader2, Info, CalendarCheck } from 'lucide-react'
+import { toast } from 'sonner'
 
 const POSISI_OPTIONS = [
   { value: 'SALESMAN', label: 'Salesman', months: 6 },
@@ -39,7 +40,13 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true)
-    await action(employeeId, formData)
+    try {
+      await action(employeeId, formData)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
+      toast.error(msg)
+      setIsPending(false)
+    }
   }
 
   const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)

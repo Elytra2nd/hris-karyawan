@@ -1,47 +1,52 @@
 # HRIS Karyawan — Astra Project Context
 
 ## Project Overview
-Sistem HRIS (Human Resource Information System) untuk manajemen data karyawan trainee PT Astra International. Dibangun dengan Next.js App Router, Prisma ORM, MySQL, dan shadcn/ui.
+Sistem HRIS untuk manajemen data karyawan trainee PT Astra Motor Kalimantan Barat. Dibangun dengan Next.js App Router, Prisma ORM, MySQL/MariaDB, shadcn/ui.
 
 ## Tech Stack
-- **Framework:** Next.js 15 (App Router) dengan TypeScript
-- **Database:** MySQL via Prisma ORM
-- **Auth:** Custom session-based auth (bukan NextAuth)
+- **Framework:** Next.js 16 (App Router, Turbopack) dengan TypeScript
+- **Database:** MariaDB via Prisma 7.x (`@prisma/adapter-mariadb`)
+- **Auth:** NextAuth v4 (CredentialsProvider, JWT strategy, 8-jam session)
+- **Validation:** Zod v4 — gunakan `.issues` (bukan `.errors`), `{ message: '' }` untuk enum errors
 - **UI:** shadcn/ui + Tailwind CSS v4
-- **Font:** Satoshi
-- **Deployment:** Local/ngrok untuk demo
+- **Charts:** Recharts v3 (sudah terpasang, dipakai di dashboard)
+- **Font:** Satoshi (via `@font-face` di globals.css)
+- **Proxy:** `src/proxy.ts` — Next.js 16 renamed middleware → proxy
+- **Deployment:** Local/ngrok
 
-## Database Schema
-```
-Employee   → data karyawan (ba, baCabang, region, cabang, namaLengkap, status, nik, noKtp, dll.)
-Contract   → kontrak trainee (posisi, traineeSejak, traineeSelesai, contractPath)
-User       → user sistem (username, password, role: ADMIN | VIEWER)
-AuditLog   → audit trail semua perubahan (userId, action, entity, entityId, details)
-```
+## Design System
+- Primary: Astra Blue `oklch(0.379 0.191 264)` (`#1e40af`)
+- Lihat `desain.md` untuk detail tokens, chip status, form label patterns
 
 ## Folder Structure
 ```
 src/
+├── proxy.ts                ← Route guard + rate limiting (Next.js 16 proxy)
 ├── app/
-│   ├── (protected)/          ← semua halaman butuh auth
-│   │   ├── page.tsx          ← dashboard utama
-│   │   ├── karyawan/         ← CRUD karyawan
-│   │   │   ├── [id]/edit/    ← edit karyawan
-│   │   │   ├── [id]/kontrak/ ← manajemen kontrak
-│   │   │   └── tambah/       ← tambah karyawan baru
-│   │   └── admin/
-│   │       ├── users/        ← manajemen user (ADMIN only)
-│   │       └── audit-log/    ← audit trail (ADMIN only)
-│   ├── login/                ← halaman login
-│   └── actions/              ← Server Actions (employee.ts, user.ts)
+│   ├── (protected)/        ← halaman butuh auth (dilindungi proxy.ts)
+│   │   ├── page.tsx        ← dashboard (charts, alerts, stats)
+│   │   ├── karyawan/       ← CRUD karyawan
+│   │   └── admin/          ← users + audit-log (ADMIN only)
+│   ├── login/              ← halaman login
+│   └── actions/            ← Server Actions (employee.ts, user.ts)
 ├── components/
-│   ├── ui/                   ← shadcn components
-│   ├── app-sidebar.tsx       ← sidebar navigasi
-│   ├── employee-form.tsx     ← form karyawan
-│   ├── export-excel-button.tsx
-│   └── contract-pdf.tsx
+│   ├── ui/                 ← shadcn components
+│   ├── app-sidebar.tsx
+│   ├── employee-form.tsx   ← form tambah karyawan (toast.error on throw)
+│   ├── edit-karyawan-form.tsx
+│   ├── contract-form.tsx
+│   ├── contract-list.tsx
+│   ├── employee-chart.tsx  ← bar chart posisi (Recharts client component)
+│   ├── contract-status-chart.tsx ← donut chart status kontrak
+│   └── export-excel-button.tsx
 └── lib/
-    └── auth.ts               ← session management
+    ├── validation/index.ts ← Zod v4 schemas
+    ├── result.ts           ← ActionResult<T> type (ok/fail helpers)
+    ├── auth-guard.ts       ← requireAdmin() — throws if not ADMIN
+    ├── logger.ts           ← structured logger (JSON in prod)
+    ├── audit.ts            ← createAuditLog()
+    ├── dal.ts              ← verifySession() — server-only
+    └── auth.ts             ← NextAuth authOptions
 ```
 
 ## Role & Access
@@ -50,24 +55,22 @@ src/
 
 ## Business Rules
 - Setiap karyawan bisa punya banyak kontrak (one-to-many)
-- Status karyawan: `AKTIF` | `TIDAK AKTIF`
-- Semua perubahan data tercatat di AuditLog
-- File upload: KTP, KK, foto, kontrak PDF disimpan di server
-- Export data karyawan ke Excel tersedia
+- Durasi kontrak: ADMINISTRASI → 3 bulan, semua lainnya → 6 bulan (auto-calculated)
+- Status karyawan: `AKTIF` | `NON-AKTIF`
+- Semua mutasi tercatat di AuditLog
+- Login rate limit: 10 percobaan / 15 menit per IP (in-memory, single instance)
 
 ## Coding Conventions
-- Gunakan **Server Actions** untuk semua mutasi data (bukan API route)
-- Validasi di server side, bukan hanya client
-- Gunakan `revalidatePath()` setelah setiap mutasi
-- Komponen dengan `"use client"` hanya untuk interaktivitas
-- Nama variabel bahasa Indonesia untuk domain bisnis (namaLengkap, bukan fullName)
-- Error handling dengan try/catch, return `{ success, error }` object
-
-## Design System
-Lihat `desain.md` untuk detail lengkap design tokens, warna, dan komponen.
+- Server Actions untuk semua mutasi (`'use server'`)
+- Validasi di server dengan Zod v4 + `formDataToObject()`
+- Actions return `ActionResult<T>` via `ok()/fail()` — atau `throw + redirect()` untuk form navigasi
+- Form components (client): wrap `await action()` in try/catch, `toast.error(err.message)` on error
+- `revalidatePath()` setelah setiap mutasi
+- Error handling: `logger.error()` bukan `console.error()`
+- Import `cn()` dari `@/lib/utils`
 
 ## Important Notes
-- Database connection string ada di `.env` (jangan diubah)
-- MySQL case-sensitive untuk nama tabel: gunakan `@@map()` di schema
-- Auth session disimpan di cookie, bukan localStorage
-- Prisma client harus di-generate ulang setelah schema berubah: `npx prisma generate`
+- Database: `.env` → `DATABASE_URL` (jangan ubah)
+- Prisma: `npx prisma generate` setelah schema berubah, `npx prisma db push` untuk sync
+- Zod v4: `parsed.error.issues` (bukan `.errors`), enum: `{ message: 'text' }` bukan `{ errorMap: ... }`
+- Proxy: `withAuth` dari `next-auth/middleware` dipakai di `proxy.ts`

@@ -1,216 +1,224 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import * as XLSX from 'xlsx';
-import { FileSpreadsheet, Loader2, Download, FileText, SlidersHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { getAllEmployeesForExport } from '@/app/actions/employee';
-import { format } from 'date-fns';
+import { useState } from 'react'
+import * as XLSX from 'xlsx'
+import { FileSpreadsheet, Loader2, Download, FileText, SlidersHorizontal, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { getAllEmployeesForExport } from '@/app/actions/employee'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
-const F = "'Satoshi', 'Inter', system-ui, sans-serif";
+type Row = Record<string, string>
+
+function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): Row[] {
+  return rawData.map((emp) => ({
+    'BA': emp.ba,
+    'BA CABANG': emp.baCabang,
+    'REGION': emp.region,
+    'CABANG': emp.cabang,
+    'Nama Lengkap': emp.namaLengkap,
+    'Status': emp.status,
+    'NIK': emp.nik ?? '-',
+    'No Jamsostek': emp.noJamsostek ?? '-',
+    'No KTP': emp.noKtp,
+    'Tgl Lahir': emp.tglLahir ? format(new Date(emp.tglLahir), 'dd.MM.yyyy') : '-',
+    'Nama Ibu': emp.namaIbu,
+    'Trainee Sejak': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSejak), 'dd.MM.yyyy') : '-',
+    'Trainee Selesai': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSelesai), 'dd.MM.yyyy') : '-',
+    'Posisi': emp.contracts[0]?.posisi ?? '-',
+    'No HP': emp.noHp ?? '-',
+    'Form Consent': emp.formConsent ?? '-',
+  }))
+}
+
+function applyFilters(rows: Row[], cabang: string, status: string, posisi: string): Row[] {
+  return rows.filter(r =>
+    (!cabang || r['CABANG'] === cabang) &&
+    (!status || r['Status'] === status) &&
+    (!posisi || r['Posisi'] === posisi)
+  )
+}
 
 export function ExportExcelButton({ variant = 'default' }: { variant?: 'default' | 'sidebar' }) {
-  const [loading, setLoading] = useState(false);
-  const [dataPreview, setDataPreview] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [filterCabang, setFilterCabang] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterPosisi, setFilterPosisi] = useState('');
+  const [loading, setLoading] = useState(false)
+  const [allRows, setAllRows] = useState<Row[]>([])
+  const [open, setOpen] = useState(false)
+  const [filterCabang, setFilterCabang] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterPosisi, setFilterPosisi] = useState('')
 
-  const prepareData = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    setLoading(true);
+  const filtered = applyFilters(allRows, filterCabang, filterStatus, filterPosisi)
+
+  const load = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (loading) return
+    setLoading(true)
     try {
-      const rawData = await getAllEmployeesForExport();
-      const transformed = rawData.map((emp) => ({
-        'BA': emp.ba,
-        'BA CABANG': emp.baCabang,
-        'REGION': emp.region,
-        'CABANG': emp.cabang,
-        'Nama Lengkap': emp.namaLengkap,
-        'Status': emp.status,
-        'NIK': emp.nik || '-',
-        'No Jamsostek': emp.noJamsostek || '-',
-        'No KTP': emp.noKtp,
-        'Tgl Lahir': emp.tglLahir ? format(new Date(emp.tglLahir), 'dd.MM.yyyy') : '-',
-        'Nama Ibu': emp.namaIbu,
-        'Trainee Sejak': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSejak), 'dd.MM.yyyy') : '-',
-        'Trainee Selesai': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSelesai), 'dd.MM.yyyy') : '-',
-        'Posisi': emp.contracts[0]?.posisi || '-',
-        'No HP': emp.noHp || '-',
-        'Form Consent': emp.formConsent || '-',
-      }));
-      setDataPreview(transformed);
-      setFilteredData(transformed);
-      setFilterCabang('');
-      setFilterStatus('');
-      setFilterPosisi('');
-      setIsOpen(true);
+      const raw = await getAllEmployeesForExport()
+      setAllRows(toRows(raw))
+      setFilterCabang('')
+      setFilterStatus('')
+      setFilterPosisi('')
+      setOpen(true)
     } catch {
-      alert("Gagal mengambil data.");
+      alert('Gagal mengambil data.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const applyFilter = (cab: string, stat: string, pos: string) => {
-    let d = [...dataPreview];
-    if (cab) d = d.filter(r => r['CABANG'] === cab);
-    if (stat) d = d.filter(r => r['Status'] === stat);
-    if (pos) d = d.filter(r => r['Posisi'] === pos);
-    setFilteredData(d);
-  };
-
-  const handleFilterChange = (type: 'cabang' | 'status' | 'posisi', val: string) => {
-    const c = type === 'cabang' ? val : filterCabang;
-    const s = type === 'status' ? val : filterStatus;
-    const p = type === 'posisi' ? val : filterPosisi;
-    if (type === 'cabang') setFilterCabang(val);
-    if (type === 'status') setFilterStatus(val);
-    if (type === 'posisi') setFilterPosisi(val);
-    applyFilter(c, s, p);
-  };
-
-  const resetFilters = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi(''); setFilteredData(dataPreview); };
+  const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi('') }
 
   const downloadExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Report");
-    XLSX.writeFile(wb, `HRIS_Astra_${format(new Date(), 'yyyyMMdd')}.xlsx`);
-    setIsOpen(false);
-  };
+    const ws = XLSX.utils.json_to_sheet(filtered)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Report')
+    XLSX.writeFile(wb, `HRIS_Astra_${format(new Date(), 'yyyyMMdd')}.xlsx`)
+    setOpen(false)
+  }
 
   const downloadPDF = () => {
-    // Create printable HTML table for PDF
-    const headers = filteredData.length > 0 ? Object.keys(filteredData[0]) : [];
-    let html = `<html><head><title>HRIS Report</title><style>
-      body{font-family:Arial,sans-serif;font-size:9px;margin:12px;}
-      h2{font-size:14px;margin-bottom:4px;}
-      p{color:#666;font-size:10px;margin-bottom:12px;}
-      table{width:100%;border-collapse:collapse;}
-      th{background:#1E293B;color:#fff;padding:4px 6px;text-align:left;font-size:8px;text-transform:uppercase;}
-      td{padding:4px 6px;border-bottom:1px solid #eee;font-size:9px;}
-      tr:nth-child(even){background:#f9f9f9;}
+    const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
+    const html = `<html><head><title>HRIS Report</title><style>
+      body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
+      h2{font-size:14px;margin-bottom:4px}p{color:#666;font-size:10px;margin-bottom:12px}
+      table{width:100%;border-collapse:collapse}
+      th{background:#1e293b;color:#fff;padding:4px 6px;text-align:left;font-size:8px;text-transform:uppercase}
+      td{padding:4px 6px;border-bottom:1px solid #eee;font-size:9px}
+      tr:nth-child(even){background:#f9f9f9}
     </style></head><body>
     <h2>Laporan Data Karyawan — Astra Motor Kalimantan Barat</h2>
-    <p>Tanggal: ${format(new Date(), 'dd MMMM yyyy')} | Total: ${filteredData.length} data</p>
-    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
-    filteredData.forEach(row => {
-      html += '<tr>' + headers.map(h => `<td>${row[h]}</td>`).join('') + '</tr>';
-    });
-    html += '</tbody></table></body></html>';
-    const w = window.open('', '_blank');
-    if (w) { w.document.write(html); w.document.close(); w.print(); }
-    setIsOpen(false);
-  };
+    <p>Tanggal: ${format(new Date(), 'dd MMMM yyyy')} | Total: ${filtered.length} data</p>
+    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+    ${filtered.map(row => '<tr>' + headers.map(h => `<td>${row[h]}</td>`).join('') + '</tr>').join('')}
+    </tbody></table></body></html>`
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close(); w.print() }
+    setOpen(false)
+  }
 
-  const cabangOptions = [...new Set(dataPreview.map(r => r['CABANG']))].sort();
-  const posisiOptions = [...new Set(dataPreview.map(r => r['Posisi']).filter(p => p !== '-'))].sort();
+  const cabangOpts = [...new Set(allRows.map(r => r['CABANG']))].sort()
+  const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
+  const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
+
+  const selectCls = "h-8 pl-2 pr-7 text-xs border border-slate-200 rounded-md bg-white text-slate-600 outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer"
 
   return (
     <>
       {variant === 'sidebar' ? (
-        <button onClick={prepareData} disabled={loading}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 500, color: '#64748B', backgroundColor: 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F8FAFC'; e.currentTarget.style.color = '#1E293B'; }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748B'; }}
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors disabled:opacity-60"
         >
-          {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: '#94A3B8' }} /> : <FileSpreadsheet size={18} style={{ color: '#94A3B8' }} />}
-          <span>Export Data</span>
+          {loading
+            ? <Loader2 size={16} className="animate-spin text-slate-400" />
+            : <FileSpreadsheet size={16} className="text-slate-400" />}
+          Export Data
         </button>
       ) : (
-        <button onClick={prepareData} disabled={loading}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', fontSize: 14, fontWeight: 600, color: '#1E293B', background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer', fontFamily: F }}>
-          {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={16} />}
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-60"
+        >
+          {loading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
           Export
         </button>
       )}
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] overflow-hidden flex flex-col" style={{ fontFamily: F }}>
-          <DialogHeader>
-            <DialogTitle style={{ fontSize: 18, fontWeight: 700, color: '#1E293B' }}>
-              Export Data Karyawan
-            </DialogTitle>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
+            <DialogTitle className="text-lg font-bold text-slate-900">Export Data Karyawan</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 mt-0.5">
+              Filter data sebelum download. {allRows.length} total karyawan tersedia.
+            </DialogDescription>
           </DialogHeader>
 
-          {/* FILTER ROW */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#64748B' }}>
-              <SlidersHorizontal size={14} /> Filter:
+          {/* Filter row */}
+          <div className="flex items-center gap-2.5 px-5 py-3 border-b border-slate-100 bg-slate-50 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <SlidersHorizontal size={13} /> Filter:
             </div>
-            <select value={filterCabang} onChange={e => handleFilterChange('cabang', e.target.value)} style={selS}>
+
+            <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} className={selectCls}>
               <option value="">Semua Cabang</option>
-              {cabangOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              {cabangOpts.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <select value={filterStatus} onChange={e => handleFilterChange('status', e.target.value)} style={selS}>
+
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={selectCls}>
               <option value="">Semua Status</option>
               <option value="AKTIF">AKTIF</option>
               <option value="NON-AKTIF">NON-AKTIF</option>
             </select>
-            <select value={filterPosisi} onChange={e => handleFilterChange('posisi', e.target.value)} style={selS}>
+
+            <select value={filterPosisi} onChange={e => setFilterPosisi(e.target.value)} className={selectCls}>
               <option value="">Semua Posisi</option>
-              {posisiOptions.map(p => <option key={p} value={p}>{p}</option>)}
+              {posisiOpts.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
-            <button onClick={resetFilters} style={{ fontSize: 12, color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Reset</button>
-            <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: '#64748B' }}>{filteredData.length} dari {dataPreview.length} data</span>
+
+            {(filterCabang || filterStatus || filterPosisi) && (
+              <button onClick={reset} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors">
+                <X size={12} /> Reset
+              </button>
+            )}
+
+            <span className="ml-auto text-xs font-semibold text-slate-500">
+              {filtered.length} / {allRows.length} data
+            </span>
           </div>
 
-          {/* TABLE PREVIEW */}
-          <div className="flex-1 overflow-auto border rounded-lg bg-slate-50 mt-2">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
-              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                <tr style={{ background: '#1E293B' }}>
-                  {filteredData.length > 0 && Object.keys(filteredData[0]).map(key => (
-                    <th key={key} style={{ padding: '6px 8px', color: '#fff', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', textAlign: 'left', borderRight: '1px solid #334155' }}>{key}</th>
+          {/* Table preview */}
+          <div className="flex-1 overflow-auto bg-slate-50 mx-0">
+            <table className="w-full border-collapse text-[10px]">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-slate-800">
+                  {headers.map(h => (
+                    <th key={h} className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wider text-white whitespace-nowrap border-r border-slate-700 last:border-0">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC' }}>
-                    {Object.values(row).map((val: any, j) => (
-                      <td key={j} style={{ padding: '4px 8px', whiteSpace: 'nowrap', borderBottom: '1px solid #F1F5F9', fontSize: 10, color: '#475569' }}>{val}</td>
+                {filtered.map((row, i) => (
+                  <tr key={i} className={cn('border-b border-slate-100', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/80')}>
+                    {headers.map(h => (
+                      <td key={h} className="px-2 py-1 whitespace-nowrap text-slate-600">{row[h]}</td>
                     ))}
                   </tr>
                 ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={headers.length} className="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Tidak ada data
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* FOOTER WITH ACTIONS */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 10, border: '1px solid #F1F5F9' }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>
-              {filteredData.length} data siap di-export
+          {/* Footer actions */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-white">
+            <span className="text-xs font-semibold text-slate-400">
+              {filtered.length} data siap di-export
             </span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="outline" onClick={() => setIsOpen(false)} style={{ fontFamily: F }}>Tutup</Button>
-              <Button onClick={downloadPDF} variant="outline" className="gap-2" style={{ fontFamily: F, color: '#DC2626', borderColor: '#FECACA' }}>
-                <FileText size={14} /> PDF
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Tutup</Button>
+              <Button variant="outline" size="sm" onClick={downloadPDF} className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50">
+                <FileText size={13} /> PDF
               </Button>
-              <Button onClick={downloadExcel} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" style={{ fontFamily: F }}>
-                <FileSpreadsheet size={14} /> Excel (.xlsx)
+              <Button size="sm" onClick={downloadExcel} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                <FileSpreadsheet size={13} /> Excel (.xlsx)
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
-
-const selS: React.CSSProperties = {
-  height: 32, padding: '0 24px 0 8px', fontSize: 12, border: '1px solid #E2E8F0',
-  borderRadius: 6, background: '#fff', color: '#475569', cursor: 'pointer', outline: 'none',
-  fontFamily: "'Satoshi', 'Inter', system-ui, sans-serif",
-  appearance: 'none' as const,
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center',
-};

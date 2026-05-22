@@ -76,9 +76,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  session: { 
+  session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 Hari
+    maxAge: 8 * 60 * 60, // 8 jam — lebih aman untuk sistem HR
   },
   pages: { 
     signIn: '/login' 

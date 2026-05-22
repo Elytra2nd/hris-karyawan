@@ -19,7 +19,8 @@ model Contract {
   employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Contract_employeeId_fkey")
 
   @@index([employeeId], map: "Contract_employeeId_fkey")
-  @@map("contract") // Tetap menggunakan nama tabel kecil di MySQL
+  @@index([traineeSelesai])              // Query kontrak hampir habis
+  @@map("contract")
 }
 
 model Employee {
@@ -43,7 +44,11 @@ model Employee {
   kkPath      String?
   ktpPath     String?
   contracts   Contract[]
-  
+
+  @@index([status])                      // Filter by status
+  @@index([cabang])                      // Filter by cabang
+  @@index([status, cabang])              // Dashboard groupBy query
+  @@index([namaLengkap])                 // Search by name
   @@map("employee")
 }
 
@@ -51,22 +56,24 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique(map: "User_username_key")
   password  String
-  role      String   // "ADMIN" atau "VIEWER"
-  createdAt DateTime @default(now()) // Tambahan untuk memperbaiki Error "Unknown argument createdAt"
-  
+  role      String
+  createdAt DateTime @default(now())
+
   @@map("user")
 }
 
-// --- MODEL UNTUK AUDIT TRAIL ---
 model AuditLog {
   id        String   @id @default(cuid())
-  userId    String   // ID User yang melakukan aksi
-  userName  String   // Nama User untuk tracking cepat
-  action    String   // CREATE, UPDATE, DELETE
-  entity    String   // Employee, Contract, dll
-  entityId  String   // ID data yang dimodifikasi
-  details   String   @db.Text // Detail perubahan dalam format JSON string
+  userId    String
+  userName  String
+  action    String
+  entity    String
+  entityId  String
+  details   String   @db.Text
   createdAt DateTime @default(now())
 
+  @@index([action])                      // Filter by action type
+  @@index([createdAt])                   // Sort/range query
+  @@index([entityId])                    // Per-entity audit trail
   @@map("auditlog")
 }
