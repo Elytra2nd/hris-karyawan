@@ -8,6 +8,8 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Save, Loader2, Building2, User, UserCircle2, Info } from 'lucide-react'
 import { ImageUpload } from '@/components/image-upload'
 import { toast } from 'sonner'
+import { FieldError } from '@/components/ui/field-error'
+import { updateEmployeeSchema } from '@/lib/validation'
 
 const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
 const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
@@ -22,8 +24,30 @@ interface EditKaryawanFormProps {
 
 export function EditKaryawanForm({ employee, updateAction, departments = [] }: EditKaryawanFormProps) {
   const [isPending, setIsPending] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (formData: FormData) => {
+    const raw: Record<string, string | null> = {}
+    formData.forEach((v, k) => {
+      const s = v.toString().trim()
+      raw[k] = s === '' ? null : s
+    })
+
+    const parsed = updateEmployeeSchema.safeParse(raw)
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach(e => {
+        const field = e.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = e.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Periksa kembali isian yang ditandai')
+      const firstField = parsed.error.issues[0]?.path[0]
+      if (firstField) document.getElementById(String(firstField))?.focus()
+      return
+    }
+
+    setErrors({})
     setIsPending(true)
     try {
       await updateAction(formData)
@@ -62,13 +86,15 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Label htmlFor="ba" className="form-label">
                     BA (Branch Code) <span className="text-red-500">*</span>
                   </Label>
-                  <Input id="ba" name="ba" defaultValue={employee.ba} required className="h-9 text-sm" />
+                  <Input id="ba" name="ba" defaultValue={employee.ba} required nativeInput aria-invalid={!!errors.ba} className={`h-9 text-sm ${errors.ba ? 'border-destructive' : ''}`} />
+                  <FieldError message={errors.ba} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="baCabang" className="form-label">
                     BA Cabang <span className="text-red-500">*</span>
                   </Label>
-                  <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required className="h-9 text-sm" />
+                  <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required nativeInput aria-invalid={!!errors.baCabang} className={`h-9 text-sm ${errors.baCabang ? 'border-destructive' : ''}`} />
+                  <FieldError message={errors.baCabang} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="region" className="form-label">
@@ -82,6 +108,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                     options={REGION_OPTIONS}
                     placeholder="Pilih region..."
                   />
+                  <FieldError message={errors.region} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cabang" className="form-label">
@@ -95,6 +122,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                     options={CABANG_OPTIONS}
                     placeholder="Pilih cabang..."
                   />
+                  <FieldError message={errors.cabang} />
                 </div>
               </div>
             </section>
@@ -114,8 +142,10 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Input
                     id="namaLengkap" name="namaLengkap"
                     defaultValue={employee.namaLengkap}
-                    required className="h-9 text-sm uppercase"
+                    required nativeInput aria-invalid={!!errors.namaLengkap}
+                    className={`h-9 text-sm uppercase ${errors.namaLengkap ? 'border-destructive' : ''}`}
                   />
+                  <FieldError message={errors.namaLengkap} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nik" className="form-label">NIK Karyawan</Label>
@@ -123,9 +153,11 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                     id="nik" name="nik"
                     defaultValue={employee.nik || ''}
                     placeholder="Diisi oleh HO"
-                    className="h-9 text-sm font-mono"
+                    nativeInput aria-invalid={!!errors.nik}
+                    className={`h-9 text-sm font-mono ${errors.nik ? 'border-destructive' : ''}`}
                   />
-                  <p className="text-xs text-muted-foreground">Bisa dikosongkan</p>
+                  <FieldError message={errors.nik} />
+                  {!errors.nik && <p className="text-xs text-muted-foreground">Bisa dikosongkan</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="noKtp" className="form-label">
@@ -134,8 +166,10 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Input
                     id="noKtp" name="noKtp"
                     defaultValue={employee.noKtp}
-                    required className="h-9 text-sm font-mono"
+                    required nativeInput aria-invalid={!!errors.noKtp}
+                    className={`h-9 text-sm font-mono ${errors.noKtp ? 'border-destructive' : ''}`}
                   />
+                  <FieldError message={errors.noKtp} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tglLahir" className="form-label">
@@ -148,6 +182,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                     value={employee.tglLahir}
                     placeholder="Pilih tanggal lahir"
                   />
+                  <FieldError message={errors.tglLahir} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="namaIbu" className="form-label">
@@ -156,8 +191,10 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Input
                     id="namaIbu" name="namaIbu"
                     defaultValue={employee.namaIbu}
-                    required className="h-9 text-sm"
+                    required nativeInput aria-invalid={!!errors.namaIbu}
+                    className={`h-9 text-sm ${errors.namaIbu ? 'border-destructive' : ''}`}
                   />
+                  <FieldError message={errors.namaIbu} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="noHp" className="form-label">
@@ -166,16 +203,20 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Input
                     id="noHp" name="noHp"
                     defaultValue={employee.noHp}
-                    required className="h-9 text-sm"
+                    required nativeInput aria-invalid={!!errors.noHp}
+                    className={`h-9 text-sm ${errors.noHp ? 'border-destructive' : ''}`}
                   />
+                  <FieldError message={errors.noHp} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="noJamsostek" className="form-label">No Jamsostek</Label>
                   <Input
                     id="noJamsostek" name="noJamsostek"
                     defaultValue={employee.noJamsostek || ''}
-                    className="h-9 text-sm font-mono"
+                    nativeInput aria-invalid={!!errors.noJamsostek}
+                    className={`h-9 text-sm font-mono ${errors.noJamsostek ? 'border-destructive' : ''}`}
                   />
+                  <FieldError message={errors.noJamsostek} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="formConsent" className="form-label">

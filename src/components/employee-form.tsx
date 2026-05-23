@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
+import { FieldError } from '@/components/ui/field-error'
+import { createEmployeeSchema } from '@/lib/validation'
 
 const POSISI_OPTIONS = [
   { value: 'SALESMAN', label: 'Salesman', months: 6 },
@@ -35,6 +37,7 @@ export function EmployeeForm({
   const [tglMulai, setTglMulai] = useState('')
   const [tglSelesai, setTglSelesai] = useState('')
   const [isPending, setIsPending] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (posisi && tglMulai) {
@@ -45,10 +48,35 @@ export function EmployeeForm({
   }, [posisi, tglMulai])
 
   const handleSubmit = async (formData: FormData) => {
+    // Client-side validation — instant feedback before round-trip
+    const raw: Record<string, string | null> = {}
+    formData.forEach((v, k) => {
+      const s = v.toString().trim()
+      raw[k] = s === '' ? null : s
+    })
+
+    const parsed = createEmployeeSchema.safeParse(raw)
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach(e => {
+        const field = e.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = e.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Periksa kembali isian yang ditandai')
+      // Focus first invalid field
+      const firstField = parsed.error.issues[0]?.path[0]
+      if (firstField) {
+        const el = document.getElementById(String(firstField))
+        el?.focus()
+      }
+      return
+    }
+
+    setErrors({})
     setIsPending(true)
     try {
       await action(formData)
-      // redirect terjadi di server action jika berhasil
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
       toast.error(msg)
@@ -68,8 +96,8 @@ export function EmployeeForm({
           color="blue"
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required />
-          <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required />
+          <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required error={errors.ba} />
+          <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required error={errors.baCabang} />
           <div className="space-y-2">
             <Label htmlFor="region" className="form-label">
               Region <span className="text-red-500">*</span>
@@ -81,6 +109,7 @@ export function EmployeeForm({
               options={REGION_OPTIONS}
               placeholder="Pilih region..."
             />
+            <FieldError message={errors.region} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="cabang" className="form-label">
@@ -93,6 +122,7 @@ export function EmployeeForm({
               options={CABANG_OPTIONS}
               placeholder="Pilih cabang..."
             />
+            <FieldError message={errors.cabang} />
           </div>
         </div>
 
@@ -129,35 +159,43 @@ export function EmployeeForm({
             id="namaLengkap" label="Nama Lengkap (sesuai KTP)"
             name="namaLengkap" placeholder="Nama lengkap" required
             className="uppercase"
+            error={errors.namaLengkap}
           />
           <FormField
             id="nik" label="NIK Karyawan"
             name="nik" placeholder="Diisi oleh HO"
             hint="Bisa dikosongkan dan diisi nanti"
+            error={errors.nik}
           />
           <FormField
             id="noKtp" label="No KTP"
             name="noKtp" placeholder="16 digit angka" required
             className="font-mono"
+            error={errors.noKtp}
           />
           <div className="space-y-2">
             <Label htmlFor="tglLahir" className="form-label">
               Tanggal Lahir <span className="text-red-500">*</span>
             </Label>
             <DatePicker id="tglLahir" name="tglLahir" required placeholder="Pilih tanggal lahir" />
+            <FieldError message={errors.tglLahir} />
           </div>
           <FormField
             id="namaIbu" label="Nama Ibu Kandung"
             name="namaIbu" placeholder="Sesuai KTP" required
+            error={errors.namaIbu}
           />
           <FormField
             id="noHp" label="No HP / WhatsApp"
             name="noHp" placeholder="08xxxxxxxxxx" required
+            error={errors.noHp}
+            hint="Diawali 08, 10-15 digit"
           />
           <FormField
             id="noJamsostek" label="No Jamsostek"
             name="noJamsostek" placeholder="Opsional"
             className="font-mono"
+            error={errors.noJamsostek}
           />
           <div className="space-y-2">
             <Label htmlFor="formConsent" className="form-label">
@@ -170,6 +208,7 @@ export function EmployeeForm({
               options={['ADA', 'TIDAK ADA']}
               placeholder="Pilih..."
             />
+            <FieldError message={errors.formConsent} />
           </div>
         </div>
       </section>
@@ -200,6 +239,7 @@ export function EmployeeForm({
             }))}
             placeholder="Pilih jabatan..."
           />
+          <FieldError message={errors.posisi} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -215,6 +255,7 @@ export function EmployeeForm({
               onValueChange={setTglMulai}
               placeholder="Pilih tanggal mulai"
             />
+            <FieldError message={errors.traineeSejak} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
@@ -319,6 +360,7 @@ function FormField({
   required,
   hint,
   className,
+  error,
 }: {
   id: string
   label: string
@@ -328,6 +370,7 @@ function FormField({
   required?: boolean
   hint?: string
   className?: string
+  error?: string
 }) {
   return (
     <div className="space-y-2">
@@ -340,9 +383,13 @@ function FormField({
         type={type}
         placeholder={placeholder}
         required={required}
-        className={`h-9 text-sm ${className ?? ''}`}
+        nativeInput
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+        className={`h-9 text-sm ${error ? 'border-destructive' : ''} ${className ?? ''}`}
       />
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      <FieldError id={`${id}-error`} message={error} />
+      {hint && !error && <p id={`${id}-hint`} className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   )
 }

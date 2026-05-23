@@ -25,6 +25,8 @@ import { differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { ExportExcelButton } from '@/components/export-excel-button'
 import { ImportExcelButton } from '@/components/import-excel-button'
+import { useDebounce } from '@/hooks/use-debounce'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationPrevious, PaginationNext, PaginationEllipsis,
@@ -49,14 +51,17 @@ export default function DataKaryawanPage() {
   const { role } = useSidebar()
   const isAdmin = role === 'ADMIN'
 
+  // Debounce search 300ms to avoid query spam on every keystroke
+  const debouncedSearch = useDebounce(search, 300)
+
   const fetchData = async () => {
     setLoading(true)
-    const data = await getEmployees({ search, cabang, status: statusFilter })
+    const data = await getEmployees({ search: debouncedSearch, cabang, status: statusFilter })
     setEmployees(data)
     setLoading(false)
     setPage(1)
   }
-  useEffect(() => { fetchData() }, [search, cabang, statusFilter])
+  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter])
 
   const cabangOptions = useMemo(
     () => [...new Set(employees.map((e) => e.cabang))].sort(),
@@ -412,13 +417,22 @@ export default function DataKaryawanPage() {
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="py-16 text-center">
-                    <Search size={32} className="mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm font-semibold text-gray-500">Tidak ada data ditemukan</p>
-                    <p className="text-xs text-muted-foreground mt-1">Coba ubah filter atau kata kunci pencarian</p>
-                  </td>
-                </tr>
+                <EmptyState
+                  asTableRow
+                  colSpan={10}
+                  icon={search || cabang || statusFilter ? Search : User}
+                  title={search || cabang || statusFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+                  description={
+                    search || cabang || statusFilter
+                      ? 'Coba ubah filter atau kata kunci pencarian'
+                      : 'Tambahkan karyawan pertama atau import dari Excel'
+                  }
+                  action={
+                    !search && !cabang && !statusFilter && isAdmin
+                      ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
+                      : undefined
+                  }
+                />
               ) : (
                 rows.map((emp: any) => {
                   const c = emp.contracts?.[0]
@@ -443,7 +457,7 @@ export default function DataKaryawanPage() {
                         <div className="flex items-center gap-3">
                           {emp.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={emp.image} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                            <img src={emp.image} alt={`Foto ${emp.namaLengkap}`} className="h-8 w-8 rounded-full object-cover shrink-0" />
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                               <User size={15} className="text-primary" />
@@ -614,11 +628,20 @@ export default function DataKaryawanPage() {
             <p className="text-sm text-muted-foreground">Memuat data...</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-            <Search size={32} className="text-gray-300" />
-            <p className="text-sm font-semibold text-gray-500">Tidak ada data ditemukan</p>
-            <p className="text-xs text-muted-foreground">Coba ubah filter atau kata kunci</p>
-          </div>
+          <EmptyState
+            icon={search || cabang || statusFilter ? Search : User}
+            title={search || cabang || statusFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+            description={
+              search || cabang || statusFilter
+                ? 'Coba ubah filter atau kata kunci'
+                : 'Tambahkan karyawan pertama atau import dari Excel'
+            }
+            action={
+              !search && !cabang && !statusFilter && isAdmin
+                ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
+                : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-gray-100">
             {rows.map((emp: any) => {

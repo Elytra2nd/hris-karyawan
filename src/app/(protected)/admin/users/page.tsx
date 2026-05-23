@@ -3,6 +3,7 @@ import { ShieldCheck, Shield, Users, Clock, Activity, Info } from 'lucide-react'
 import { CreateUserModal } from '@/components/create-user-modal'
 import { DeleteUserButton } from '@/components/delete-user-button'
 import { ResetPasswordButton } from '@/components/reset-password-button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
@@ -105,12 +106,13 @@ export default async function UserManagementPage() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {users.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-5 py-16 text-center">
-                  <Users size={32} className="mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm font-semibold text-gray-500">Belum ada pengguna</p>
-                </td>
-              </tr>
+              <EmptyState
+                asTableRow
+                colSpan={4}
+                icon={Users}
+                title="Belum ada pengguna"
+                description="Buat akun pertama untuk Admin, HR, atau Pemirsa sistem"
+              />
             ) : (
               users.map((user, i) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
