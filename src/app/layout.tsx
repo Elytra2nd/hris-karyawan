@@ -1,5 +1,6 @@
 import './globals.css';
 import { Toaster } from "@/components/ui/sonner";
+import { RootThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
   title: 'HRIS Astra Motor Kalimantan Barat',
@@ -8,10 +9,12 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <body className="font-sans antialiased text-slate-900">
-        {children}
-        <Toaster position="top-center" richColors closeButton />
+        <RootThemeProvider>
+          {children}
+          <Toaster position="top-center" richColors closeButton />
+        </RootThemeProvider>
       </body>
     </html>
   );

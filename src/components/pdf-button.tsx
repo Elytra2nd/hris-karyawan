@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { ContractPDF } from '@/components/contract-pdf';
 import { Button } from '@/components/ui/button';
-import { FileDown } from 'lucide-react';
+import { FileArrowDownIcon } from '@phosphor-icons/react';
 
 interface PDFButtonProps {
   employee: any;
@@ -22,7 +22,7 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
   if (!isClient) {
     return (
       <Button variant="ghost" size="sm" className="h-8 gap-2 text-slate-400 font-bold text-[10px] uppercase cursor-not-allowed">
-        <FileDown className="w-3.5 h-3.5" />
+        <FileArrowDownIcon className="w-3.5 h-3.5" />
         Loading...
       </Button>
     );
@@ -40,7 +40,7 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
           className="h-8 gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold text-[10px] uppercase"
           disabled={loading}
         >
-          <FileDown className="w-3.5 h-3.5" />
+          <FileArrowDownIcon className="w-3.5 h-3.5" />
           {loading ? 'Menyiapkan...' : 'Cetak'}
         </Button>
       )}

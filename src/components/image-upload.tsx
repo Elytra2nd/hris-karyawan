@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, Loader2, UploadCloud } from 'lucide-react';
+import { Camera, CircleNotch, CloudArrowUpIcon } from '@phosphor-icons/react';
 import { uploadEmployeePhoto } from '@/app/actions/upload';
 import { toast } from 'sonner';
 
@@ -44,7 +44,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
         )}
         {loading && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-white" />
+            <CircleNotch className="w-6 h-6 animate-spin text-white" />
           </div>
         )}
       </div>
@@ -52,7 +52,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
       <label className="cursor-pointer">
         <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
         <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all">
-          <UploadCloud className="w-4 h-4" /> Pilih Foto
+          <CloudArrowUpIcon className="w-4 h-4" /> Pilih Foto
         </div>
       </label>
       <p className="text-[10px] text-slate-400 font-medium">Format: JPG, PNG (Max 2MB)</p>

@@ -3,10 +3,18 @@
 import { usePathname } from 'next/navigation'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
-import { TooltipProvider } from '@/components/ui/tooltip'
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { Separator } from '@/components/ui/separator'
 import { NotificationBell } from '@/components/notification-bell'
+import { BreadcrumbTrail } from '@/components/breadcrumb-trail'
+import { CommandPalette } from '@/components/command-palette'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function LayoutWrapper({
   children,
@@ -30,11 +38,18 @@ export default function LayoutWrapper({
         <SidebarProvider role={role} username={username}>
           <AppSidebar />
 
-          <SidebarInset className="flex flex-col min-h-svh bg-gray-50/50 overflow-x-hidden">
+          <SidebarInset className="flex flex-col min-h-svh bg-background overflow-x-hidden">
             {/* ─── Top Header ─── */}
-            <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 bg-white border-b border-gray-200 px-4">
+            <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 bg-card border-b border-border px-4">
               {/* Hamburger untuk mobile */}
-              <SidebarTrigger className="-ml-1 text-gray-500 hover:text-primary" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarTrigger className="-ml-1 text-gray-500 hover:text-primary" />
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  Buka Menu
+                </TooltipContent>
+              </Tooltip>
               <Separator orientation="vertical" className="h-4 mx-1" />
               <span className="text-xs text-muted-foreground hidden sm:block flex-1">
                 HRIS Karyawan Trainee
@@ -42,9 +57,13 @@ export default function LayoutWrapper({
 
               {/* ─── Right-side header actions ─── */}
               <div className="ml-auto flex items-center gap-1">
+                <ThemeToggle />
                 <NotificationBell />
               </div>
             </header>
+
+            {/* ─── Breadcrumb Trail ─── */}
+            <BreadcrumbTrail />
 
             {/* ─── Page Content ─── */}
             <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
@@ -54,6 +73,10 @@ export default function LayoutWrapper({
         </SidebarProvider>
       )}
       <Toaster position="top-center" richColors closeButton />
+      <CommandPalette
+        isAdmin={role === 'ADMIN'}
+        canManageHR={['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')}
+      />
     </TooltipProvider>
   )
 }

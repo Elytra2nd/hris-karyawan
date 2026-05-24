@@ -1,5 +1,6 @@
 'use client'
 
+import { useTheme } from 'next-themes'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 interface Props {
@@ -9,14 +10,13 @@ interface Props {
   expired: number
 }
 
-const SEGMENTS = [
-  { key: 'safe',     label: 'Aman',        color: '#16a34a' },
-  { key: 'warning',  label: 'Perhatian',    color: '#f59e0b' },
-  { key: 'critical', label: 'Kritis',       color: '#ef4444' },
-  { key: 'expired',  label: 'Berakhir',     color: '#94a3b8' },
-]
-
 export function ContractStatusChart({ safe, warning, critical, expired }: Props) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const tooltipBg = isDark ? '#1e293b' : '#ffffff'
+  const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
+  const legendColor = isDark ? '#cbd5e1' : '#64748b'
+
   const data = [
     { name: 'Aman',      value: safe,     color: '#16a34a' },
     { name: 'Perhatian', value: warning,  color: '#f59e0b' },
@@ -26,7 +26,7 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-slate-400 font-bold uppercase tracking-wider">
+      <div className="flex items-center justify-center h-48 text-sm text-muted-foreground font-bold uppercase tracking-wider">
         Tidak ada data kontrak
       </div>
     )
@@ -50,12 +50,12 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
         </Pie>
         <Tooltip
           formatter={(value) => [`${value} orang`]}
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+          contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
         />
         <Legend
           iconType="circle"
           iconSize={8}
-          formatter={(value) => <span style={{ fontSize: 11, color: '#64748b' }}>{value}</span>}
+          formatter={(value) => <span style={{ fontSize: 11, color: legendColor }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

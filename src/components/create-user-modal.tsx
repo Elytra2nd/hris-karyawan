@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Plus, Loader2, ShieldCheck, Shield } from 'lucide-react'
+import { Plus, CircleNotch, ShieldCheck, Shield } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 export function CreateUserModal() {
@@ -131,7 +131,7 @@ export function CreateUserModal() {
               className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <><Loader2 size={14} className="animate-spin" /> Menyimpan...</>
+                <><CircleNotch size={14} className="animate-spin" /> Menyimpan...</>
               ) : (
                 'Simpan Akun'
               )}

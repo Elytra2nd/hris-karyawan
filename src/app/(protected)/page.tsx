@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { startOfDay, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
-  Users, UserCheck, UserX, AlertTriangle,
-  TrendingUp, Building2, MapPin, Clock,
-  PlusCircle, Calendar, ChevronRight, CheckCircle2,
-} from 'lucide-react'
+  Users, UserCheck, UserMinusIcon, Warning,
+  TrendUp, Buildings, MapPin, Clock,
+  PlusCircle, Calendar, CaretRight, CheckCircle,
+} from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { ContractStatusChart } from '@/components/contract-status-chart'
@@ -90,7 +90,7 @@ export default async function DashboardPage() {
       {/* ─── Alert Banner ─── */}
       {expiring14.length > 0 && (
         <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3.5">
-          <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+          <Warning className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-800">
               {expiring14.length} kontrak berakhir dalam 14 hari ke depan
@@ -103,14 +103,14 @@ export default async function DashboardPage() {
             href="/karyawan"
             className="text-sm font-semibold text-red-700 hover:text-red-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
-            Lihat <ChevronRight size={14} />
+            Lihat <CaretRight size={14} />
           </Link>
         </div>
       )}
 
       {expiring30.length > 0 && expiring14.length === 0 && (
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <Warning className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-amber-800">
               {expiring30.length} kontrak berakhir dalam 30 hari ke depan
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
             href="/karyawan"
             className="text-sm font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
-            Lihat <ChevronRight size={14} />
+            Lihat <CaretRight size={14} />
           </Link>
         </div>
       )}
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
         {/* Non-aktif / expired */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <UserX className="h-5 w-5 text-red-500" />
+            <UserMinusIcon className="h-5 w-5 text-red-500" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900 leading-none">{nonActive}</p>
@@ -181,7 +181,7 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2.5">
               <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <Warning className="h-4 w-4 text-red-500" />
               </div>
               <h2 className="text-base font-semibold text-gray-800">Kontrak Perlu Tindakan</h2>
             </div>
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
           <div className="divide-y divide-gray-50">
             {urgentList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
-                <CheckCircle2 className="h-8 w-8 text-green-400" />
+                <CheckCircle className="h-8 w-8 text-green-400" />
                 <p className="text-sm font-semibold text-gray-500">Semua kontrak aman</p>
                 <p className="text-xs text-muted-foreground">Tidak ada kontrak yang kritis</p>
               </div>
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
                 href="/karyawan"
                 className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
               >
-                Lihat semua {expiring90.length} kontrak <ChevronRight size={14} />
+                Lihat semua {expiring90.length} kontrak <CaretRight size={14} />
               </Link>
             </div>
           )}
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
             <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendUp className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-base font-semibold text-gray-800">Ringkasan Kontrak Aktif</h2>
           </div>
@@ -287,7 +287,7 @@ export default async function DashboardPage() {
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
             <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendUp className="h-4 w-4 text-primary" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-800">Distribusi Posisi</h2>
@@ -303,7 +303,7 @@ export default async function DashboardPage() {
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
             <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-green-600" />
+              <Buildings className="h-4 w-4 text-green-600" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-800">Sebaran per Cabang</h2>

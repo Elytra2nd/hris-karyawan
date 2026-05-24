@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, Plus, Trash2, Loader2, Users } from 'lucide-react'
+import { Buildings, Plus, Trash, CircleNotch, Users } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,11 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { createDepartment, deleteDepartment, getDepartments } from '@/app/actions/department'
@@ -82,7 +87,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
 
         {depts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
-            <Building2 size={36} className="opacity-20" />
+            <Buildings size={36} className="opacity-20" />
             <p className="text-sm font-bold uppercase tracking-wider">Belum ada departemen</p>
             <p className="text-xs">Klik "Tambah" untuk membuat departemen pertama</p>
           </div>
@@ -102,7 +107,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
                       <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Building2 size={14} className="text-primary" />
+                        <Buildings size={14} className="text-primary" />
                       </div>
                       <span className="text-sm font-semibold text-gray-900">{dept.name}</span>
                     </div>
@@ -120,22 +125,28 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button
-                          disabled={deleting === dept.id || dept._count.employees > 0}
-                          title={dept._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus departemen'}
-                          className={cn(
-                            'h-7 w-7 rounded-md flex items-center justify-center transition-colors mx-auto',
-                            dept._count.employees > 0
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
-                          )}
-                        >
-                          {deleting === dept.id
-                            ? <Loader2 size={13} className="animate-spin" />
-                            : <Trash2 size={13} />}
-                        </button>
-                      </AlertDialogTrigger>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              disabled={deleting === dept.id || dept._count.employees > 0}
+                              className={cn(
+                                'h-7 w-7 rounded-md flex items-center justify-center transition-colors mx-auto',
+                                dept._count.employees > 0
+                                  ? 'text-gray-300 cursor-not-allowed'
+                                  : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                              )}
+                            >
+                              {deleting === dept.id
+                                ? <CircleNotch size={13} className="animate-spin" />
+                                : <Trash size={13} />}
+                            </button>
+                          </AlertDialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {dept._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus departemen'}
+                        </TooltipContent>
+                      </Tooltip>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
@@ -189,7 +200,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
             className="w-full gap-1.5"
           >
             {creating
-              ? <><Loader2 size={13} className="animate-spin" /> Menyimpan...</>
+              ? <><CircleNotch size={13} className="animate-spin" /> Menyimpan...</>
               : <><Plus size={13} /> Buat Departemen</>}
           </Button>
         </form>

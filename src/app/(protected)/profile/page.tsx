@@ -1,6 +1,6 @@
 import { verifySession } from '@/lib/dal'
 import { ChangePasswordForm } from '@/components/change-password-form'
-import { KeyRound, User } from 'lucide-react'
+import { Key, User } from '@phosphor-icons/react/ssr'
 
 export default async function ProfilePage() {
   const session = await verifySession()
@@ -33,7 +33,7 @@ export default async function ProfilePage() {
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
           <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-            <KeyRound size={14} className="text-primary" />
+            <Key size={14} className="text-primary" />
           </div>
           <h2 className="text-base font-semibold text-gray-800">Ganti Password</h2>
         </div>

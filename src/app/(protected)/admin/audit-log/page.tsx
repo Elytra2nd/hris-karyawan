@@ -3,9 +3,9 @@ import { verifySession } from '@/lib/dal'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
-  History, PlusCircle, Pencil, Trash2,
-  Clock, Activity, SearchX,
-} from 'lucide-react'
+  ClockCounterClockwiseIcon, PlusCircle, Pencil, Trash,
+  Clock, PulseIcon, MagnifyingGlassMinusIcon,
+} from '@phosphor-icons/react/ssr'
 import { cn } from '@/lib/utils'
 
 export default async function AuditLogPage() {
@@ -41,7 +41,7 @@ export default async function AuditLogPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-            <History className="h-4 w-4 text-white" />
+            <ClockCounterClockwiseIcon className="h-4 w-4 text-white" />
           </div>
           <div>
             <p className="text-xl font-bold text-white leading-none">{logs.length}</p>
@@ -71,7 +71,7 @@ export default async function AuditLogPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-9 w-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <Trash2 className="h-4 w-4 text-red-500" />
+            <Trash className="h-4 w-4 text-red-500" />
           </div>
           <div>
             <p className="text-xl font-bold text-gray-900 leading-none">{deleteCount}</p>
@@ -107,7 +107,7 @@ export default async function AuditLogPage() {
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center">
-                    <SearchX size={32} className="mx-auto mb-3 text-gray-300" />
+                    <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-gray-300" />
                     <p className="text-sm font-semibold text-gray-500">Belum ada log aktivitas</p>
                   </td>
                 </tr>
@@ -171,7 +171,7 @@ export default async function AuditLogPage() {
       <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         {logs.length === 0 ? (
           <div className="py-16 text-center">
-            <SearchX size={32} className="mx-auto mb-3 text-gray-300" />
+            <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-gray-300" />
             <p className="text-sm font-semibold text-gray-500">Belum ada log aktivitas</p>
           </div>
         ) : (
@@ -221,13 +221,13 @@ function ActionBadge({ action }: { action: string }) {
     DELETE: {
       label: 'Hapus',
       className: 'bg-red-100 text-red-700',
-      icon: <Trash2 size={11} />,
+      icon: <Trash size={11} />,
     },
   }
   const style = map[action] ?? {
     label: action,
     className: 'bg-gray-100 text-gray-600',
-    icon: <Activity size={11} />,
+    icon: <PulseIcon size={11} />,
   }
   return (
     <span className={cn(

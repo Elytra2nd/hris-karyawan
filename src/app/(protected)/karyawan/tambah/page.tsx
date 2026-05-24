@@ -1,7 +1,7 @@
 import { verifySession } from '@/lib/dal'
 import { createEmployee } from '@/app/actions/employee'
 import { getDepartments } from '@/app/actions/department'
-import { ChevronLeft } from 'lucide-react'
+import { CaretLeft } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { EmployeeForm } from '@/components/employee-form'
@@ -20,7 +20,7 @@ export default async function TambahKaryawanPage() {
         href="/karyawan"
         className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
       >
-        <ChevronLeft size={16} />
+        <CaretLeft size={16} />
         Kembali ke Data Karyawan
       </Link>
 

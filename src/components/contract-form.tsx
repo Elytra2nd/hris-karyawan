@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { id as localeID } from 'date-fns/locale'
-import { Loader2, Info, CalendarCheck } from 'lucide-react'
+import { CircleNotch, Info, CalendarCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 const POSISI_OPTIONS = [
@@ -132,7 +132,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
-          <><Loader2 size={15} className="animate-spin" /> Menerbitkan...</>
+          <><CircleNotch size={15} className="animate-spin" /> Menerbitkan...</>
         ) : (
           'Terbitkan Kontrak Baru'
         )}

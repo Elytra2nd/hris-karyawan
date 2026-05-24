@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { FileSpreadsheet, Loader2, Download, FileText, SlidersHorizontal, X } from 'lucide-react'
+import { MicrosoftExcelLogoIcon, CircleNotch, Download, FileText, Sliders, X } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { getAllEmployeesForExport } from '@/app/actions/employee'
@@ -114,8 +114,8 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors disabled:opacity-60"
         >
           {loading
-            ? <Loader2 size={16} className="animate-spin text-slate-400" />
-            : <FileSpreadsheet size={16} className="text-slate-400" />}
+            ? <CircleNotch size={16} className="animate-spin text-slate-400" />
+            : <MicrosoftExcelLogoIcon size={16} className="text-slate-400" />}
           Export Data
         </button>
       ) : (
@@ -124,7 +124,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           disabled={loading}
           className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-60"
         >
-          {loading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+          {loading ? <CircleNotch size={15} className="animate-spin" /> : <Download size={15} />}
           Export
         </button>
       )}
@@ -134,14 +134,14 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
             <DialogTitle className="text-lg font-bold text-slate-900">Export Data Karyawan</DialogTitle>
             <DialogDescription className="text-xs text-slate-500 mt-0.5">
-              Filter data sebelum download. {allRows.length} total karyawan tersedia.
+              Funnel data sebelum download. {allRows.length} total karyawan tersedia.
             </DialogDescription>
           </DialogHeader>
 
-          {/* Filter row */}
+          {/* Funnel row */}
           <div className="flex items-center gap-2.5 px-5 py-3 border-b border-slate-100 bg-slate-50 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-              <SlidersHorizontal size={13} /> Filter:
+              <Sliders size={13} /> Funnel:
             </div>
 
             <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} className={selectCls}>
@@ -213,7 +213,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                 <FileText size={13} /> PDF
               </Button>
               <Button size="sm" onClick={downloadExcel} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
-                <FileSpreadsheet size={13} /> Excel (.xlsx)
+                <MicrosoftExcelLogoIcon size={13} /> Excel (.xlsx)
               </Button>
             </div>
           </div>

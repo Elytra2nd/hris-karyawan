@@ -2,13 +2,18 @@
 
 import { useState } from 'react'
 import { deleteUser } from '@/app/actions/user'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash, CircleNotch } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 
 export function DeleteUserButton({ id, username }: { id: string; username: string }) {
   const [loading, setLoading] = useState(false)
@@ -31,17 +36,23 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <button
-          disabled={loading}
-          className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-          aria-label={`Hapus akun ${username}`}
-        >
-          {loading
-            ? <Loader2 size={15} className="animate-spin" />
-            : <Trash2 size={15} />}
-        </button>
-      </AlertDialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <AlertDialogTrigger asChild>
+            <button
+              disabled={loading}
+              className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              {loading
+                ? <CircleNotch size={15} className="animate-spin" />
+                : <Trash size={15} />}
+            </button>
+          </AlertDialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          Hapus Akun
+        </TooltipContent>
+      </Tooltip>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Hapus akun pengguna?</AlertDialogTitle>

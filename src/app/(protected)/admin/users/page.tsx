@@ -1,5 +1,5 @@
 import { getUsers } from '@/app/actions/user'
-import { ShieldCheck, Shield, Users, Clock, Activity, Info } from 'lucide-react'
+import { ShieldCheck, Shield, Users, Clock, PulseIcon, Info } from '@phosphor-icons/react/ssr'
 import { CreateUserModal } from '@/components/create-user-modal'
 import { DeleteUserButton } from '@/components/delete-user-button'
 import { ResetPasswordButton } from '@/components/reset-password-button'

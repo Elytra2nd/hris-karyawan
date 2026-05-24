@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { format, differenceInDays, differenceInMonths } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
-import { FileClock, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react'
+import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 const PDFButton = dynamic(() => import('@/components/pdf-button'), {
@@ -27,13 +27,13 @@ export function ContractList({
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
           <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-            <FileClock className="h-4 w-4 text-primary" />
+            <ClockCounterClockwise className="h-4 w-4 text-primary" />
           </div>
           <h2 className="text-base font-semibold text-gray-800">Riwayat Kontrak</h2>
           <span className="ml-auto text-xs text-muted-foreground">0 kontrak</span>
         </div>
         <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-          <FileClock size={32} className="text-gray-300" />
+          <ClockCounterClockwise size={32} className="text-gray-300" />
           <p className="text-sm font-semibold text-gray-500">Belum ada riwayat kontrak</p>
           <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama karyawan ini</p>
         </div>
@@ -46,7 +46,7 @@ export function ContractList({
       {/* Header */}
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
         <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-          <FileClock className="h-4 w-4 text-primary" />
+          <ClockCounterClockwise className="h-4 w-4 text-primary" />
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-800">Riwayat Kontrak</h2>
@@ -131,11 +131,11 @@ export function ContractList({
                         isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
                       )}>
                         {isKritis ? (
-                          <><AlertTriangle size={11} /> {daysLeft} hari tersisa</>
+                          <><Warning size={11} /> {daysLeft} hari tersisa</>
                         ) : isMendekat ? (
                           <><Clock size={11} /> {daysLeft} hari tersisa</>
                         ) : (
-                          <><CheckCircle2 size={11} /> {daysLeft} hari tersisa</>
+                          <><CheckCircle size={11} /> {daysLeft} hari tersisa</>
                         )}
                       </div>
                     )}

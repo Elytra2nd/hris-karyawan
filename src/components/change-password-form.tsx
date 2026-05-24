@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { changeOwnPassword } from '@/app/actions/profile'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, KeyRound } from 'lucide-react'
+import { Eye, EyeSlash, CircleNotch, Key } from '@phosphor-icons/react'
 
 function PasswordInput({ id, name, label, placeholder }: { id: string; name: string; label: string; placeholder?: string }) {
   const [show, setShow] = useState(false)
@@ -27,7 +27,7 @@ function PasswordInput({ id, name, label, placeholder }: { id: string; name: str
           onClick={() => setShow(v => !v)}
           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
         >
-          {show ? <EyeOff size={14} /> : <Eye size={14} />}
+          {show ? <EyeSlash size={14} /> : <Eye size={14} />}
         </button>
       </div>
     </div>
@@ -72,8 +72,8 @@ export function ChangePasswordForm() {
         className="flex items-center justify-center gap-2 h-9 px-5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {pending
-          ? <><Loader2 size={14} className="animate-spin" /> Menyimpan...</>
-          : <><KeyRound size={14} /> Ubah Password</>}
+          ? <><CircleNotch size={14} className="animate-spin" /> Menyimpan...</>
+          : <><Key size={14} /> Ubah Password</>}
       </button>
     </form>
   )

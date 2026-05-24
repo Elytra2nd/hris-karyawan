@@ -1,6 +1,6 @@
 // src/components/risk-alert.tsx
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { Warning, CaretRight } from "@phosphor-icons/react/ssr";
 
 export function RiskAlert({ count }: { count: number }) {
   return (
@@ -8,7 +8,7 @@ export function RiskAlert({ count }: { count: number }) {
       <CardContent className="p-3 flex items-center justify-between h-full">
         <div className="flex items-center gap-3">
           <div className={`h-10 w-10 rounded-full flex items-center justify-center ${count > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-            <AlertTriangle className="h-5 w-5" />
+            <Warning className="h-5 w-5" />
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Mitigasi Risiko</p>

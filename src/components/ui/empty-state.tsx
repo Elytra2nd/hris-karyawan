@@ -1,10 +1,10 @@
-import type { LucideIcon } from 'lucide-react'
-import { Inbox } from 'lucide-react'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
+import { TrayIcon } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface EmptyStateProps {
-  icon?: LucideIcon
+  icon?: PhosphorIcon
   title: string
   description?: string
   action?: {
@@ -18,7 +18,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon: Icon = Inbox,
+  icon: Icon = TrayIcon,
   title,
   description,
   action,

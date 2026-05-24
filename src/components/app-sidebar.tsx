@@ -5,27 +5,27 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import {
-  LayoutDashboard,
+  SquaresFour,
   Users,
   UserPlus,
-  Settings,
+  GearSix,
   Shield,
-  ClipboardList,
-  Building2,
-  LogOut,
-  UserCog,
-  ChevronDown,
-  CalendarDays,
+  ClipboardText,
+  Buildings,
+  SignOut,
+  UserGear,
+  CaretDown,
+  CalendarBlank,
   Clock,
-  Plane,
-  Banknote,
+  AirplaneTilt,
+  Money,
   Receipt,
   HandCoins,
   Target,
   Star,
-  MessageSquare,
+  ChatCircleText,
   Lock,
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import {
   Sidebar,
   SidebarContent,
@@ -34,6 +34,11 @@ import {
   SidebarAdminOnly,
   useSidebar,
 } from '@/components/ui/sidebar'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
@@ -49,10 +54,25 @@ export function AppSidebar() {
   const canReadAudit  = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const pathname = usePathname()
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    // Load persisted section state from localStorage
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('sidebar-sections') : null
+    if (saved) {
+      setOpenSections(JSON.parse(saved))
+    }
+    setMounted(true)
+  }, [])
 
-  const toggle = (key: string) =>
-    setOpenSections(p => ({ ...p, [key]: !p[key] }))
+  const toggle = (key: string) => {
+    setOpenSections(p => {
+      const updated = { ...p, [key]: !p[key] }
+      // Persist to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sidebar-sections', JSON.stringify(updated))
+      }
+      return updated
+    })
+  }
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -113,7 +133,7 @@ export function AppSidebar() {
           <nav className="space-y-0.5">
             <NavItem
               href="/"
-              icon={<LayoutDashboard size={16} />}
+              icon={<SquaresFour size={16} weight="duotone" />}
               label="Dashboard"
               active={isActive('/')}
             />
@@ -131,14 +151,14 @@ export function AppSidebar() {
             <nav className="mt-1 space-y-0.5">
               <NavItem
                 href="/karyawan"
-                icon={<Users size={16} />}
+                icon={<Users size={16} weight="duotone" />}
                 label="Data Karyawan"
                 active={isActive('/karyawan') && !pathname.includes('tambah')}
               />
               {canManageHR && (
                 <NavItem
                   href="/karyawan/tambah"
-                  icon={<UserPlus size={16} />}
+                  icon={<UserPlus size={16} weight="duotone" />}
                   label="Tambah Karyawan"
                   active={isActive('/karyawan/tambah')}
                 />
@@ -161,13 +181,13 @@ export function AppSidebar() {
                   <>
                     <NavItem
                       href="/admin/users"
-                      icon={<Shield size={16} />}
+                      icon={<Shield size={16} weight="duotone" />}
                       label="Manajemen Pengguna"
                       active={isActive('/admin/users')}
                     />
                     <NavItem
                       href="/admin/departments"
-                      icon={<Building2 size={16} />}
+                      icon={<Buildings size={16} weight="duotone" />}
                       label="Departemen"
                       active={isActive('/admin/departments')}
                     />
@@ -176,14 +196,14 @@ export function AppSidebar() {
                 {canReadAudit && (
                   <NavItem
                     href="/admin/audit-log"
-                    icon={<ClipboardList size={16} />}
+                    icon={<ClipboardText size={16} weight="duotone" />}
                     label="Log Aktivitas"
                     active={isActive('/admin/audit-log')}
                   />
                 )}
                 <NavItem
                   href="/admin/settings"
-                  icon={<Settings size={16} />}
+                  icon={<GearSix size={16} weight="duotone" />}
                   label="Pengaturan"
                   active={isActive('/admin/settings')}
                 />
@@ -196,8 +216,8 @@ export function AppSidebar() {
         <div>
           <SectionHeaderDisabled label="Waktu" comingSoon="Q3 2026" />
           <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
-            <NavItemDisabled icon={<CalendarDays size={16} />} label="Jadwal & Shift" />
-            <NavItemDisabled icon={<Plane size={16} />} label="Cuti" />
+            <NavItemDisabled icon={<CalendarBlank size={16} />} label="Jadwal & Shift" />
+            <NavItemDisabled icon={<AirplaneTilt size={16} />} label="Cuti" />
             <NavItemDisabled icon={<Clock size={16} />} label="Lembur" />
           </nav>
         </div>
@@ -206,7 +226,7 @@ export function AppSidebar() {
         <div>
           <SectionHeaderDisabled label="Keuangan" comingSoon="Q4 2026" />
           <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
-            <NavItemDisabled icon={<Banknote size={16} />} label="Penggajian" />
+            <NavItemDisabled icon={<Money size={16} />} label="Penggajian" />
             <NavItemDisabled icon={<Receipt size={16} />} label="Reimbursement" />
             <NavItemDisabled icon={<HandCoins size={16} />} label="Kasbon" />
           </nav>
@@ -218,7 +238,7 @@ export function AppSidebar() {
           <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
             <NavItemDisabled icon={<Target size={16} />} label="KPI & OKR" />
             <NavItemDisabled icon={<Star size={16} />} label="Penilaian Kinerja" />
-            <NavItemDisabled icon={<MessageSquare size={16} />} label="Umpan Balik" />
+            <NavItemDisabled icon={<ChatCircleText size={16} />} label="Umpan Balik" />
           </nav>
         </div>
 
@@ -243,22 +263,34 @@ export function AppSidebar() {
           </div>
 
           {/* Profil */}
-          <Link
-            href="/profile"
-            className="p-1.5 rounded-md text-gray-400 hover:text-primary hover:bg-blue-50 transition-colors"
-            title="Profil & Ganti Password"
-          >
-            <UserCog size={15} />
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/profile"
+                className="p-1.5 rounded-md text-gray-400 hover:text-primary hover:bg-blue-50 transition-colors"
+              >
+                <UserGear size={15} weight="duotone" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Profil & Ganti Password
+            </TooltipContent>
+          </Tooltip>
 
           {/* Logout */}
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-            title="Keluar"
-          >
-            <LogOut size={15} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <SignOut size={15} weight="bold" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Keluar
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Branding */}
@@ -289,8 +321,9 @@ function SectionHeader({
       className="flex items-center justify-between w-full px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
     >
       {label}
-      <ChevronDown
+      <CaretDown
         size={13}
+        weight="bold"
         className={cn(
           'text-gray-400 transition-transform duration-200',
           open ? 'rotate-0' : '-rotate-90'

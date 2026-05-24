@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ChevronLeft, ChevronRight, AlertCircle, Clock, Trash2, Loader2 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
+import { CaretLeft, CaretRight, WarningCircle, Clock, Trash, CircleNotch } from '@phosphor-icons/react';
 import { deleteEmployee } from '@/app/actions/employee';
 
 interface EmployeeTableProps {
@@ -109,7 +114,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                         <span className="font-semibold text-slate-900">{emp.namaLengkap}</span>
                         {isExpiringSoon && (
                           <span className="flex items-center gap-1 text-[10px] text-amber-600 font-bold uppercase">
-                            <AlertCircle className="w-3 h-3" /> Warning: Segera Selesai
+                            <WarningCircle className="w-3 h-3" /> Warning: Segera Selesai
                           </span>
                         )}
                       </div>
@@ -148,20 +153,27 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                         </Link>
 
                         <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              disabled={isDeleting === emp.id}
-                            >
-                              {isDeleting === emp.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  disabled={isDeleting === emp.id}
+                                >
+                                  {isDeleting === emp.id ? (
+                                    <CircleNotch className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Trash className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              Hapus Data
+                            </TooltipContent>
+                          </Tooltip>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Hapus Data Karyawan?</AlertDialogTitle>
@@ -204,7 +216,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
               disabled={currentPage <= 1}
               className="h-8 gap-1 px-3"
             >
-              <ChevronLeft className="h-4 w-4" /> Prev
+              <CaretLeft className="h-4 w-4" /> Prev
             </Button>
             <Button
               variant="outline"
@@ -213,7 +225,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
               disabled={currentPage >= totalPages}
               className="h-8 gap-1 px-3"
             >
-              Next <ChevronRight className="h-4 w-4" />
+              Next <CaretRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

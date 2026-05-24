@@ -2,7 +2,7 @@ import { verifySession } from '@/lib/dal'
 import { redirect } from 'next/navigation'
 import { getDepartments, createDepartment, deleteDepartment } from '@/app/actions/department'
 import { DepartmentManager } from '@/components/department-manager'
-import { Building2 } from 'lucide-react'
+import { Buildings } from '@phosphor-icons/react/ssr'
 
 export default async function DepartmentsPage() {
   const session = await verifySession()
@@ -14,7 +14,7 @@ export default async function DepartmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Building2 size={20} className="text-primary" />
+          <Buildings size={20} className="text-primary" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Departemen</h1>

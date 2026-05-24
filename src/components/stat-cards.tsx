@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserPlus, ShieldCheck, UserCircle, Settings2 } from 'lucide-react';
+import { UserPlus, ShieldCheck, UserCircle, Gear } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { ExportExcelButton } from './export-excel-button';
 
@@ -45,7 +45,7 @@ export function StatCards({ user, type }: StatCardsProps) {
       <CardContent className="p-4 flex flex-col justify-center h-full gap-2">
         {/* Label Grup Aksi */}
         <div className="flex items-center gap-2">
-          <Settings2 className="w-3.5 h-3.5 text-slate-400" />
+          <Gear className="w-3.5 h-3.5 text-slate-400" />
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
             Manajemen Data
           </p>

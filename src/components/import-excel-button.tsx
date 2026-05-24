@@ -3,9 +3,9 @@
 import { useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import {
-  Upload, FileSpreadsheet, AlertCircle, CheckCircle2,
-  Loader2, Download, X, TriangleAlert,
-} from 'lucide-react'
+  Upload, MicrosoftExcelLogoIcon, WarningCircle, CheckCircle,
+  CircleNotch, Download, X, WarningIcon,
+} from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -141,7 +141,7 @@ export function ImportExcelButton() {
         <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
             <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet size={18} className="text-primary" />
+              <MicrosoftExcelLogoIcon size={18} className="text-primary" />
               Import Data Karyawan
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 mt-0.5">
@@ -152,14 +152,14 @@ export function ImportExcelButton() {
           {/* Summary bar */}
           <div className="flex items-center gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-green-700">
-              <CheckCircle2 size={13} /> {validRows.length} siap import
+              <CheckCircle size={13} /> {validRows.length} siap import
             </span>
             <span className="flex items-center gap-1.5 text-red-600">
-              <AlertCircle size={13} /> {errorRows.length} error
+              <WarningCircle size={13} /> {errorRows.length} error
             </span>
             {done && (
               <span className="ml-auto flex items-center gap-1.5 text-primary">
-                <CheckCircle2 size={13} /> Selesai: {done.created} dibuat, {done.skipped} dilewati
+                <CheckCircle size={13} /> Selesai: {done.created} dibuat, {done.skipped} dilewati
               </span>
             )}
             <button
@@ -196,8 +196,8 @@ export function ImportExcelButton() {
                   >
                     <td className="px-3 py-2 text-slate-400 font-mono">{row.index + 1}</td>
                     <td className="px-3 py-2">
-                      {row.status === 'error' && <span className="inline-flex items-center gap-1 text-red-600 font-bold"><AlertCircle size={11} /> Error</span>}
-                      {row.status === 'ok' && <span className="inline-flex items-center gap-1 text-green-600 font-bold"><CheckCircle2 size={11} /> OK</span>}
+                      {row.status === 'error' && <span className="inline-flex items-center gap-1 text-red-600 font-bold"><WarningCircle size={11} /> Error</span>}
+                      {row.status === 'ok' && <span className="inline-flex items-center gap-1 text-green-600 font-bold"><CheckCircle size={11} /> OK</span>}
                       {row.status === 'pending' && <span className="text-slate-400">Siap</span>}
                     </td>
                     {displayCols.map(c => (
@@ -216,7 +216,7 @@ export function ImportExcelButton() {
           <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-white">
             {errorRows.length > 0 && !done && (
               <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
-                <TriangleAlert size={12} />
+                <WarningIcon size={12} />
                 {errorRows.length} baris bermasalah akan dilewati
               </div>
             )}
@@ -237,7 +237,7 @@ export function ImportExcelButton() {
                   className="gap-1.5"
                 >
                   {importing
-                    ? <><Loader2 size={13} className="animate-spin" /> Mengimport...</>
+                    ? <><CircleNotch size={13} className="animate-spin" /> Mengimport...</>
                     : <><Upload size={13} /> Import {validRows.length} Karyawan</>}
                 </Button>
               )}

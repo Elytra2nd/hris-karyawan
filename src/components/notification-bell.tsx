@@ -1,8 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Clock, AlertTriangle, ChevronRight, RefreshCw } from 'lucide-react'
+import { Bell, Clock, Warning, CaretRight, ArrowsClockwise } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverPopup } from '@/components/ui/popover'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import { getNotifications, type NotificationSummary } from '@/app/actions/notifications'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -34,27 +39,29 @@ export function NotificationBell() {
   const hasUrgent = data.totalUnread > 0
 
   return (
-    <Popover open={open} onOpenChange={v => { setOpen(v); if (v) fetch() }}>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className={cn(
-              'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-              'hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-              hasUrgent && 'text-red-600 hover:bg-red-50'
-            )}
-            aria-label={`${data.totalUnread} notifikasi`}
-          >
-            <Bell size={16} />
-            {hasUrgent && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
-                {data.totalUnread > 9 ? '9+' : data.totalUnread}
-              </span>
-            )}
-          </button>
-        }
-      />
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Popover open={open} onOpenChange={v => { setOpen(v); if (v) fetch() }}>
+          <PopoverTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                  'hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  hasUrgent && 'text-red-600 hover:bg-red-50'
+                )}
+                aria-label={`${data.totalUnread} notifikasi`}
+              >
+                <Bell size={16} />
+                {hasUrgent && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
+                    {data.totalUnread > 9 ? '9+' : data.totalUnread}
+                  </span>
+                )}
+              </button>
+            }
+          />
 
       <PopoverPopup className="w-80 p-0 overflow-hidden" side="bottom" align="end" sideOffset={8}>
         {/* Header */}
@@ -65,7 +72,7 @@ export function NotificationBell() {
             className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-700 transition-colors"
             disabled={loading}
           >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
+            <ArrowsClockwise size={11} className={loading ? 'animate-spin' : ''} />
             Refresh
           </button>
         </div>
@@ -74,7 +81,7 @@ export function NotificationBell() {
         <div className="max-h-80 overflow-y-auto">
           {loading && allItems.length === 0 ? (
             <div className="flex items-center justify-center py-10">
-              <RefreshCw size={16} className="animate-spin text-slate-300" />
+              <ArrowsClockwise size={16} className="animate-spin text-slate-300" />
             </div>
           ) : allItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2 text-slate-400">
@@ -88,7 +95,7 @@ export function NotificationBell() {
                 <>
                   <div className="px-4 py-1.5 bg-red-50">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
-                      <AlertTriangle size={10} /> Kritis (≤ 14 hari)
+                      <Warning size={10} /> Kritis (≤ 14 hari)
                     </span>
                   </div>
                   {data.critical.map(c => <NotifRow key={c.id} item={c} level="critical" onClick={() => setOpen(false)} />)}
@@ -128,12 +135,17 @@ export function NotificationBell() {
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
-              Lihat semua karyawan <ChevronRight size={13} />
+              Lihat semua karyawan <CaretRight size={13} />
             </Link>
           </div>
         )}
       </PopoverPopup>
-    </Popover>
+        </Popover>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        Notifikasi Kontrak
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -170,7 +182,7 @@ function NotifRow({
           {format(new Date(item.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
         </p>
       </div>
-      <ChevronRight size={13} className="text-slate-300 mt-1 shrink-0" />
+      <CaretRight size={13} className="text-slate-300 mt-1 shrink-0" />
     </Link>
   )
 }

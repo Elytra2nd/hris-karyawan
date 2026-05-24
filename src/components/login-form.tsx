@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import {
-  Loader2, Lock, User, Eye, EyeOff,
-  AlertCircle, ArrowRight, Shield,
-} from 'lucide-react'
+  CircleNotch, Lock, User, Eye, EyeSlash,
+  WarningCircle, ArrowRight, Shield,
+} from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -111,7 +111,7 @@ export default function LoginForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function LoginForm() {
             {/* Error */}
             {error && (
               <div className="flex items-center gap-2.5 rounded-md bg-red-50 border border-red-200 px-3.5 py-2.5 text-sm text-red-700">
-                <AlertCircle size={14} className="shrink-0" />
+                <WarningCircle size={14} className="shrink-0" />
                 {error}
               </div>
             )}
@@ -131,7 +131,7 @@ export default function LoginForm() {
               className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2"
             >
               {loading ? (
-                <><Loader2 size={15} className="animate-spin" /> Memverifikasi...</>
+                <><CircleNotch size={15} className="animate-spin" /> Memverifikasi...</>
               ) : (
                 <>Masuk <ArrowRight size={15} /></>
               )}

@@ -4,7 +4,7 @@ import { createContract } from '@/app/actions/employee'
 import { ContractForm } from '@/components/contract-form'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ChevronLeft, AlertTriangle, FileClock, CheckCircle2 } from 'lucide-react'
+import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle } from '@phosphor-icons/react/ssr'
 import { format, differenceInDays } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
@@ -41,7 +41,7 @@ export default async function TambahKontrakPage({
         href={`/karyawan/${id}`}
         className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
       >
-        <ChevronLeft size={16} />
+        <CaretLeft size={16} />
         Kembali ke Detail Karyawan
       </Link>
 
@@ -66,7 +66,7 @@ export default async function TambahKontrakPage({
               ? 'bg-amber-50 border-amber-200'
               : 'bg-gray-50 border-gray-200'
           }`}>
-            <FileClock size={16} className={`shrink-0 mt-0.5 ${
+            <ClockCounterClockwise size={16} className={`shrink-0 mt-0.5 ${
               daysToExpiry !== null && daysToExpiry <= 30 ? 'text-amber-600' : 'text-gray-400'
             }`} />
             <div className="text-sm">
@@ -95,16 +95,16 @@ export default async function TambahKontrakPage({
 
         {/* Aturan kontrak */}
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
-          <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+          <Warning size={15} className="text-amber-600 shrink-0 mt-0.5" />
           <div className="text-sm text-amber-800">
             <p className="font-semibold">Aturan Durasi Kontrak</p>
             <ul className="mt-1.5 space-y-1 text-amber-700">
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 size={12} className="text-amber-500 shrink-0" />
+                <CheckCircle size={12} className="text-amber-500 shrink-0" />
                 Jabatan <strong>Administrasi</strong> → otomatis <strong>3 bulan</strong>
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 size={12} className="text-amber-500 shrink-0" />
+                <CheckCircle size={12} className="text-amber-500 shrink-0" />
                 Jabatan lainnya → otomatis <strong>6 bulan</strong>
               </li>
             </ul>

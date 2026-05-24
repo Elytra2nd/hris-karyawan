@@ -6,7 +6,7 @@ import { EditKaryawanForm } from '@/components/edit-karyawan-form'
 import { hasPermission } from '@/lib/auth-guard'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { CaretLeft } from '@phosphor-icons/react/ssr'
 
 export default async function EditKaryawanPage({
   params,
@@ -31,7 +31,7 @@ export default async function EditKaryawanPage({
         href={`/karyawan/${id}`}
         className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
       >
-        <ChevronLeft size={16} />
+        <CaretLeft size={16} />
         Kembali ke Detail Karyawan
       </Link>
 

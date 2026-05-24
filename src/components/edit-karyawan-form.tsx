@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Save, Loader2, Building2, User, UserCircle2, Info } from 'lucide-react'
+import { FloppyDisk, CircleNotch, Buildings, User, UserCircleIcon, Info } from '@phosphor-icons/react'
 import { ImageUpload } from '@/components/image-upload'
 import { toast } from 'sonner'
 import { FieldError } from '@/components/ui/field-error'
@@ -78,7 +78,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-blue-100">
                 <span className="h-6 w-6 rounded-md bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">A</span>
-                <Building2 size={15} className="text-primary" />
+                <Buildings size={15} className="text-primary" />
                 <h3 className="text-sm font-semibold text-gray-800">Data Operasional</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -283,9 +283,9 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                 className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
               >
                 {isPending ? (
-                  <><Loader2 size={16} className="animate-spin" /> Menyimpan...</>
+                  <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
                 ) : (
-                  <><Save size={16} /> Simpan Perubahan</>
+                  <><FloppyDisk size={16} /> Simpan Perubahan</>
                 )}
               </button>
             </div>
@@ -301,7 +301,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
               <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
-                <UserCircle2 className="h-4 w-4 text-primary" />
+                <UserCircleIcon className="h-4 w-4 text-primary" />
               </div>
               <h2 className="text-base font-semibold text-gray-800">Foto Karyawan</h2>
             </div>

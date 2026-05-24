@@ -5,12 +5,14 @@ import Link from 'next/link'
 import { differenceInMonths, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
-  ChevronLeft, User, MapPin, Phone, CreditCard, Clock,
-  CalendarDays, Pencil, PlusCircle, Building2, FileCheck,
-  CheckCircle2, XCircle, AlertTriangle, FileImage, FileText,
+  CaretLeft, User, MapPin, Phone, CreditCard, Clock,
+  CalendarBlank, Pencil, PlusCircle, Buildings, SealCheckIcon,
+  CheckCircle, XCircle, Warning, FileImage, FileText,
   Fingerprint, Hash,
-} from 'lucide-react'
+} from '@phosphor-icons/react/ssr'
 import { ContractList } from '@/components/contract-list'
+import { ActivityTimeline } from '@/components/activity-timeline'
+import { EmployeeDetailActions } from '@/components/employee-detail-actions'
 import { cn } from '@/lib/utils'
 
 export default async function DetailKaryawanPage({
@@ -61,26 +63,11 @@ export default async function DetailKaryawanPage({
           href="/karyawan"
           className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
         >
-          <ChevronLeft size={16} />
+          <CaretLeft size={16} />
           Kembali ke Data Karyawan
         </Link>
 
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <Link href={`/karyawan/${id}/edit`}>
-              <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                <Pencil size={14} />
-                Edit Profil
-              </button>
-            </Link>
-            <Link href={`/karyawan/${id}/kontrak`}>
-              <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 transition-colors shadow-sm">
-                <PlusCircle size={14} />
-                Kelola Kontrak
-              </button>
-            </Link>
-          </div>
-        )}
+        <EmployeeDetailActions id={id} isAdmin={isAdmin} />
       </div>
 
       {/* ─── Profile Card ─── */}
@@ -121,7 +108,7 @@ export default async function DetailKaryawanPage({
                 {employee.noHp || '—'}
               </span>
               <span className="flex items-center gap-1.5">
-                <Building2 size={13} className="text-gray-400" />
+                <Buildings size={13} className="text-gray-400" />
                 {latestContract?.posisi || '—'}
               </span>
             </div>
@@ -156,7 +143,7 @@ export default async function DetailKaryawanPage({
               'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
               isKritis ? 'bg-red-100' : isMendekat ? 'bg-amber-100' : 'bg-green-50'
             )}>
-              <CalendarDays
+              <CalendarBlank
                 size={17}
                 className={cn(
                   isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
@@ -189,7 +176,7 @@ export default async function DetailKaryawanPage({
           'flex items-start gap-3 rounded-lg border px-4 py-3.5',
           isKritis ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
         )}>
-          <AlertTriangle className={cn('h-5 w-5 shrink-0 mt-0.5', isKritis ? 'text-red-600' : 'text-amber-600')} />
+          <Warning className={cn('h-5 w-5 shrink-0 mt-0.5', isKritis ? 'text-red-600' : 'text-amber-600')} />
           <div>
             <p className={cn('text-sm font-semibold', isKritis ? 'text-red-800' : 'text-amber-800')}>
               {isKritis
@@ -241,7 +228,7 @@ export default async function DetailKaryawanPage({
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
             <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-green-600" />
+              <Buildings className="h-4 w-4 text-green-600" />
             </div>
             <h2 className="text-base font-semibold text-gray-800">Data Operasional</h2>
           </div>
@@ -268,7 +255,7 @@ export default async function DetailKaryawanPage({
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
           <div className="h-7 w-7 rounded-md bg-orange-50 flex items-center justify-center">
-            <FileCheck className="h-4 w-4 text-orange-500" />
+            <SealCheckIcon className="h-4 w-4 text-orange-500" />
           </div>
           <h2 className="text-base font-semibold text-gray-800">Dokumen</h2>
         </div>
@@ -302,6 +289,12 @@ export default async function DetailKaryawanPage({
 
       {/* ─── Riwayat Kontrak ─── */}
       <ContractList employee={employee} contracts={employee.contracts} />
+
+      {/* ─── Riwayat Aktivitas ─── */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden p-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">Riwayat Aktivitas</h2>
+        <ActivityTimeline employeeId={id} />
+      </div>
 
     </div>
   )
@@ -373,11 +366,11 @@ function DocCard({
             rel="noopener noreferrer"
             className="text-[11px] font-semibold text-green-700 flex items-center gap-1 hover:underline"
           >
-            <CheckCircle2 size={11} /> Tersedia
+            <CheckCircle size={11} /> Tersedia
           </a>
         ) : (
           <span className="text-[11px] font-semibold text-green-700 flex items-center gap-1">
-            <CheckCircle2 size={11} /> Tersedia
+            <CheckCircle size={11} /> Tersedia
           </span>
         )
       ) : (

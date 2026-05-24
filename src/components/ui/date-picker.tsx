@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverTrigger, PopoverPopup } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon } from '@phosphor-icons/react'
 import { format, parse, isValid } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { cn } from '@/lib/utils'

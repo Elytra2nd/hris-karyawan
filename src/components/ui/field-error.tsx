@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react'
+import { WarningCircle } from '@phosphor-icons/react/ssr'
 import { cn } from '@/lib/utils'
 
 interface FieldErrorProps {
@@ -16,7 +16,7 @@ export function FieldError({ message, className, id }: FieldErrorProps) {
       role="alert"
       className={cn('flex items-start gap-1 text-[11px] text-red-600 font-medium mt-0.5', className)}
     >
-      <AlertCircle size={11} className="shrink-0 mt-px" />
+      <WarningCircle size={11} className="shrink-0 mt-px" />
       <span>{message}</span>
     </p>
   )

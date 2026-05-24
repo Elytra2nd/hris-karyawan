@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { addMonths, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
-import { Info, Building2, User, FileSignature, CalendarCheck, Loader2 } from 'lucide-react'
+import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -90,7 +90,7 @@ export function EmployeeForm({
       {/* ─── A. Data Operasional ─── */}
       <section className="space-y-4">
         <SectionHeader
-          icon={<Building2 size={15} className="text-primary" />}
+          icon={<Buildings size={15} className="text-primary" />}
           letter="A"
           title="Data Operasional"
           color="blue"
@@ -216,7 +216,7 @@ export function EmployeeForm({
       {/* ─── C. Kontrak Pertama ─── */}
       <section className="space-y-4">
         <SectionHeader
-          icon={<FileSignature size={15} className="text-orange-500" />}
+          icon={<FileTextIcon size={15} className="text-orange-500" />}
           letter="C"
           title="Kontrak Pertama"
           color="orange"
@@ -304,7 +304,7 @@ export function EmployeeForm({
         className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
-          <><Loader2 size={16} className="animate-spin" /> Menyimpan...</>
+          <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
         ) : (
           'Simpan Data Karyawan'
         )}
