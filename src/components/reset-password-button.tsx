@@ -40,7 +40,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-semibold text-slate-500 border border-slate-200 rounded-md hover:border-primary/30 hover:text-primary hover:bg-blue-50 transition-colors"
+        className="flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent transition-colors"
         title="Reset password"
       >
         <Key size={11} /> Reset PW
@@ -72,12 +72,12 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
                 <button
                   type="button"
                   onClick={() => setShow(v => !v)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80"
                 >
                   {show ? <EyeSlash size={13} /> : <Eye size={13} />}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-400">Min. 8 karakter, huruf kapital, dan angka</p>
+              <p className="text-[11px] text-muted-foreground/70">Min. 8 karakter, huruf kapital, dan angka</p>
             </div>
           </div>
 

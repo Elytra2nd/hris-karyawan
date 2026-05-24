@@ -33,12 +33,12 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed rounded-2xl bg-slate-50 border-slate-200">
-      <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-slate-200">
+    <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed rounded-2xl bg-muted/50 border-border">
+      <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-card shadow-md bg-muted">
         {preview ? (
           <img src={preview} alt="Profile" className="w-full h-full object-cover" />
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-400">
+          <div className="flex items-center justify-center h-full text-muted-foreground/70">
             <Camera className="w-10 h-10" />
           </div>
         )}
@@ -55,7 +55,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
           <CloudArrowUpIcon className="w-4 h-4" /> Pilih Foto
         </div>
       </label>
-      <p className="text-[10px] text-slate-400 font-medium">Format: JPG, PNG (Max 2MB)</p>
+      <p className="text-[10px] text-muted-foreground/70 font-medium">Format: JPG, PNG (Max 2MB)</p>
     </div>
   );
 }

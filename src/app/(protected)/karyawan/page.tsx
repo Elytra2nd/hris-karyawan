@@ -206,13 +206,13 @@ export default function DataKaryawanPage() {
       return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Clock size={11} /> {d}h</span>
     }
     if (d <= 90) {
-      return <span className="text-[11px] font-medium text-gray-500">{d}h</span>
+      return <span className="text-[11px] font-medium text-muted-foreground">{d}h</span>
     }
     return <span className="inline-flex items-center gap-1 text-[11px] text-green-600"><CheckCircle size={11} /> {d}h</span>
   }
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortCol !== col) return <ArrowsDownUp size={13} className="ml-1 text-gray-300 inline-block" />
+    if (sortCol !== col) return <ArrowsDownUp size={13} className="ml-1 text-muted-foreground/50 inline-block" />
     return sortDir === 'asc'
       ? <ArrowUp size={13} className="ml-1 text-primary inline-block" />
       : <ArrowDown size={13} className="ml-1 text-primary inline-block" />
@@ -224,7 +224,7 @@ export default function DataKaryawanPage() {
       {/* ─── Page Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Karyawan</h1>
+          <h1 className="text-2xl font-bold text-foreground">Data Karyawan</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Manajemen data trainee Astra Motor Kalimantan Barat
           </p>
@@ -245,8 +245,8 @@ export default function DataKaryawanPage() {
 
       {/* ─── Viewer Notice ─── */}
       {!isAdmin && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-600">
-          <Eye size={15} className="text-gray-400 shrink-0" />
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
+          <Eye size={15} className="text-muted-foreground/70 shrink-0" />
           <span>Mode <strong>Pemirsa</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
         </div>
       )}
@@ -274,8 +274,8 @@ export default function DataKaryawanPage() {
           highlight={stats.segera > 0}
         />
         <StatCard
-          icon={<XCircle size={18} className="text-gray-400" />}
-          iconBg="bg-gray-50"
+          icon={<XCircle size={18} className="text-muted-foreground/70" />}
+          iconBg="bg-muted/50"
           value={stats.nonAktif}
           label="Non-Aktif"
         />
@@ -286,15 +286,15 @@ export default function DataKaryawanPage() {
         <div className="flex flex-col sm:flex-row gap-2">
           {/* MagnifyingGlass */}
           <div className="relative flex-1 max-w-sm">
-            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
               value={search}
               onChange={(e) => updateParams({ search: e.target.value })}
               placeholder="Cari nama, NIK, atau posisi..."
-              className="w-full h-9 pl-9 pr-3 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-gray-400"
+              className="w-full h-9 pl-9 pr-3 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
             {search && (
-              <button onClick={() => updateParams({ search: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => updateParams({ search: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
                 <XCircle size={14} />
               </button>
             )}
@@ -307,7 +307,7 @@ export default function DataKaryawanPage() {
                 'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
                 sortCol
                   ? 'border-primary text-primary bg-accent font-semibold'
-                  : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50'
+                  : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
               )}>
                 <ArrowsDownUp size={14} />
                 Urutkan
@@ -350,7 +350,7 @@ export default function DataKaryawanPage() {
               'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
               showFilter
                 ? 'border-primary text-primary bg-accent font-semibold'
-                : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50'
+                : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
             )}
           >
             <Sliders size={14} />
@@ -363,24 +363,24 @@ export default function DataKaryawanPage() {
 
         {/* Funnel Panel */}
         {showFilter && (
-          <div className="flex flex-wrap gap-3 px-4 py-3 rounded-md bg-gray-50 border border-gray-200">
+          <div className="flex flex-wrap gap-3 px-4 py-3 rounded-md bg-muted/50 border border-border">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cabang</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cabang</label>
               <select
                 value={cabang}
                 onChange={(e) => updateParams({ cabang: e.target.value })}
-                className="h-8 px-2 pr-7 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Cabang</option>
                 {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => updateParams({ status: e.target.value })}
-                className="h-8 px-2 pr-7 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Status</option>
                 <option value="AKTIF">Aktif</option>
@@ -390,7 +390,7 @@ export default function DataKaryawanPage() {
             {(cabang || statusFilter) && (
               <button
                 onClick={() => updateParams({ cabang: '', status: '' })}
-                className="self-end h-8 px-3 text-xs font-semibold text-gray-500 hover:text-red-600 border border-gray-200 rounded-md bg-white hover:bg-red-50 transition-colors"
+                className="self-end h-8 px-3 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
               >
                 Reset
               </button>
@@ -400,60 +400,60 @@ export default function DataKaryawanPage() {
       </div>
 
       {/* ─── Table (Desktop) ─── */}
-      <div className="hidden md:block bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px]">
             <thead>
-              <tr className="border-b border-gray-200 bg-blue-50/60">
+              <tr className="border-b border-border bg-accent/60">
                 <th className="w-10 px-4 py-3 text-center">
-                  <input type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-primary" />
+                  <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('namaLengkap')}
                 >
                   Nama Karyawan <SortIcon col="namaLengkap" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('nik')}
                 >
                   NIK <SortIcon col="nik" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('posisi')}
                 >
                   Posisi <SortIcon col="posisi" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('cabang')}
                 >
                   Cabang <SortIcon col="cabang" />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Trainee Sejak
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('traineeSelesai')}
                 >
                   Selesai <SortIcon col="traineeSelesai" />
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Sisa
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="w-10 px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 Array.from({ length: PER_PAGE }).map((_, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-muted/50">
                     <td className="px-4 py-3.5"><Skeleton className="h-4 w-4" /></td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
@@ -502,13 +502,13 @@ export default function DataKaryawanPage() {
                     <tr
                       key={emp.id}
                       className={cn(
-                        'hover:bg-gray-50 transition-colors group',
+                        'hover:bg-muted/50 transition-colors group',
                         isKritis && 'bg-red-50/40',
                         isMendekat && !isKritis && 'bg-amber-50/30',
                       )}
                     >
                       <td className="px-4 py-3.5 text-center">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-primary" />
+                        <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
                       </td>
                       {/* Nama */}
                       <td className="px-4 py-3.5">
@@ -517,12 +517,12 @@ export default function DataKaryawanPage() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={emp.image} alt={`Foto ${emp.namaLengkap}`} className="h-8 w-8 rounded-full object-cover shrink-0" />
                           ) : (
-                            <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0">
                               <User size={15} className="text-primary" />
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                               {emp.namaLengkap}
                             </p>
                             <p className="text-xs text-muted-foreground">{emp.noHp || '—'}</p>
@@ -539,17 +539,17 @@ export default function DataKaryawanPage() {
                         </Link>
                       </td>
                       {/* Posisi */}
-                      <td className="px-4 py-3.5 text-sm text-gray-700">
+                      <td className="px-4 py-3.5 text-sm text-foreground/80">
                         {c?.posisi || '—'}
                       </td>
                       {/* Cabang */}
-                      <td className="px-4 py-3.5 text-sm text-gray-700">{emp.cabang}</td>
+                      <td className="px-4 py-3.5 text-sm text-foreground/80">{emp.cabang}</td>
                       {/* Sejak */}
-                      <td className="px-4 py-3.5 text-sm text-gray-600">{c ? fmtDate(c.traineeSejak) : '—'}</td>
+                      <td className="px-4 py-3.5 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '—'}</td>
                       {/* Selesai */}
                       <td className={cn(
                         'px-4 py-3.5 text-sm font-medium',
-                        isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-gray-700'
+                        isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-foreground/80'
                       )}>
                         {c ? fmtDate(c.traineeSelesai) : '—'}
                       </td>
@@ -565,14 +565,14 @@ export default function DataKaryawanPage() {
                       <td className="px-4 py-3.5 text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                            <button className="p-1 rounded-md text-muted-foreground/70 hover:text-foreground/70 hover:bg-muted transition-colors">
                               <DotsThreeVertical size={16} />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                               <Link href={`/karyawan/${emp.id}`}>
-                                <Eye className="h-4 w-4 text-gray-400" />
+                                <Eye className="h-4 w-4 text-muted-foreground/70" />
                                 Lihat Detail
                               </Link>
                             </DropdownMenuItem>
@@ -580,13 +580,13 @@ export default function DataKaryawanPage() {
                               <>
                                 <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                                   <Link href={`/karyawan/${emp.id}/edit`}>
-                                    <Pencil className="h-4 w-4 text-gray-400" />
+                                    <Pencil className="h-4 w-4 text-muted-foreground/70" />
                                     Edit Profil
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                                   <Link href={`/karyawan/${emp.id}/kontrak`}>
-                                    <ClockCounterClockwise className="h-4 w-4 text-gray-400" />
+                                    <ClockCounterClockwise className="h-4 w-4 text-muted-foreground/70" />
                                     Kelola Kontrak
                                   </Link>
                                 </DropdownMenuItem>
@@ -638,10 +638,10 @@ export default function DataKaryawanPage() {
 
         {/* Pagination */}
         {totalPages > 0 && !loading && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               {sortedEmployees.length === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, sortedEmployees.length)}`} dari{' '}
-              <span className="font-semibold text-gray-700">{sortedEmployees.length}</span> karyawan
+              <span className="font-semibold text-foreground/80">{sortedEmployees.length}</span> karyawan
             </p>
             <Pagination className="mx-0 w-auto">
               <PaginationContent>
@@ -679,9 +679,9 @@ export default function DataKaryawanPage() {
       </div>
 
       {/* ─── Mobile Card View ─── */}
-      <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="md:hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border/60">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="px-4 py-4 flex items-start gap-3">
                 <Skeleton className="h-10 w-10 rounded-full shrink-0" />
@@ -712,7 +712,7 @@ export default function DataKaryawanPage() {
             }
           />
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border/60">
             {rows.map((emp: any) => {
               const c = emp.contracts?.[0]
               const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
@@ -727,7 +727,7 @@ export default function DataKaryawanPage() {
                   )}
                 >
                   {/* Avatar */}
-                  <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5">
                     <User size={16} className="text-primary" />
                   </div>
 
@@ -735,7 +735,7 @@ export default function DataKaryawanPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{emp.namaLengkap}</p>
+                        <p className="text-sm font-semibold text-foreground">{emp.namaLengkap}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {c?.posisi || '—'} · {emp.cabang}
                         </p>
@@ -744,13 +744,13 @@ export default function DataKaryawanPage() {
                     </div>
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                       {emp.nik && (
-                        <span className="text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                        <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
                           {emp.nik}
                         </span>
                       )}
                       {c && (
-                        <span className="text-xs text-gray-500">
-                          Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-gray-700')}>
+                        <span className="text-xs text-muted-foreground">
+                          Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-foreground/80')}>
                             {fmtDate(c.traineeSelesai)}
                           </span>
                         </span>
@@ -762,26 +762,26 @@ export default function DataKaryawanPage() {
                   {/* Action */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="p-1 mt-0.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                      <button className="p-1 mt-0.5 rounded text-muted-foreground/70 hover:text-foreground/70 hover:bg-muted">
                         <DotsThreeVertical size={16} />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-44">
                       <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                         <Link href={`/karyawan/${emp.id}`}>
-                          <Eye className="h-4 w-4 text-gray-400" /> Lihat Detail
+                          <Eye className="h-4 w-4 text-muted-foreground/70" /> Lihat Detail
                         </Link>
                       </DropdownMenuItem>
                       {isAdmin && (
                         <>
                           <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                             <Link href={`/karyawan/${emp.id}/edit`}>
-                              <Pencil className="h-4 w-4 text-gray-400" /> Edit Profil
+                              <Pencil className="h-4 w-4 text-muted-foreground/70" /> Edit Profil
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
                             <Link href={`/karyawan/${emp.id}/kontrak`}>
-                              <ClockCounterClockwise className="h-4 w-4 text-gray-400" /> Kelola Kontrak
+                              <ClockCounterClockwise className="h-4 w-4 text-muted-foreground/70" /> Kelola Kontrak
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -824,7 +824,7 @@ export default function DataKaryawanPage() {
 
         {/* Mobile Pagination */}
         {totalPages > 1 && !loading && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               Hal. {page} / {totalPages}
             </p>
@@ -869,14 +869,14 @@ function StatCard({
       primary
         ? 'bg-primary'
         : highlight
-          ? 'bg-white border border-amber-200'
-          : 'bg-white border border-gray-200'
+          ? 'bg-card border border-amber-200'
+          : 'bg-card border border-border'
     )}>
       <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconBg)}>
         {icon}
       </div>
       <div>
-        <p className={cn('text-2xl font-bold leading-none', primary ? 'text-white' : 'text-gray-900')}>
+        <p className={cn('text-2xl font-bold leading-none', primary ? 'text-white' : 'text-foreground')}>
           {value.toLocaleString('id-ID')}
         </p>
         <p className={cn('text-xs mt-1', primary ? 'text-blue-100' : 'text-muted-foreground')}>
@@ -907,8 +907,8 @@ function PgBtn({
         active
           ? 'bg-primary text-white border-primary'
           : disabled
-            ? 'text-gray-300 border-gray-200 bg-white cursor-not-allowed'
-            : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer'
+            ? 'text-muted-foreground/50 border-border bg-card cursor-not-allowed'
+            : 'text-foreground/70 border-border bg-card hover:bg-muted/50 cursor-pointer'
       )}
     >
       {children}

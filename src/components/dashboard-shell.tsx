@@ -23,15 +23,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!mounted) {
-    return <div className="animate-pulse bg-slate-100 h-32 rounded-xl mb-6" />;
+    return <div className="animate-pulse bg-muted h-32 rounded-xl mb-6" />;
   }
 
   return (
     <Collapsible defaultOpen className="space-y-4 mb-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Layout className="w-4 h-4 text-slate-500" />
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <Layout className="w-4 h-4 text-muted-foreground" />
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Ringkasan Panel
           </h2>
         </div>

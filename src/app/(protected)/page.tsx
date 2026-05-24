@@ -69,7 +69,7 @@ export default async function DashboardPage() {
       {/* ─── Page Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             {greeting}, {user?.username || 'Pengguna'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total — highlighted primary */}
         <div className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-full bg-card/20 flex items-center justify-center shrink-0">
             <Users className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -140,35 +140,35 @@ export default async function DashboardPage() {
         </div>
 
         {/* Aktif */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
             <UserCheck className="h-5 w-5 text-green-600" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">{activeEmployees}</p>
-            <p className="text-xs text-gray-500 mt-1">Aktif ({activePercent}%)</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{activeEmployees}</p>
+            <p className="text-xs text-muted-foreground mt-1">Aktif ({activePercent}%)</p>
           </div>
         </div>
 
         {/* Kritis ≤30 hari */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
             <Clock className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">{expiring30.length}</p>
-            <p className="text-xs text-gray-500 mt-1">Kontrak ≤ 30 hari</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{expiring30.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Kontrak ≤ 30 hari</p>
           </div>
         </div>
 
         {/* Non-aktif / expired */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
             <UserMinusIcon className="h-5 w-5 text-red-500" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">{nonActive}</p>
-            <p className="text-xs text-gray-500 mt-1">Non-Aktif</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{nonActive}</p>
+            <p className="text-xs text-muted-foreground mt-1">Non-Aktif</p>
           </div>
         </div>
       </div>
@@ -177,13 +177,13 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Kontrak Segera Habis */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
             <div className="flex items-center gap-2.5">
               <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
                 <Warning className="h-4 w-4 text-red-500" />
               </div>
-              <h2 className="text-base font-semibold text-gray-800">Kontrak Perlu Tindakan</h2>
+              <h2 className="text-base font-semibold text-foreground">Kontrak Perlu Tindakan</h2>
             </div>
             <span className="text-xs text-muted-foreground">{expiring90.length} kontrak</span>
           </div>
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
             {urgentList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
                 <CheckCircle className="h-8 w-8 text-green-400" />
-                <p className="text-sm font-semibold text-gray-500">Semua kontrak aman</p>
+                <p className="text-sm font-semibold text-muted-foreground">Semua kontrak aman</p>
                 <p className="text-xs text-muted-foreground">Tidak ada kontrak yang kritis</p>
               </div>
             ) : (
@@ -204,10 +204,10 @@ export default async function DashboardPage() {
                   <Link
                     key={c.id}
                     href={`/karyawan/${c.employee.id}`}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors group"
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/50 transition-colors group"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                         {c.employee.namaLengkap}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
@@ -231,7 +231,7 @@ export default async function DashboardPage() {
           </div>
 
           {expiring90.length > 6 && (
-            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+            <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
               <Link
                 href="/karyawan"
                 className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
@@ -243,12 +243,12 @@ export default async function DashboardPage() {
         </div>
 
         {/* Ringkasan Status Kontrak */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-            <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
               <TrendUp className="h-4 w-4 text-primary" />
             </div>
-            <h2 className="text-base font-semibold text-gray-800">Ringkasan Kontrak Aktif</h2>
+            <h2 className="text-base font-semibold text-foreground">Ringkasan Kontrak Aktif</h2>
           </div>
 
           <div className="px-4 pt-3">
@@ -260,17 +260,17 @@ export default async function DashboardPage() {
             />
           </div>
 
-          <div className="px-5 py-2 divide-y divide-gray-50 border-t border-gray-100 mt-1">
+          <div className="px-5 py-2 divide-y divide-gray-50 border-t border-border/60 mt-1">
             <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={safe.length} dotColor="bg-green-500" valueColor="text-green-700" />
             <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={expiring90.length - expiring30.length} dotColor="bg-amber-400" valueColor="text-amber-700" />
             <SummaryRow label="Kritis" sub="≤ 30 hari" value={expiring30.length} dotColor="bg-red-500" valueColor="text-red-700" />
-            <SummaryRow label="Sudah Berakhir" sub="Expired" value={expired.length} dotColor="bg-gray-300" valueColor="text-gray-500" />
+            <SummaryRow label="Sudah Berakhir" sub="Expired" value={expired.length} dotColor="bg-muted-foreground/40" valueColor="text-muted-foreground" />
           </div>
 
-          <div className="px-5 pt-3 pb-4 border-t border-gray-100 space-y-1.5">
+          <div className="px-5 pt-3 pb-4 border-t border-border/60 space-y-1.5">
             <div className="flex justify-between text-sm">
-              <span className="font-semibold text-gray-800">Total Karyawan Aktif</span>
-              <span className="font-bold text-gray-900">{activeEmployees}</span>
+              <span className="font-semibold text-foreground">Total Karyawan Aktif</span>
+              <span className="font-bold text-foreground">{activeEmployees}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Non-Aktif / Keluar</span>
@@ -284,13 +284,13 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Distribusi Posisi */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-            <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
               <TrendUp className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-800">Distribusi Posisi</h2>
+              <h2 className="text-base font-semibold text-foreground">Distribusi Posisi</h2>
               <p className="text-xs text-muted-foreground">Berdasarkan kontrak terakhir aktif</p>
             </div>
           </div>
@@ -300,13 +300,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Sebaran per Cabang */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
             <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
               <Buildings className="h-4 w-4 text-green-600" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-800">Sebaran per Cabang</h2>
+              <h2 className="text-base font-semibold text-foreground">Sebaran per Cabang</h2>
               <p className="text-xs text-muted-foreground">Karyawan aktif per lokasi</p>
             </div>
           </div>
@@ -322,8 +322,8 @@ export default async function DashboardPage() {
               return (
                 <div key={cabang} className="flex items-center gap-3 px-5 py-3">
                   <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColors[i % dotColors.length])} />
-                  <span className="text-sm font-medium text-gray-700 flex-1 truncate">{cabang}</span>
-                  <span className="text-sm font-bold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-foreground/80 flex-1 truncate">{cabang}</span>
+                  <span className="text-sm font-bold text-foreground">{count}</span>
                   <span className="text-xs text-muted-foreground w-8 text-right">{pct}%</span>
                 </div>
               )
@@ -333,54 +333,54 @@ export default async function DashboardPage() {
       </div>
 
       {/* ─── Tabel Branch Overview ─── */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-          <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
             <MapPin className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-800">Integrasi Branch</h2>
+            <h2 className="text-base font-semibold text-foreground">Integrasi Branch</h2>
             <p className="text-xs text-muted-foreground">Distribusi karyawan per kode cabang</p>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[540px]">
             <thead>
-              <tr className="border-b border-gray-200 bg-blue-50/60">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kode BA</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Nama Cabang</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Region</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Jumlah</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Proporsi</th>
+              <tr className="border-b border-border bg-accent/60">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Region</th>
+                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
+                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border/60">
               {statsBranch.map((b, i) => {
                 const pct = totalEmployees > 0 ? Math.round((b._count.ba / totalEmployees) * 100) : 0
                 return (
-                  <tr key={i} className="hover:bg-gray-50 transition-colors">
+                  <tr key={i} className="hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-3.5">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-gray-100 text-xs font-bold text-gray-800 font-mono">
+                      <span className="inline-block px-2.5 py-0.5 rounded bg-muted text-xs font-bold text-foreground font-mono">
                         {b.ba}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span className="text-sm font-semibold text-gray-800">{b.baCabang}</span>
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+                        <span className="text-sm font-semibold text-foreground">{b.baCabang}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{b.region}</td>
-                    <td className="px-5 py-3.5 text-center text-base font-bold text-gray-900">{b._count.ba}</td>
+                    <td className="px-5 py-3.5 text-sm text-foreground/70">{b.region}</td>
+                    <td className="px-5 py-3.5 text-center text-base font-bold text-foreground">{b._count.ba}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
                             className="h-full rounded-full bg-primary"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 w-7 text-right">{pct}%</span>
+                        <span className="text-xs font-semibold text-foreground/70 w-7 text-right">{pct}%</span>
                       </div>
                     </td>
                   </tr>
@@ -416,7 +416,7 @@ function SummaryRow({
     <div className="flex items-center justify-between py-3">
       <div className="flex items-center gap-2.5">
         <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColor)} />
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm font-medium text-foreground/80">{label}</span>
         <span className="text-xs text-muted-foreground hidden sm:inline">{sub}</span>
       </div>
       <span className={cn('text-base font-bold', valueColor)}>{value}</span>

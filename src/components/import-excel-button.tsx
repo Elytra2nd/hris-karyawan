@@ -131,7 +131,7 @@ export function ImportExcelButton() {
 
       <button
         onClick={() => fileRef.current?.click()}
-        className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-primary bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+        className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-primary bg-accent border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
       >
         <Upload size={15} />
         Import Excel
@@ -139,18 +139,18 @@ export function ImportExcelButton() {
 
       <Dialog open={open} onOpenChange={v => { if (!v) reset() }}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
-            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
+            <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
               <MicrosoftExcelLogoIcon size={18} className="text-primary" />
               Import Data Karyawan
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 mt-0.5">
+            <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               {fileName && <span className="font-medium">{fileName}</span>} — {rows.length} baris terdeteksi
             </DialogDescription>
           </DialogHeader>
 
           {/* Summary bar */}
-          <div className="flex items-center gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold">
+          <div className="flex items-center gap-4 px-5 py-3 bg-muted/50 border-b border-border/60 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-green-700">
               <CheckCircle size={13} /> {validRows.length} siap import
             </span>
@@ -164,7 +164,7 @@ export function ImportExcelButton() {
             )}
             <button
               onClick={downloadTemplate}
-              className="ml-auto flex items-center gap-1 text-slate-400 hover:text-slate-700 transition-colors font-medium"
+              className="ml-auto flex items-center gap-1 text-muted-foreground/70 hover:text-foreground/80 transition-colors font-medium"
             >
               <Download size={12} /> Download Template
             </button>
@@ -190,19 +190,19 @@ export function ImportExcelButton() {
                   <tr
                     key={i}
                     className={cn(
-                      'border-b border-slate-100',
-                      row.status === 'error' ? 'bg-red-50' : row.status === 'ok' ? 'bg-green-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
+                      'border-b border-border/60',
+                      row.status === 'error' ? 'bg-red-50' : row.status === 'ok' ? 'bg-green-50' : i % 2 === 0 ? 'bg-card' : 'bg-muted/60'
                     )}
                   >
-                    <td className="px-3 py-2 text-slate-400 font-mono">{row.index + 1}</td>
+                    <td className="px-3 py-2 text-muted-foreground/70 font-mono">{row.index + 1}</td>
                     <td className="px-3 py-2">
                       {row.status === 'error' && <span className="inline-flex items-center gap-1 text-red-600 font-bold"><WarningCircle size={11} /> Error</span>}
                       {row.status === 'ok' && <span className="inline-flex items-center gap-1 text-green-600 font-bold"><CheckCircle size={11} /> OK</span>}
-                      {row.status === 'pending' && <span className="text-slate-400">Siap</span>}
+                      {row.status === 'pending' && <span className="text-muted-foreground/70">Siap</span>}
                     </td>
                     {displayCols.map(c => (
-                      <td key={c} className="px-3 py-2 text-slate-700 whitespace-nowrap max-w-[160px] truncate">
-                        {row.raw[c] || <span className="text-slate-300">—</span>}
+                      <td key={c} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[160px] truncate">
+                        {row.raw[c] || <span className="text-muted-foreground/50">—</span>}
                       </td>
                     ))}
                     <td className="px-3 py-2 text-red-600 text-[11px]">{row.error || ''}</td>
@@ -213,7 +213,7 @@ export function ImportExcelButton() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-white">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border/60 bg-card">
             {errorRows.length > 0 && !done && (
               <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
                 <WarningIcon size={12} />
@@ -221,7 +221,7 @@ export function ImportExcelButton() {
               </div>
             )}
             {done && (
-              <div className="text-xs text-slate-500">Import selesai.</div>
+              <div className="text-xs text-muted-foreground">Import selesai.</div>
             )}
             {!errorRows.length && !done && <div />}
 

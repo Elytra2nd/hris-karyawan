@@ -10,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body className="font-sans antialiased text-slate-900">
+      <body className="font-sans antialiased text-foreground">
         <RootThemeProvider>
           {children}
           <Toaster position="top-center" richColors closeButton />

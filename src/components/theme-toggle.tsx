@@ -21,7 +21,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="h-9 w-9 rounded-lg bg-gray-100 animate-pulse" />
+      <div className="h-9 w-9 rounded-lg bg-muted animate-pulse" />
     )
   }
 
@@ -39,7 +39,7 @@ export function ThemeToggle() {
           {isDark ? (
             <Sun size={16} className="text-yellow-500" />
           ) : (
-            <Moon size={16} className="text-slate-600" />
+            <Moon size={16} className="text-foreground/70" />
           )}
         </Button>
       </TooltipTrigger>

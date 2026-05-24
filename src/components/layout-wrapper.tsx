@@ -44,7 +44,7 @@ export default function LayoutWrapper({
               {/* Hamburger untuk mobile */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <SidebarTrigger className="-ml-1 text-gray-500 hover:text-primary" />
+                  <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-primary" />
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   Buka Menu

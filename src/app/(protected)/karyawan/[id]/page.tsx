@@ -61,7 +61,7 @@ export default async function DetailKaryawanPage({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Link
           href="/karyawan"
-          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
         >
           <CaretLeft size={16} />
           Kembali ke Data Karyawan
@@ -71,11 +71,11 @@ export default async function DetailKaryawanPage({
       </div>
 
       {/* ─── Profile Card ─── */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         {/* Top: Avatar + Info */}
         <div className="flex items-start gap-5 p-6">
           {/* Avatar */}
-          <div className="h-20 w-20 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
+          <div className="h-20 w-20 rounded-xl bg-accent flex items-center justify-center shrink-0 overflow-hidden border border-border">
             {employee.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -91,24 +91,24 @@ export default async function DetailKaryawanPage({
           {/* Name + Meta */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-2">
-              <h1 className="text-xl font-bold text-gray-900">{employee.namaLengkap}</h1>
+              <h1 className="text-xl font-bold text-foreground">{employee.namaLengkap}</h1>
               {getStatusChip()}
             </div>
-            <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <CreditCard size={13} className="text-gray-400" />
-                NIK: <span className="font-medium text-gray-700 font-mono">{employee.nik || '—'}</span>
+                <CreditCard size={13} className="text-muted-foreground/70" />
+                NIK: <span className="font-medium text-foreground/80 font-mono">{employee.nik || '—'}</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-gray-400" />
+                <MapPin size={13} className="text-muted-foreground/70" />
                 {employee.cabang}
               </span>
               <span className="flex items-center gap-1.5">
-                <Phone size={13} className="text-gray-400" />
+                <Phone size={13} className="text-muted-foreground/70" />
                 {employee.noHp || '—'}
               </span>
               <span className="flex items-center gap-1.5">
-                <Buildings size={13} className="text-gray-400" />
+                <Buildings size={13} className="text-muted-foreground/70" />
                 {latestContract?.posisi || '—'}
               </span>
             </div>
@@ -116,17 +116,17 @@ export default async function DetailKaryawanPage({
         </div>
 
         {/* Bottom: Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 border-t border-gray-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 border-t border-border/60">
           {/* Masa kerja */}
-          <div className="flex items-center gap-3 px-6 py-4 sm:border-r border-gray-100">
-            <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 px-6 py-4 sm:border-r border-border/60">
+            <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center shrink-0">
               <Clock size={17} className="text-primary" />
             </div>
             <div>
               <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">
                 Masa Kerja Akumulasi
               </p>
-              <p className="text-base font-bold text-gray-900 mt-0.5">
+              <p className="text-base font-bold text-foreground mt-0.5">
                 {years > 0 ? `${years} Tahun ` : ''}
                 {months} Bulan
                 {totalMonths === 0 && ' (Baru)'}
@@ -137,7 +137,7 @@ export default async function DetailKaryawanPage({
           {/* Sisa kontrak */}
           <div className={cn(
             'flex items-center gap-3 px-6 py-4',
-            isKritis ? 'bg-red-50' : isMendekat ? 'bg-amber-50' : 'bg-gray-50/50'
+            isKritis ? 'bg-red-50' : isMendekat ? 'bg-amber-50' : 'bg-muted/50'
           )}>
             <div className={cn(
               'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
@@ -157,7 +157,7 @@ export default async function DetailKaryawanPage({
               )}>
                 Sisa Kontrak
               </p>
-              <p className="text-base font-bold text-gray-900 mt-0.5">
+              <p className="text-base font-bold text-foreground mt-0.5">
                 {isExpired ? 'Kontrak Habis' : `${daysToExpiry} Hari`}
                 {latestContract && (
                   <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -194,12 +194,12 @@ export default async function DetailKaryawanPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
         {/* Identitas Pribadi */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-            <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
               <User className="h-4 w-4 text-primary" />
             </div>
-            <h2 className="text-base font-semibold text-gray-800">Identitas Pribadi</h2>
+            <h2 className="text-base font-semibold text-foreground">Identitas Pribadi</h2>
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
@@ -225,12 +225,12 @@ export default async function DetailKaryawanPage({
         </div>
 
         {/* Data Operasional */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
             <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
               <Buildings className="h-4 w-4 text-green-600" />
             </div>
-            <h2 className="text-base font-semibold text-gray-800">Data Operasional</h2>
+            <h2 className="text-base font-semibold text-foreground">Data Operasional</h2>
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
@@ -252,12 +252,12 @@ export default async function DetailKaryawanPage({
       </div>
 
       {/* ─── Dokumen ─── */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
           <div className="h-7 w-7 rounded-md bg-orange-50 flex items-center justify-center">
             <SealCheckIcon className="h-4 w-4 text-orange-500" />
           </div>
-          <h2 className="text-base font-semibold text-gray-800">Dokumen</h2>
+          <h2 className="text-base font-semibold text-foreground">Dokumen</h2>
         </div>
         <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <DocCard
@@ -291,8 +291,8 @@ export default async function DetailKaryawanPage({
       <ContractList employee={employee} contracts={employee.contracts} />
 
       {/* ─── Riwayat Aktivitas ─── */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-6">Riwayat Aktivitas</h2>
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden p-6">
+        <h2 className="text-lg font-bold text-foreground mb-6">Riwayat Aktivitas</h2>
         <ActivityTimeline employeeId={id} />
       </div>
 
@@ -317,11 +317,11 @@ function InfoItem({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+      <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">
         {label}
       </p>
       <p className={cn(
-        'text-sm font-medium text-gray-800',
+        'text-sm font-medium text-foreground',
         mono && 'font-mono',
         valueClassName
       )}>
@@ -347,17 +347,17 @@ function DocCard({
   return (
     <div className={cn(
       'rounded-lg border p-4 flex flex-col items-center text-center gap-2',
-      available ? 'border-green-200 bg-green-50/50' : 'border-gray-200 bg-gray-50/50'
+      available ? 'border-green-200 bg-green-50/50' : 'border-border bg-muted/50'
     )}>
       <div className={cn(
         'h-10 w-10 rounded-lg flex items-center justify-center',
-        available ? 'bg-white' : 'bg-gray-100'
+        available ? 'bg-card' : 'bg-muted'
       )}>
         {icon}
       </div>
-      <p className="text-[11px] font-semibold text-gray-600 leading-tight">{label}</p>
+      <p className="text-[11px] font-semibold text-foreground/70 leading-tight">{label}</p>
       {customValue ? (
-        <p className="text-xs text-gray-700 font-mono">{customValue}</p>
+        <p className="text-xs text-foreground/80 font-mono">{customValue}</p>
       ) : available ? (
         href ? (
           <a
@@ -374,7 +374,7 @@ function DocCard({
           </span>
         )
       ) : (
-        <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
+        <span className="text-[11px] font-semibold text-muted-foreground/70 flex items-center gap-1">
           <XCircle size={11} /> Belum ada
         </span>
       )}

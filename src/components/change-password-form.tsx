@@ -25,7 +25,7 @@ function PasswordInput({ id, name, label, placeholder }: { id: string; name: str
         <button
           type="button"
           onClick={() => setShow(v => !v)}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80 transition-colors"
         >
           {show ? <EyeSlash size={14} /> : <Eye size={14} />}
         </button>
@@ -62,7 +62,7 @@ export function ChangePasswordForm() {
       <PasswordInput id="newPassword" name="newPassword" label="Password Baru" placeholder="Min. 8 karakter" />
       <PasswordInput id="confirmPassword" name="confirmPassword" label="Konfirmasi Password Baru" />
 
-      <p className="text-[11px] text-slate-400">
+      <p className="text-[11px] text-muted-foreground/70">
         Password harus min. 8 karakter, mengandung huruf kapital dan angka.
       </p>
 

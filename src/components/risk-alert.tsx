@@ -11,11 +11,11 @@ export function RiskAlert({ count }: { count: number }) {
             <Warning className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Mitigasi Risiko</p>
+            <p className="text-[10px] font-bold text-muted-foreground/70 uppercase leading-none mb-1">Mitigasi Risiko</p>
             <h3 className={`text-sm font-bold ${count > 0 ? 'text-red-900' : 'text-green-900'}`}>
               {count > 0 ? `${count} Kontrak Segera Habis` : 'Semua Kontrak Aman'}
             </h3>
-            <p className="text-[9px] text-slate-500 mt-0.5 tracking-tight">Estimasi jatuh tempo dalam 30 hari</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5 tracking-tight">Estimasi jatuh tempo dalam 30 hari</p>
           </div>
         </div>
       </CardContent>

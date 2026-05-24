@@ -16,7 +16,7 @@ export function EmployeeDetailActions({ id, isAdmin }: EmployeeDetailActionsProp
       {isAdmin && (
         <>
           <Link href={`/karyawan/${id}/edit`}>
-            <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+            <button className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-foreground/80 bg-card border border-border rounded-md hover:bg-muted/50 transition-colors">
               <Pencil size={14} />
               Edit Profil
             </button>

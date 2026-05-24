@@ -67,7 +67,7 @@ export function DatePicker({
                 'h-9 w-full inline-flex items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-sm shadow-xs/5 outline-none transition-colors',
                 'hover:bg-accent/40 data-[popup-open]:border-ring focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/24',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
-                readOnly && 'bg-blue-50/50 text-primary font-semibold cursor-not-allowed',
+                readOnly && 'bg-accent/50 text-primary font-semibold cursor-not-allowed',
                 !current && 'text-muted-foreground',
                 className
               )}

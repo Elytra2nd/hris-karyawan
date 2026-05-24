@@ -25,7 +25,7 @@ export function PrintButton({ label = 'Cetak', className = '' }: PrintButtonProp
           variant="outline"
           size="sm"
           onClick={handlePrint}
-          className={`h-9 gap-2 text-gray-700 ${className}`}
+          className={`h-9 gap-2 text-foreground/80 ${className}`}
         >
           <Printer size={16} />
           {label}

@@ -260,11 +260,11 @@ export function EmployeeForm({
           <div className="space-y-2">
             <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
               Akhir Kontrak
-              <span className="text-[10px] font-normal text-primary bg-blue-50 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
                 Otomatis
               </span>
             </Label>
-            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50/50 px-3 text-sm font-semibold text-primary">
+            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-3 text-sm font-semibold text-primary">
               <span className="truncate">
                 {tglSelesai
                   ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
@@ -277,7 +277,7 @@ export function EmployeeForm({
 
         {/* Info tip */}
         {posisi && (
-          <div className="flex items-start gap-2.5 rounded-md bg-blue-50 border border-blue-100 px-4 py-3">
+          <div className="flex items-start gap-2.5 rounded-md bg-accent border border-blue-100 px-4 py-3">
             <Info size={15} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
               Jabatan <strong>{posisi}</strong> otomatis mendapat kontrak{' '}
@@ -288,8 +288,8 @@ export function EmployeeForm({
         )}
 
         {!posisi && (
-          <div className="flex items-start gap-2.5 rounded-md bg-gray-50 border border-gray-200 px-4 py-3">
-            <CalendarCheck size={15} className="text-gray-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 rounded-md bg-muted/50 border border-border px-4 py-3">
+            <CalendarCheck size={15} className="text-muted-foreground/70 shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground">
               Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
             </p>
@@ -329,7 +329,7 @@ function SectionHeader({
   color: 'blue' | 'green' | 'orange'
 }) {
   const colorMap = {
-    blue: 'bg-blue-50 border-blue-100',
+    blue: 'bg-accent border-blue-100',
     green: 'bg-green-50 border-green-100',
     orange: 'bg-orange-50 border-orange-100',
   }
@@ -345,7 +345,7 @@ function SectionHeader({
       </span>
       <div className="flex items-center gap-1.5">
         {icon}
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       </div>
     </div>
   )

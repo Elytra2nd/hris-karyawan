@@ -97,7 +97,7 @@ export function AppSidebar() {
           </button>
           <button
             disabled
-            className="px-3 py-1 text-xs font-medium rounded-md text-gray-400 border border-gray-200 cursor-not-allowed"
+            className="px-3 py-1 text-xs font-medium rounded-md text-muted-foreground/70 border border-border cursor-not-allowed"
             title="Segera hadir"
           >
             ATS
@@ -112,9 +112,9 @@ export function AppSidebar() {
             alt="Astra Motor Kalbar"
             className="h-6 object-contain"
           />
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-sidebar-border" />
           <div>
-            <p className="text-sm font-bold text-gray-900 leading-none">HRIS</p>
+            <p className="text-sm font-bold text-foreground leading-none">HRIS</p>
             <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
               Astra Motor Kalbar
             </p>
@@ -127,7 +127,7 @@ export function AppSidebar() {
 
         {/* ── Umum ── */}
         <div>
-          <p className="px-2 mb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <p className="px-2 mb-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
             Umum
           </p>
           <nav className="space-y-0.5">
@@ -254,7 +254,7 @@ export function AppSidebar() {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate leading-none">
+            <p className="text-sm font-semibold text-foreground truncate leading-none">
               {username || 'Pengguna'}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-none">
@@ -267,7 +267,7 @@ export function AppSidebar() {
             <TooltipTrigger asChild>
               <Link
                 href="/profile"
-                className="p-1.5 rounded-md text-gray-400 hover:text-primary hover:bg-blue-50 transition-colors"
+                className="p-1.5 rounded-md text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
               >
                 <UserGear size={15} weight="duotone" />
               </Link>
@@ -282,7 +282,7 @@ export function AppSidebar() {
             <TooltipTrigger asChild>
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
-                className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <SignOut size={15} weight="bold" />
               </button>
@@ -294,7 +294,7 @@ export function AppSidebar() {
         </div>
 
         {/* Branding */}
-        <p className="mt-3 text-[10px] text-gray-400 text-center">
+        <p className="mt-3 text-[10px] text-muted-foreground/70 text-center">
           HRIS Karyawan Trainee · v1.0
         </p>
       </SidebarFooter>
@@ -318,14 +318,14 @@ function SectionHeader({
   return (
     <button
       onClick={onToggle}
-      className="flex items-center justify-between w-full px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
+      className="flex items-center justify-between w-full px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground/80 transition-colors"
     >
       {label}
       <CaretDown
         size={13}
         weight="bold"
         className={cn(
-          'text-gray-400 transition-transform duration-200',
+          'text-muted-foreground/70 transition-transform duration-200',
           open ? 'rotate-0' : '-rotate-90'
         )}
       />
@@ -342,10 +342,10 @@ function SectionHeaderDisabled({
 }) {
   return (
     <div className="flex items-center justify-between w-full px-2 py-1">
-      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
         {label}
       </span>
-      <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wide">
+      <span className="text-[9px] font-bold text-muted-foreground/70 bg-muted px-1.5 py-0.5 rounded uppercase tracking-wide">
         {comingSoon}
       </span>
     </div>
@@ -370,13 +370,13 @@ function NavItem({
         'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
         active
           ? 'bg-accent text-primary font-semibold'
-          : 'text-gray-600 hover:bg-accent hover:text-primary font-medium'
+          : 'text-foreground/70 hover:bg-accent hover:text-primary font-medium'
       )}
     >
       <span
         className={cn(
           'shrink-0',
-          active ? 'text-primary' : 'text-gray-400'
+          active ? 'text-primary' : 'text-muted-foreground/70'
         )}
       >
         {icon}
@@ -394,8 +394,8 @@ function NavItemDisabled({
   label: string
 }) {
   return (
-    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-gray-400 font-medium cursor-not-allowed">
-      <span className="shrink-0 text-gray-300">
+    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-muted-foreground/70 font-medium cursor-not-allowed">
+      <span className="shrink-0 text-muted-foreground/50">
         <Lock size={14} />
       </span>
       {label}

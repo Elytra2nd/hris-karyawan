@@ -38,7 +38,7 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
       case 'DELETE':
         return <Trash size={16} className="text-red-600" />
       default:
-        return <Clock size={16} className="text-gray-400" />
+        return <Clock size={16} className="text-muted-foreground/70" />
     }
   }
 
@@ -60,11 +60,11 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
       case 'CREATE':
         return 'bg-green-50 border-green-200'
       case 'UPDATE':
-        return 'bg-blue-50 border-blue-200'
+        return 'bg-accent border-blue-200'
       case 'DELETE':
         return 'bg-red-50 border-red-200'
       default:
-        return 'bg-gray-50 border-gray-200'
+        return 'bg-muted/50 border-border'
     }
   }
 
@@ -74,7 +74,7 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
         <div key={log.id} className="relative flex gap-4">
           {/* Timeline line */}
           {index < logs.length - 1 && (
-            <div className="absolute left-[23px] top-12 w-0.5 h-12 bg-gray-200" />
+            <div className="absolute left-[23px] top-12 w-0.5 h-12 bg-border" />
           )}
 
           {/* Icon */}
@@ -91,7 +91,7 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
           <div className="flex-1 py-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-foreground">
                   {getActionLabel(log.action)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -105,7 +105,7 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
 
             {/* Details */}
             {log.details && (
-              <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+              <p className="text-xs text-foreground/70 mt-2 line-clamp-2">
                 {log.details}
               </p>
             )}

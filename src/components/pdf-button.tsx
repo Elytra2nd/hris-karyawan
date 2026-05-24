@@ -21,7 +21,7 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
 
   if (!isClient) {
     return (
-      <Button variant="ghost" size="sm" className="h-8 gap-2 text-slate-400 font-bold text-[10px] uppercase cursor-not-allowed">
+      <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground/70 font-bold text-[10px] uppercase cursor-not-allowed">
         <FileArrowDownIcon className="w-3.5 h-3.5" />
         Loading...
       </Button>
@@ -37,7 +37,7 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="h-8 gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold text-[10px] uppercase"
+          className="h-8 gap-2 text-blue-600 hover:text-blue-700 hover:bg-accent font-bold text-[10px] uppercase"
           disabled={loading}
         >
           <FileArrowDownIcon className="w-3.5 h-3.5" />

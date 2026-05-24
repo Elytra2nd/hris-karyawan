@@ -73,24 +73,24 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
 
   return (
     <div className="flex flex-col">
-      <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead className="font-bold text-slate-700">NIK</TableHead>
-              <TableHead className="font-bold text-slate-700">Nama Karyawan</TableHead>
-              <TableHead className="font-bold text-slate-700">Cabang</TableHead>
-              <TableHead className="font-bold text-slate-700">Posisi</TableHead>
-              <TableHead className="font-bold text-slate-700">Total Tenur</TableHead>
-              <TableHead className="font-bold text-slate-700">Akhir Kontrak</TableHead>
-              <TableHead className="font-bold text-slate-700 text-center">Status</TableHead>
-              <TableHead className="font-bold text-slate-700 text-right pr-6">Aksi</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-bold text-foreground/80">NIK</TableHead>
+              <TableHead className="font-bold text-foreground/80">Nama Karyawan</TableHead>
+              <TableHead className="font-bold text-foreground/80">Cabang</TableHead>
+              <TableHead className="font-bold text-foreground/80">Posisi</TableHead>
+              <TableHead className="font-bold text-foreground/80">Total Tenur</TableHead>
+              <TableHead className="font-bold text-foreground/80">Akhir Kontrak</TableHead>
+              <TableHead className="font-bold text-foreground/80 text-center">Status</TableHead>
+              <TableHead className="font-bold text-foreground/80 text-right pr-6">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center h-32 text-slate-500">
+                <TableCell colSpan={8} className="text-center h-32 text-muted-foreground">
                   Belum ada data karyawan. Silakan tambah data baru.
                 </TableCell>
               </TableRow>
@@ -106,12 +106,12 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                 return (
                   <TableRow 
                     key={emp.id} 
-                    className={`hover:bg-slate-50/50 transition-colors ${isExpiringSoon ? 'bg-amber-50/50' : ''}`}
+                    className={`hover:bg-muted/50 transition-colors ${isExpiringSoon ? 'bg-amber-50/50' : ''}`}
                   >
                     <TableCell className="font-medium">{emp.nik || '-'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-slate-900">{emp.namaLengkap}</span>
+                        <span className="font-semibold text-foreground">{emp.namaLengkap}</span>
                         {isExpiringSoon && (
                           <span className="flex items-center gap-1 text-[10px] text-amber-600 font-bold uppercase">
                             <WarningCircle className="w-3 h-3" /> Warning: Segera Selesai
@@ -126,13 +126,13 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-foreground/70">
+                        <Clock className="w-3.5 h-3.5 text-muted-foreground/70" />
                         <span className="text-xs font-medium">{totalTenureMonths} Bulan</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={`font-medium ${isExpiringSoon ? 'text-amber-700 font-bold' : 'text-slate-600'}`}>
+                      <span className={`font-medium ${isExpiringSoon ? 'text-amber-700 font-bold' : 'text-foreground/70'}`}>
                         {latestContract 
                           ? format(new Date(latestContract.traineeSelesai), 'dd MMM yyyy', { locale: localeID }) 
                           : '-'}
@@ -178,7 +178,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                             <AlertDialogHeader>
                               <AlertDialogTitle>Hapus Data Karyawan?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Tindakan ini tidak dapat dibatalkan. Menghapus data <span className="font-bold text-slate-900">{emp.namaLengkap}</span> akan menghapus seluruh riwayat kontrak terkait secara permanen.
+                                Tindakan ini tidak dapat dibatalkan. Menghapus data <span className="font-bold text-foreground">{emp.namaLengkap}</span> akan menghapus seluruh riwayat kontrak terkait secara permanen.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -204,9 +204,9 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
 
       {/* FOOTER PAGINASI */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-4 border-t bg-white">
-          <p className="text-xs text-slate-500 font-medium">
-            Menampilkan halaman <span className="text-slate-900 font-bold">{currentPage}</span> dari <span className="font-bold text-slate-900">{totalPages}</span>
+        <div className="flex items-center justify-between px-4 py-4 border-t bg-card">
+          <p className="text-xs text-muted-foreground font-medium">
+            Menampilkan halaman <span className="text-foreground font-bold">{currentPage}</span> dari <span className="font-bold text-foreground">{totalPages}</span>
           </p>
           <div className="flex items-center gap-2">
             <Button

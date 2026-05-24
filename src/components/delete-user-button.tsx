@@ -41,7 +41,7 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
           <AlertDialogTrigger asChild>
             <button
               disabled={loading}
-              className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             >
               {loading
                 ? <CircleNotch size={15} className="animate-spin" />

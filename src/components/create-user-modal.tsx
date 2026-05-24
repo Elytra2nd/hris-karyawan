@@ -82,7 +82,7 @@ export function CreateUserModal() {
               className="h-9 text-sm"
               autoComplete="new-password"
             />
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground/70">
               Min. 8 karakter, mengandung huruf kapital dan angka
             </p>
           </div>
@@ -92,7 +92,7 @@ export function CreateUserModal() {
               Role Akses
             </Label>
             <Select name="role" defaultValue="VIEWER">
-              <SelectTrigger id="role" className="h-9 text-sm bg-white">
+              <SelectTrigger id="role" className="h-9 text-sm bg-card">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -116,7 +116,7 @@ export function CreateUserModal() {
                 </SelectItem>
                 <SelectItem value="VIEWER">
                   <span className="flex items-center gap-2">
-                    <Shield size={13} className="text-gray-500" />
+                    <Shield size={13} className="text-muted-foreground" />
                     Pemirsa — Lihat saja
                   </span>
                 </SelectItem>
@@ -124,7 +124,7 @@ export function CreateUserModal() {
             </Select>
           </div>
 
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2 border-t border-border/60">
             <button
               type="submit"
               disabled={loading}

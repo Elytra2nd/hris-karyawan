@@ -18,7 +18,7 @@ export default async function TambahKaryawanPage() {
       {/* Breadcrumb */}
       <Link
         href="/karyawan"
-        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
       >
         <CaretLeft size={16} />
         Kembali ke Data Karyawan
@@ -26,14 +26,14 @@ export default async function TambahKaryawanPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Tambah Karyawan Baru</h1>
+        <h1 className="text-2xl font-bold text-foreground">Tambah Karyawan Baru</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Input identitas diri dan masa kontrak awal sesuai aturan jabatan.
         </p>
       </div>
 
       {/* Form container */}
-      <div className="max-w-xl bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+      <div className="max-w-xl bg-card border border-border rounded-lg shadow-sm p-6">
         <EmployeeForm action={createEmployee} departments={departments} />
       </div>
     </div>

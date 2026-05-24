@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -91,22 +93,22 @@ export function BreadcrumbTrail() {
     <Breadcrumb className="px-6 py-3 border-b border-border bg-muted/30">
       <BreadcrumbList>
         {breadcrumbs.map((crumb, index) => (
-          <BreadcrumbItem key={`${crumb.label}-${index}`}>
-            {crumb.href ? (
-              <>
+          <React.Fragment key={`${crumb.label}-${index}`}>
+            <BreadcrumbItem>
+              {crumb.href ? (
                 <BreadcrumbLink asChild>
-                  <Link href={crumb.href} className="text-slate-600 hover:text-primary">
+                  <Link href={crumb.href} className="text-foreground/70 hover:text-primary">
                     {crumb.label}
                   </Link>
                 </BreadcrumbLink>
-                <BreadcrumbSeparator />
-              </>
-            ) : (
-              <BreadcrumbPage className="text-slate-900 font-medium">
-                {crumb.label}
-              </BreadcrumbPage>
-            )}
-          </BreadcrumbItem>
+              ) : (
+                <BreadcrumbPage className="text-foreground font-medium">
+                  {crumb.label}
+                </BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+            {crumb.href && <BreadcrumbSeparator />}
+          </React.Fragment>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

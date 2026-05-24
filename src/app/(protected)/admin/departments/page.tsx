@@ -17,7 +17,7 @@ export default async function DepartmentsPage() {
           <Buildings size={20} className="text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Departemen</h1>
+          <h1 className="text-2xl font-bold text-foreground">Departemen</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Kelola struktur departemen organisasi
           </p>

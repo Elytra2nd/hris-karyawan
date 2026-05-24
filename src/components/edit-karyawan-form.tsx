@@ -63,10 +63,10 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
 
       {/* ─── Kiri: Form (8 kolom) ─── */}
       <div className="lg:col-span-8">
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-800">Formulir Pembaruan Data</h2>
+          <div className="px-6 py-4 border-b border-border/60">
+            <h2 className="text-base font-semibold text-foreground">Formulir Pembaruan Data</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               Ubah informasi operasional dan identitas pribadi karyawan.
             </p>
@@ -79,7 +79,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
               <div className="flex items-center gap-2 pb-3 border-b border-blue-100">
                 <span className="h-6 w-6 rounded-md bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">A</span>
                 <Buildings size={15} className="text-primary" />
-                <h3 className="text-sm font-semibold text-gray-800">Data Operasional</h3>
+                <h3 className="text-sm font-semibold text-foreground">Data Operasional</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -132,7 +132,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
               <div className="flex items-center gap-2 pb-3 border-b border-green-100">
                 <span className="h-6 w-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">B</span>
                 <User size={15} className="text-green-600" />
-                <h3 className="text-sm font-semibold text-gray-800">Identitas Karyawan</h3>
+                <h3 className="text-sm font-semibold text-foreground">Identitas Karyawan</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -276,7 +276,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             </section>
 
             {/* ─── Submit ─── */}
-            <div className="pt-2 border-t border-gray-100">
+            <div className="pt-2 border-t border-border/60">
               <button
                 type="submit"
                 disabled={isPending}
@@ -298,12 +298,12 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
         <div className="sticky top-20 space-y-4">
 
           {/* Photo card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-              <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center">
+          <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+              <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
                 <UserCircleIcon className="h-4 w-4 text-primary" />
               </div>
-              <h2 className="text-base font-semibold text-gray-800">Foto Karyawan</h2>
+              <h2 className="text-base font-semibold text-foreground">Foto Karyawan</h2>
             </div>
             <div className="px-5 py-6 flex flex-col items-center">
               <ImageUpload
@@ -314,7 +314,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
           </div>
 
           {/* Info card */}
-          <div className="flex items-start gap-3 px-4 py-3.5 rounded-lg border border-blue-100 bg-blue-50/50">
+          <div className="flex items-start gap-3 px-4 py-3.5 rounded-lg border border-blue-100 bg-accent/50">
             <Info size={15} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700 leading-relaxed">
               Gunakan foto dengan latar belakang polos untuk mempermudah proses pembuatan ID Card.
@@ -322,11 +322,11 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
           </div>
 
           {/* Meta info */}
-          <div className="bg-white border border-gray-200 rounded-lg px-5 py-4 space-y-2.5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Info Sistem</p>
+          <div className="bg-card border border-border rounded-lg px-5 py-4 space-y-2.5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Info Sistem</p>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">ID</span>
-              <span className="font-mono text-xs text-gray-700">{employee.id.substring(0, 12)}…</span>
+              <span className="font-mono text-xs text-foreground/80">{employee.id.substring(0, 12)}…</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Status</span>

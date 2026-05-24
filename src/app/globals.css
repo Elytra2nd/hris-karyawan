@@ -229,43 +229,10 @@
   }
 }
 
-/* ─── Dark Mode Overrides for Hardcoded Colors ─── */
-/* These rules adapt components that use hardcoded Tailwind colors
-   so they remain readable in dark mode without requiring per-component edits. */
+/* ─── Dark Mode Status Chip Overrides ─── */
+/* Status chips use @apply with hardcoded bg-*-100/text-*-700, which can't
+   adapt via Tailwind tokens. Override them explicitly for dark mode. */
 .dark {
-  /* Page-level backgrounds */
-  .bg-white { background-color: var(--card); }
-  .bg-gray-50, .bg-gray-50\/50, .bg-gray-50\/60 { background-color: color-mix(in oklab, var(--background) 92%, white); }
-  .bg-gray-100 { background-color: var(--secondary); }
-  .bg-slate-50, .bg-slate-50\/50, .bg-slate-50\/60, .bg-slate-50\/80 { background-color: color-mix(in oklab, var(--background) 92%, white); }
-  .bg-slate-100 { background-color: var(--secondary); }
-  .bg-blue-50, .bg-blue-50\/60 { background-color: color-mix(in oklab, var(--primary) 15%, var(--background)); }
-
-  /* Text colors */
-  .text-gray-900, .text-slate-900 { color: var(--foreground); }
-  .text-gray-800, .text-slate-800 { color: color-mix(in oklab, var(--foreground) 90%, transparent); }
-  .text-gray-700, .text-slate-700 { color: color-mix(in oklab, var(--foreground) 80%, transparent); }
-  .text-gray-600, .text-slate-600 { color: color-mix(in oklab, var(--foreground) 70%, transparent); }
-  .text-gray-500, .text-slate-500 { color: var(--muted-foreground); }
-  .text-gray-400, .text-slate-400 { color: color-mix(in oklab, var(--muted-foreground) 75%, transparent); }
-  .text-gray-300, .text-slate-300 { color: color-mix(in oklab, var(--muted-foreground) 50%, transparent); }
-
-  /* Borders */
-  .border-gray-100, .border-slate-100 { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
-  .border-gray-200, .border-slate-200 { border-color: var(--border); }
-  .border-gray-300, .border-slate-300 { border-color: color-mix(in oklab, var(--border) 130%, transparent); }
-
-  /* Dividers */
-  .divide-gray-100 > * + *, .divide-slate-100 > * + * { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
-  .divide-gray-200 > * + *, .divide-slate-200 > * + * { border-color: var(--border); }
-  .divide-slate-50 > * + * { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
-
-  /* Hover states */
-  .hover\:bg-gray-50:hover, .hover\:bg-slate-50:hover { background-color: var(--accent); }
-  .hover\:bg-gray-100:hover, .hover\:bg-slate-100:hover { background-color: var(--secondary); }
-  .hover\:bg-blue-50:hover { background-color: color-mix(in oklab, var(--primary) 20%, var(--background)); }
-
-  /* Status chips — keep semantic but reduce brightness */
   .chip-aktif { background-color: oklch(0.3 0.08 145); color: oklch(0.85 0.15 145); }
   .chip-warning { background-color: oklch(0.3 0.08 70); color: oklch(0.85 0.15 70); }
   .chip-expired { background-color: oklch(0.3 0.1 25); color: oklch(0.85 0.2 25); }
@@ -274,14 +241,47 @@
   .chip-admin { background-color: oklch(0.3 0.08 280); color: oklch(0.85 0.15 280); }
   .chip-viewer { background-color: oklch(0.3 0 0); color: oklch(0.8 0 0); }
 
-  /* Table header */
-  .th-standard { background-color: color-mix(in oklab, var(--primary) 15%, var(--card)); color: var(--foreground); }
+  /* Light-only status backgrounds (e.g. bg-red-50, bg-amber-50, bg-green-50) → dim in dark */
+  .bg-red-50 { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 25%, var(--card)); }
+  .bg-amber-50 { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 25%, var(--card)); }
+  .bg-green-50, .bg-green-50\/50 { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 25%, var(--card)); }
+  .bg-emerald-50 { background-color: color-mix(in oklab, oklch(0.6 0.18 160) 25%, var(--card)); }
 
-  /* Skeleton / loading */
-  .animate-pulse { background-color: var(--muted); }
+  /* Border variants for status panels */
+  .border-red-200 { border-color: color-mix(in oklab, oklch(0.6 0.25 25) 40%, transparent); }
+  .border-amber-200 { border-color: color-mix(in oklab, oklch(0.7 0.18 70) 40%, transparent); }
+  .border-green-200 { border-color: color-mix(in oklab, oklch(0.6 0.18 145) 40%, transparent); }
+  .border-blue-200 { border-color: color-mix(in oklab, var(--primary) 40%, transparent); }
 
-  /* Sonner / toast adjustments */
-  [data-sonner-toaster] { color-scheme: dark; }
+  /* Recharts SVG text & axis defaults */
+  .recharts-cartesian-axis-tick-value { fill: var(--muted-foreground) !important; }
+  .recharts-legend-item-text { color: var(--muted-foreground) !important; }
+
+  /* Semantic text colors — lighten dark variants for readability */
+  .text-red-600, .text-red-700, .text-red-800, .text-red-900 { color: oklch(0.75 0.2 25); }
+  .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900 { color: oklch(0.8 0.16 70); }
+  .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 { color: oklch(0.85 0.15 85); }
+  .text-green-600, .text-green-700, .text-green-800, .text-green-900 { color: oklch(0.75 0.18 145); }
+  .text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900 { color: oklch(0.75 0.18 160); }
+  .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900 { color: oklch(0.75 0.18 245); }
+  .text-indigo-600, .text-indigo-700, .text-indigo-800, .text-indigo-900 { color: oklch(0.75 0.18 270); }
+  .text-purple-600, .text-purple-700, .text-purple-800, .text-purple-900 { color: oklch(0.75 0.18 290); }
+  .text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900 { color: oklch(0.78 0.18 50); }
+
+  /* Light-tinted backgrounds (bg-*-100, bg-*-50/60) — convert to dim dark */
+  .bg-red-100 { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 30%, var(--card)); }
+  .bg-amber-100 { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 30%, var(--card)); }
+  .bg-yellow-100 { background-color: color-mix(in oklab, oklch(0.85 0.15 85) 30%, var(--card)); }
+  .bg-green-100 { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 30%, var(--card)); }
+  .bg-emerald-100 { background-color: color-mix(in oklab, oklch(0.6 0.18 160) 30%, var(--card)); }
+  .bg-blue-100 { background-color: color-mix(in oklab, var(--primary) 30%, var(--card)); }
+  .bg-indigo-100 { background-color: color-mix(in oklab, oklch(0.55 0.2 270) 30%, var(--card)); }
+  .bg-purple-100 { background-color: color-mix(in oklab, oklch(0.55 0.2 290) 30%, var(--card)); }
+
+  /* Hover for tinted backgrounds */
+  .hover\:bg-red-50:hover { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 35%, var(--card)); }
+  .hover\:bg-amber-50:hover { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 35%, var(--card)); }
+  .hover\:bg-green-50:hover { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 35%, var(--card)); }
 }
 
 /* ─── Print Styles ─── */

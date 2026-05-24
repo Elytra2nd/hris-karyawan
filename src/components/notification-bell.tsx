@@ -48,7 +48,7 @@ export function NotificationBell() {
                 type="button"
                 className={cn(
                   'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-                  'hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   hasUrgent && 'text-red-600 hover:bg-red-50'
                 )}
                 aria-label={`${data.totalUnread} notifikasi`}
@@ -65,11 +65,11 @@ export function NotificationBell() {
 
       <PopoverPopup className="w-80 p-0 overflow-hidden" side="bottom" align="end" sideOffset={8}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <span className="text-sm font-bold text-slate-800">Notifikasi Kontrak</span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
+          <span className="text-sm font-bold text-foreground">Notifikasi Kontrak</span>
           <button
             onClick={fetch}
-            className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-700 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground/80 transition-colors"
             disabled={loading}
           >
             <ArrowsClockwise size={11} className={loading ? 'animate-spin' : ''} />
@@ -81,15 +81,15 @@ export function NotificationBell() {
         <div className="max-h-80 overflow-y-auto">
           {loading && allItems.length === 0 ? (
             <div className="flex items-center justify-center py-10">
-              <ArrowsClockwise size={16} className="animate-spin text-slate-300" />
+              <ArrowsClockwise size={16} className="animate-spin text-muted-foreground/50" />
             </div>
           ) : allItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground/70">
               <Bell size={24} className="opacity-30" />
               <p className="text-xs font-bold uppercase tracking-wider">Semua kontrak aman</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-border/40">
               {/* Critical section */}
               {data.critical.length > 0 && (
                 <>
@@ -115,8 +115,8 @@ export function NotificationBell() {
               {/* Approaching section */}
               {data.approaching.length > 0 && (
                 <>
-                  <div className="px-4 py-1.5 bg-slate-50">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                  <div className="px-4 py-1.5 bg-muted/50">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <Clock size={10} /> Mendekati (31–60 hari)
                     </span>
                   </div>
@@ -129,7 +129,7 @@ export function NotificationBell() {
 
         {/* Footer */}
         {allItems.length > 0 && (
-          <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/60">
+          <div className="px-4 py-2.5 border-t border-border/60 bg-muted/60">
             <Link
               href="/karyawan"
               onClick={() => setOpen(false)}
@@ -161,28 +161,28 @@ function NotifRow({
   const color = {
     critical: 'text-red-600 bg-red-100',
     warning: 'text-amber-600 bg-amber-100',
-    approaching: 'text-slate-500 bg-slate-100',
+    approaching: 'text-muted-foreground bg-muted',
   }[level]
 
   return (
     <Link
       href={`/karyawan/${item.employeeId}`}
       onClick={onClick}
-      className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors"
+      className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
     >
       <span className={cn('mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black', color)}>
         {item.daysLeft}h
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800 truncate">{item.namaLengkap}</p>
-        <p className="text-[11px] text-slate-500 truncate">
+        <p className="text-sm font-semibold text-foreground truncate">{item.namaLengkap}</p>
+        <p className="text-[11px] text-muted-foreground truncate">
           {item.posisi} · {item.cabang}
         </p>
-        <p className="text-[10px] text-slate-400 mt-0.5">
+        <p className="text-[10px] text-muted-foreground/70 mt-0.5">
           {format(new Date(item.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
         </p>
       </div>
-      <CaretRight size={13} className="text-slate-300 mt-1 shrink-0" />
+      <CaretRight size={13} className="text-muted-foreground/50 mt-1 shrink-0" />
     </Link>
   )
 }

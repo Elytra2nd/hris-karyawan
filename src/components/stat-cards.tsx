@@ -15,16 +15,16 @@ export function StatCards({ user, type }: StatCardsProps) {
   // Tipe Profile: Menampilkan Identitas Pengguna
   if (type === 'profile') {
     return (
-      <Card className="border-none shadow-sm bg-white overflow-hidden h-full border-l-4 border-l-blue-600 font-sans">
+      <Card className="border-none shadow-sm bg-card overflow-hidden h-full border-l-4 border-l-blue-600 font-sans">
         <CardContent className="p-4 flex items-center gap-4 h-full">
-          <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+          <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
             <UserCircle className="h-6 w-6" />
           </div>
           <div className="overflow-hidden">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">
+            <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest leading-none mb-1.5">
               Sesi Aktif
             </p>
-            <h3 className="text-sm font-black text-slate-800 truncate uppercase tracking-tight">
+            <h3 className="text-sm font-black text-foreground truncate uppercase tracking-tight">
               {user.username}
             </h3>
             <div className="flex items-center gap-1.5 mt-1">
@@ -41,12 +41,12 @@ export function StatCards({ user, type }: StatCardsProps) {
 
   // Tipe Actions: Tombol Manajemen berdasarkan Role (Dibuat Vertikal)
   return (
-    <Card className="border-none shadow-sm bg-white overflow-hidden h-full border-l-4 border-l-slate-800 font-sans">
+    <Card className="border-none shadow-sm bg-card overflow-hidden h-full border-l-4 border-l-slate-800 font-sans">
       <CardContent className="p-4 flex flex-col justify-center h-full gap-2">
         {/* Label Grup Aksi */}
         <div className="flex items-center gap-2">
-          <Gear className="w-3.5 h-3.5 text-slate-400" />
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <Gear className="w-3.5 h-3.5 text-muted-foreground/70" />
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             Manajemen Data
           </p>
         </div>
@@ -70,8 +70,8 @@ export function StatCards({ user, type }: StatCardsProps) {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 rounded-lg text-[9px] font-bold text-slate-400 italic w-full border border-dashed border-slate-200 text-center">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-300" /> 
+            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/50 rounded-lg text-[9px] font-bold text-muted-foreground/70 italic w-full border border-dashed border-border text-center">
+              <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground/50" /> 
               AKSES TERBATAS
             </div>
           )}

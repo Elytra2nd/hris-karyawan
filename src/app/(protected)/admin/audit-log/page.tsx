@@ -26,7 +26,7 @@ export default async function AuditLogPage() {
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Log Aktivitas</h1>
+          <h1 className="text-2xl font-bold text-foreground">Log Aktivitas</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Riwayat perubahan data sistem HRIS
           </p>
@@ -40,7 +40,7 @@ export default async function AuditLogPage() {
       {/* ─── Stat Cards ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+          <div className="h-9 w-9 rounded-full bg-card/20 flex items-center justify-center shrink-0">
             <ClockCounterClockwiseIcon className="h-4 w-4 text-white" />
           </div>
           <div>
@@ -49,73 +49,73 @@ export default async function AuditLogPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-9 w-9 rounded-full bg-green-50 flex items-center justify-center shrink-0">
             <PlusCircle className="h-4 w-4 text-green-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-900 leading-none">{createCount}</p>
+            <p className="text-xl font-bold text-foreground leading-none">{createCount}</p>
             <p className="text-[11px] text-muted-foreground mt-1">Dibuat</p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-9 w-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
+          <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center shrink-0">
             <Pencil className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-900 leading-none">{updateCount}</p>
+            <p className="text-xl font-bold text-foreground leading-none">{updateCount}</p>
             <p className="text-[11px] text-muted-foreground mt-1">Diubah</p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
           <div className="h-9 w-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
             <Trash className="h-4 w-4 text-red-500" />
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-900 leading-none">{deleteCount}</p>
+            <p className="text-xl font-bold text-foreground leading-none">{deleteCount}</p>
             <p className="text-[11px] text-muted-foreground mt-1">Dihapus</p>
           </div>
         </div>
       </div>
 
       {/* ─── Table Desktop ─── */}
-      <div className="hidden md:block bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px]">
             <thead>
-              <tr className="border-b border-gray-200 bg-blue-50/60">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-36">
+              <tr className="border-b border-border bg-accent/60">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-36">
                   Waktu
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Pengguna
                 </th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-28">
+                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-28">
                   Aksi
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Entitas
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Detail
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border/60">
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center">
-                    <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm font-semibold text-gray-500">Belum ada log aktivitas</p>
+                    <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-muted-foreground/50" />
+                    <p className="text-sm font-semibold text-muted-foreground">Belum ada log aktivitas</p>
                   </td>
                 </tr>
               ) : logs.map(log => (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={log.id} className="hover:bg-muted/50 transition-colors">
                   {/* Waktu */}
                   <td className="px-5 py-3.5">
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-sm font-medium text-foreground">
                       {format(new Date(log.createdAt), 'dd MMM yyyy', { locale: localeID })}
                     </p>
                     <p className="text-xs text-muted-foreground font-mono mt-0.5">
@@ -126,10 +126,10 @@ export default async function AuditLogPage() {
                   {/* User */}
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-blue-50 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                      <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
                         {log.userName?.[0]?.toUpperCase() ?? '?'}
                       </div>
-                      <span className="text-sm font-semibold text-gray-900">{log.userName}</span>
+                      <span className="text-sm font-semibold text-foreground">{log.userName}</span>
                     </div>
                   </td>
 
@@ -140,7 +140,7 @@ export default async function AuditLogPage() {
 
                   {/* Entity */}
                   <td className="px-5 py-3.5">
-                    <p className="text-sm font-medium text-gray-700 capitalize">{log.entity}</p>
+                    <p className="text-sm font-medium text-foreground/80 capitalize">{log.entity}</p>
                     <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
                       {log.entityId.substring(0, 10)}…
                     </p>
@@ -159,7 +159,7 @@ export default async function AuditLogPage() {
         </div>
 
         {logs.length > 0 && (
-          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+          <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               {logs.length} entri ditampilkan · Data diurutkan terbaru ke terlama
             </p>
@@ -168,27 +168,27 @@ export default async function AuditLogPage() {
       </div>
 
       {/* ─── Mobile Card View ─── */}
-      <div className="md:hidden bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="md:hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         {logs.length === 0 ? (
           <div className="py-16 text-center">
-            <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-semibold text-gray-500">Belum ada log aktivitas</p>
+            <MagnifyingGlassMinusIcon size={32} className="mx-auto mb-3 text-muted-foreground/50" />
+            <p className="text-sm font-semibold text-muted-foreground">Belum ada log aktivitas</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border/60">
             {logs.map(log => (
               <div key={log.id} className="px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3 mb-1.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-blue-50 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                    <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
                       {log.userName?.[0]?.toUpperCase() ?? '?'}
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">{log.userName}</span>
+                    <span className="text-sm font-semibold text-foreground">{log.userName}</span>
                   </div>
                   <ActionBadge action={log.action} />
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">
-                  <span className="capitalize font-medium text-gray-600">{log.entity}</span>
+                  <span className="capitalize font-medium text-foreground/70">{log.entity}</span>
                   {log.details && <span className="ml-2">{log.details}</span>}
                 </p>
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -226,7 +226,7 @@ function ActionBadge({ action }: { action: string }) {
   }
   const style = map[action] ?? {
     label: action,
-    className: 'bg-gray-100 text-gray-600',
+    className: 'bg-muted text-foreground/70',
     icon: <PulseIcon size={11} />,
   }
   return (

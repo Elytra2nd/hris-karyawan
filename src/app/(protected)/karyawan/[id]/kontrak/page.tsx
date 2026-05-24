@@ -39,7 +39,7 @@ export default async function TambahKontrakPage({
       {/* ─── Breadcrumb ─── */}
       <Link
         href={`/karyawan/${id}`}
-        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors w-fit"
+        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
       >
         <CaretLeft size={16} />
         Kembali ke Detail Karyawan
@@ -47,12 +47,12 @@ export default async function TambahKontrakPage({
 
       {/* ─── Page header ─── */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Kelola Kontrak</h1>
+        <h1 className="text-2xl font-bold text-foreground">Kelola Kontrak</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Menerbitkan kontrak baru untuk{' '}
-          <span className="font-semibold text-gray-700">{employee.namaLengkap}</span>
+          <span className="font-semibold text-foreground/80">{employee.namaLengkap}</span>
           {employee.cabang && (
-            <span className="text-gray-400"> · {employee.cabang}</span>
+            <span className="text-muted-foreground/70"> · {employee.cabang}</span>
           )}
         </p>
       </div>
@@ -64,13 +64,13 @@ export default async function TambahKontrakPage({
           <div className={`rounded-lg border px-4 py-3.5 flex items-start gap-3 ${
             daysToExpiry !== null && daysToExpiry <= 30
               ? 'bg-amber-50 border-amber-200'
-              : 'bg-gray-50 border-gray-200'
+              : 'bg-muted/50 border-border'
           }`}>
             <ClockCounterClockwise size={16} className={`shrink-0 mt-0.5 ${
-              daysToExpiry !== null && daysToExpiry <= 30 ? 'text-amber-600' : 'text-gray-400'
+              daysToExpiry !== null && daysToExpiry <= 30 ? 'text-amber-600' : 'text-muted-foreground/70'
             }`} />
             <div className="text-sm">
-              <p className="font-semibold text-gray-800">Kontrak Berjalan</p>
+              <p className="font-semibold text-foreground">Kontrak Berjalan</p>
               <p className="text-muted-foreground mt-0.5">
                 {latestContract.posisi} ·{' '}
                 {format(new Date(latestContract.traineeSejak), 'dd MMM yyyy', { locale: localeID })}
@@ -89,7 +89,7 @@ export default async function TambahKontrakPage({
         )}
 
         {/* Form card */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           <ContractForm employeeId={id} action={createContract} />
         </div>
 

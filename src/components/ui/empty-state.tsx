@@ -28,13 +28,13 @@ export function EmptyState({
 }: EmptyStateProps) {
   const content = (
     <div className={cn('flex flex-col items-center justify-center gap-3 py-12 px-4 text-center', className)}>
-      <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-        <Icon size={20} className="text-slate-400" />
+      <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center">
+        <Icon size={20} className="text-muted-foreground/70" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-bold text-slate-700">{title}</p>
+        <p className="text-sm font-bold text-foreground/80">{title}</p>
         {description && (
-          <p className="text-xs text-slate-500 max-w-[280px] mx-auto">{description}</p>
+          <p className="text-xs text-muted-foreground max-w-[280px] mx-auto">{description}</p>
         )}
       </div>
       {action && (

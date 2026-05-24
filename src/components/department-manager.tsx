@@ -73,9 +73,9 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       {/* ─── Department List ─── */}
-      <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">
+      <div className="lg:col-span-2 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+          <h2 className="text-base font-semibold text-foreground">
             Daftar Departemen
             <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
           </h2>
@@ -93,7 +93,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="th-standard text-left">Departemen</th>
                 <th className="th-standard text-left">Kode</th>
@@ -101,25 +101,25 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                 <th className="th-standard text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border/60">
               {depts.map(dept => (
-                <tr key={dept.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={dept.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
                       <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <Buildings size={14} className="text-primary" />
                       </div>
-                      <span className="text-sm font-semibold text-gray-900">{dept.name}</span>
+                      <span className="text-sm font-semibold text-foreground">{dept.name}</span>
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className="font-mono text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                    <span className="font-mono text-xs font-bold bg-muted text-foreground/80 px-2 py-1 rounded">
                       {dept.code}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-center">
-                    <div className="flex items-center justify-center gap-1 text-sm text-gray-600">
-                      <Users size={13} className="text-gray-400" />
+                    <div className="flex items-center justify-center gap-1 text-sm text-foreground/70">
+                      <Users size={13} className="text-muted-foreground/70" />
                       {dept._count.employees}
                     </div>
                   </td>
@@ -133,8 +133,8 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                               className={cn(
                                 'h-7 w-7 rounded-md flex items-center justify-center transition-colors mx-auto',
                                 dept._count.employees > 0
-                                  ? 'text-gray-300 cursor-not-allowed'
-                                  : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                  ? 'text-muted-foreground/50 cursor-not-allowed'
+                                  : 'text-muted-foreground/70 hover:text-red-600 hover:bg-red-50'
                               )}
                             >
                               {deleting === dept.id
@@ -174,9 +174,9 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       </div>
 
       {/* ─── Create Form ─── */}
-      <div className={cn('bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden transition-opacity', !showForm && 'opacity-50')}>
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Tambah Departemen</h2>
+      <div className={cn('bg-card border border-border rounded-lg shadow-sm overflow-hidden transition-opacity', !showForm && 'opacity-50')}>
+        <div className="px-5 py-4 border-b border-border/60">
+          <h2 className="text-base font-semibold text-foreground">Tambah Departemen</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Buat departemen baru untuk organisasi</p>
         </div>
         <form action={handleCreate} className="p-5 space-y-4">
@@ -192,7 +192,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
               className="uppercase font-mono"
               onChange={e => e.target.value = e.target.value.toUpperCase()}
             />
-            <p className="text-[11px] text-slate-400">Huruf kapital, angka, dan strip saja</p>
+            <p className="text-[11px] text-muted-foreground/70">Huruf kapital, angka, dan strip saja</p>
           </div>
           <Button
             type="submit"

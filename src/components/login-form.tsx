@@ -49,7 +49,7 @@ export default function LoginForm() {
           alt="Astra Motor Kalimantan Barat"
           className="h-12 object-contain mx-auto mb-5"
         />
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
           HRIS Karyawan
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -58,13 +58,13 @@ export default function LoginForm() {
       </div>
 
       {/* ─── Card ─── */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         {/* Accent bar — biru Astra */}
         <div className="h-1 bg-primary w-full" />
 
         <div className="px-7 pt-7 pb-8">
           <div className="mb-6 text-center">
-            <h2 className="text-base font-semibold text-gray-800">Masuk ke Sistem</h2>
+            <h2 className="text-base font-semibold text-foreground">Masuk ke Sistem</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Masukkan kredensial akun Anda
             </p>
@@ -76,7 +76,7 @@ export default function LoginForm() {
             <div className="space-y-2">
               <Label htmlFor="username" className="form-label">Username</Label>
               <div className="relative">
-                <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="username"
                   name="username"
@@ -94,7 +94,7 @@ export default function LoginForm() {
             <div className="space-y-2">
               <Label htmlFor="password" className="form-label">Password</Label>
               <div className="relative">
-                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="password"
                   name="password"
@@ -108,7 +108,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
@@ -139,7 +139,7 @@ export default function LoginForm() {
           </form>
 
           {/* Security note */}
-          <div className="mt-6 pt-5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-xs text-gray-400">
+          <div className="mt-6 pt-5 border-t border-border/60 flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
             <Lock size={10} />
             Koneksi terenkripsi · Sesi aman
           </div>
@@ -147,7 +147,7 @@ export default function LoginForm() {
       </div>
 
       {/* ─── Footer ─── */}
-      <div className="flex items-center justify-between mt-5 px-1 text-xs text-gray-400">
+      <div className="flex items-center justify-between mt-5 px-1 text-xs text-muted-foreground/70">
         <span>© 2026 Astra Motor Kalimantan Barat</span>
         <span className="flex items-center gap-1">
           <Shield size={10} />

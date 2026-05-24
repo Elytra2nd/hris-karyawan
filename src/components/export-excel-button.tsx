@@ -103,7 +103,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
-  const selectCls = "h-8 pl-2 pr-7 text-xs border border-slate-200 rounded-md bg-white text-slate-600 outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer"
+  const selectCls = "h-8 pl-2 pr-7 text-xs border border-border rounded-md bg-card text-foreground/70 outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer"
 
   return (
     <>
@@ -111,18 +111,18 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors disabled:opacity-60"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-60"
         >
           {loading
-            ? <CircleNotch size={16} className="animate-spin text-slate-400" />
-            : <MicrosoftExcelLogoIcon size={16} className="text-slate-400" />}
+            ? <CircleNotch size={16} className="animate-spin text-muted-foreground/70" />
+            : <MicrosoftExcelLogoIcon size={16} className="text-muted-foreground/70" />}
           Export Data
         </button>
       ) : (
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-60"
+          className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-foreground/80 bg-card border border-border rounded-lg hover:bg-muted/50 transition-colors disabled:opacity-60"
         >
           {loading ? <CircleNotch size={15} className="animate-spin" /> : <Download size={15} />}
           Export
@@ -131,16 +131,16 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-[95vw] w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
-            <DialogTitle className="text-lg font-bold text-slate-900">Export Data Karyawan</DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 mt-0.5">
+          <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
+            <DialogTitle className="text-lg font-bold text-foreground">Export Data Karyawan</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               Funnel data sebelum download. {allRows.length} total karyawan tersedia.
             </DialogDescription>
           </DialogHeader>
 
           {/* Funnel row */}
-          <div className="flex items-center gap-2.5 px-5 py-3 border-b border-slate-100 bg-slate-50 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+          <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border/60 bg-muted/50 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               <Sliders size={13} /> Funnel:
             </div>
 
@@ -161,18 +161,18 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
             </select>
 
             {(filterCabang || filterStatus || filterPosisi) && (
-              <button onClick={reset} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors">
+              <button onClick={reset} className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-foreground/80 transition-colors">
                 <X size={12} /> Reset
               </button>
             )}
 
-            <span className="ml-auto text-xs font-semibold text-slate-500">
+            <span className="ml-auto text-xs font-semibold text-muted-foreground">
               {filtered.length} / {allRows.length} data
             </span>
           </div>
 
           {/* Table preview */}
-          <div className="flex-1 overflow-auto bg-slate-50 mx-0">
+          <div className="flex-1 overflow-auto bg-muted/50 mx-0">
             <table className="w-full border-collapse text-[10px]">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-slate-800">
@@ -185,15 +185,15 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
               </thead>
               <tbody>
                 {filtered.map((row, i) => (
-                  <tr key={i} className={cn('border-b border-slate-100', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/80')}>
+                  <tr key={i} className={cn('border-b border-border/60', i % 2 === 0 ? 'bg-card' : 'bg-muted/80')}>
                     {headers.map(h => (
-                      <td key={h} className="px-2 py-1 whitespace-nowrap text-slate-600">{row[h]}</td>
+                      <td key={h} className="px-2 py-1 whitespace-nowrap text-foreground/70">{row[h]}</td>
                     ))}
                   </tr>
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={headers.length} className="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <td colSpan={headers.length} className="py-12 text-center text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">
                       Tidak ada data
                     </td>
                   </tr>
@@ -203,8 +203,8 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-white">
-            <span className="text-xs font-semibold text-slate-400">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border/60 bg-card">
+            <span className="text-xs font-semibold text-muted-foreground/70">
               {filtered.length} data siap di-export
             </span>
             <div className="flex gap-2">
