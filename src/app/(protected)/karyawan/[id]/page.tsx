@@ -26,7 +26,7 @@ export default async function DetailKaryawanPage({
 
   const employee = await prisma.employee.findUnique({
     where: { id },
-    include: { contracts: { orderBy: { traineeSelesai: 'desc' } } },
+    include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, department: true },
   })
   if (!employee) notFound()
 
@@ -235,8 +235,7 @@ export default async function DetailKaryawanPage({
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
-            <InfoItem label="Region" value={employee.region} />
-            <InfoItem label="Cabang" value={employee.cabang} />
+            <InfoItem label="Kode Cabang" value={employee.cabang} mono />
             <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '—'} />
             <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
             <InfoItem

@@ -11,12 +11,12 @@ import { CircleNotch, Info, CalendarCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 const POSISI_OPTIONS = [
-  { value: 'SALESMAN', label: 'Salesman', months: 6 },
-  { value: 'ADMINISTRASI', label: 'Administrasi', months: 3 },
-  { value: 'SUPERVISOR', label: 'Supervisor', months: 6 },
-  { value: 'MANAGER', label: 'Manager', months: 6 },
-  { value: 'STAFF IT', label: 'Staff IT', months: 6 },
-  { value: 'TEKNISI', label: 'Teknisi', months: 6 },
+  { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
+  { value: 'SALESGIRL', label: 'Salesgirl', months: 6 },
+  { value: 'COUNTER SALES', label: 'Counter Sales', months: 6 },
+  { value: 'MECHANIC', label: 'Mechanic', months: 6 },
+  { value: 'TEAM LEADER', label: 'Team Leader', months: 6 },
+  { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
 ]
 
 interface ContractFormProps {

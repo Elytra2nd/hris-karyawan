@@ -5,14 +5,14 @@ import { format } from 'date-fns';
 import { id as localeID } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Employee, ContractListItem } from '@/types';
 
-// Sekarang ssr: false aman digunakan di sini
-const PDFButton = dynamic(() => import('@/components/pdf-button'), { 
+const PDFButton = dynamic(() => import('@/components/pdf-button'), {
   ssr: false,
   loading: () => <span className="text-[10px] animate-pulse">Loading...</span>
 });
 
-export function ContractListClient({ employee, contracts }: { employee: any, contracts: any[] }) {
+export function ContractListClient({ employee, contracts }: { employee: Employee; contracts: ContractListItem[] }) {
   return (
     <Card className="border-none shadow-sm overflow-hidden">
       <CardHeader className="bg-slate-900 text-white py-4">

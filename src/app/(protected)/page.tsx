@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     prisma.employee.count(),
     prisma.employee.count({ where: { status: 'AKTIF' } }),
     prisma.employee.groupBy({
-      by: ['ba', 'baCabang', 'cabang', 'region'],
+      by: ['ba', 'baCabang', 'cabang'],
       _count: { ba: true },
       orderBy: { _count: { ba: 'desc' } },
     }),
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <Link
-            href="/karyawan"
+            href="/karyawan?filter=expiring14"
             className="text-sm font-semibold text-red-700 hover:text-red-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
             Lihat <CaretRight size={14} />
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-amber-600 mt-0.5">Perlu perhatian tim HR.</p>
           </div>
           <Link
-            href="/karyawan"
+            href="/karyawan?filter=expiring30"
             className="text-sm font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
             Lihat <CaretRight size={14} />
@@ -126,51 +126,47 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ─── Stat Cards ─── */}
+      {/* ─── Stat Cards (Pekerja-style: circular pastel icon) ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total — highlighted primary */}
-        <div className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-card/20 flex items-center justify-center shrink-0">
-            <Users className="h-5 w-5 text-white" />
+        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-cyan-200 transition-all">
+          <div className="h-12 w-12 rounded-full bg-cyan-50 flex items-center justify-center shrink-0 group-hover:bg-cyan-100 transition-colors">
+            <Users className="h-6 w-6 text-cyan-600" weight="duotone" />
           </div>
-          <div>
-            <p className="text-2xl font-bold text-white leading-none">{totalEmployees}</p>
-            <p className="text-xs text-blue-100 mt-1">Total Trainee</p>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium">Total Trainee</p>
+            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{totalEmployees}</p>
           </div>
-        </div>
+        </Link>
 
-        {/* Aktif */}
-        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-            <UserCheck className="h-5 w-5 text-green-600" />
+        <Link href="/karyawan?status=AKTIF" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
+          <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
+            <UserCheck className="h-6 w-6 text-emerald-600" weight="duotone" />
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground leading-none">{activeEmployees}</p>
-            <p className="text-xs text-muted-foreground mt-1">Aktif ({activePercent}%)</p>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium">Aktif ({activePercent}%)</p>
+            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{activeEmployees}</p>
           </div>
-        </div>
+        </Link>
 
-        {/* Kritis ≤30 hari */}
-        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-            <Clock className="h-5 w-5 text-amber-600" />
+        <Link href="/karyawan?filter=expiring30" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
+          <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
+            <Clock className="h-6 w-6 text-amber-600" weight="duotone" />
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground leading-none">{expiring30.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">Kontrak ≤ 30 hari</p>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium">Kontrak ≤ 30 hari</p>
+            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{expiring30.length}</p>
           </div>
-        </div>
+        </Link>
 
-        {/* Non-aktif / expired */}
-        <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <UserMinusIcon className="h-5 w-5 text-red-500" />
+        <Link href="/karyawan?status=NON-AKTIF" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
+          <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
+            <UserMinusIcon className="h-6 w-6 text-rose-500" weight="duotone" />
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground leading-none">{nonActive}</p>
-            <p className="text-xs text-muted-foreground mt-1">Non-Aktif</p>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium">Non-Aktif</p>
+            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{nonActive}</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* ─── 2-Column: Kontrak Segera Habis + Ringkasan ─── */}
@@ -233,7 +229,7 @@ export default async function DashboardPage() {
           {expiring90.length > 6 && (
             <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
               <Link
-                href="/karyawan"
+                href="/karyawan?filter=expiring90"
                 className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
               >
                 Lihat semua {expiring90.length} kontrak <CaretRight size={14} />
@@ -349,7 +345,7 @@ export default async function DashboardPage() {
               <tr className="border-b border-border bg-accent/60">
                 <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Region</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode Cabang</th>
                 <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
                 <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
               </tr>
@@ -370,7 +366,7 @@ export default async function DashboardPage() {
                         <span className="text-sm font-semibold text-foreground">{b.baCabang}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-foreground/70">{b.region}</td>
+                    <td className="px-5 py-3.5 text-sm text-foreground/70 font-mono">{b.cabang}</td>
                     <td className="px-5 py-3.5 text-center text-base font-bold text-foreground">{b._count.ba}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-center gap-2">

@@ -156,7 +156,7 @@ async function main() {
   }
 
   // 3. Employees + Contracts
-  const TOTAL = 60
+  const TOTAL = 1000
   console.log(`\n👷 Membuat ${TOTAL} karyawan dengan kontrak...`)
 
   for (let i = 1; i <= TOTAL; i++) {

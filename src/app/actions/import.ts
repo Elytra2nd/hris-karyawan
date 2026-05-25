@@ -8,7 +8,7 @@ import { createAuditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
 import {
-  POSISI_VALID, REGION_VALID, CABANG_VALID,
+  POSISI_VALID, CABANG_VALID,
   createEmployeeSchema,
 } from '@/lib/validation'
 
@@ -16,7 +16,6 @@ import {
 const COL_MAP: Record<string, string> = {
   'BA': 'ba',
   'BA CABANG': 'baCabang',
-  'REGION': 'region',
   'CABANG': 'cabang',
   'NAMA LENGKAP': 'namaLengkap',
   'NIK': 'nik',
@@ -98,7 +97,7 @@ export async function bulkImportEmployees(
     }
 
     const {
-      ba, baCabang, region, cabang, namaLengkap,
+      ba, baCabang, cabang, namaLengkap,
       nik, noKtp, tglLahir, namaIbu, noHp,
       noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
     } = parsed.data
@@ -119,7 +118,7 @@ export async function bulkImportEmployees(
     try {
       const emp = await prisma.employee.create({
         data: {
-          ba, baCabang, region, cabang, namaLengkap,
+          ba, baCabang, cabang, namaLengkap,
           status: 'AKTIF',
           nik: nik ?? null,
           noJamsostek: noJamsostek ?? null,

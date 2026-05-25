@@ -3,6 +3,7 @@
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import type { Employee, ContractListItem } from '@/types';
 
 // Registrasi font (opsional, menggunakan standar Helvetica jika tidak diset)
 const styles = StyleSheet.create({
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
   sigName: { marginTop: 60, fontWeight: 'bold', textDecoration: 'underline' }
 });
 
-export const ContractPDF = ({ employee, contract }: { employee: any, contract: any }) => (
+export const ContractPDF = ({ employee, contract }: { employee: Employee; contract: ContractListItem }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* KOP SURAT SEDERHANA */}

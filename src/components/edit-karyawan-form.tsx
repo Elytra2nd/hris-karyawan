@@ -9,15 +9,13 @@ import { FloppyDisk, CircleNotch, Buildings, User, UserCircleIcon, Info } from '
 import { ImageUpload } from '@/components/image-upload'
 import { toast } from 'sonner'
 import { FieldError } from '@/components/ui/field-error'
-import { updateEmployeeSchema } from '@/lib/validation'
+import { updateEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
+import type { EmployeeWithoutContracts, Department } from '@/types'
 
-const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
-const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
-
-interface Department { id: string; name: string; code: string }
+const CABANG_DROPDOWN = CABANG_REF.map(c => ({ value: c.code, label: `${c.code} — ${c.label}` }))
 
 interface EditKaryawanFormProps {
-  employee: any
+  employee: EmployeeWithoutContracts
   updateAction: (formData: FormData) => void
   departments?: Department[]
 }
@@ -96,30 +94,16 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                   <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required nativeInput aria-invalid={!!errors.baCabang} className={`h-9 text-sm ${errors.baCabang ? 'border-destructive' : ''}`} />
                   <FieldError message={errors.baCabang} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="region" className="form-label">
-                    Region <span className="text-red-500">*</span>
-                  </Label>
-                  <SelectCombobox
-                    id="region"
-                    name="region"
-                    required
-                    value={employee.region}
-                    options={REGION_OPTIONS}
-                    placeholder="Pilih region..."
-                  />
-                  <FieldError message={errors.region} />
-                </div>
-                <div className="space-y-2">
+                <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="cabang" className="form-label">
-                    Nama Cabang <span className="text-red-500">*</span>
+                    Cabang <span className="text-red-500">*</span>
                   </Label>
                   <SelectCombobox
                     id="cabang"
                     name="cabang"
                     required
                     value={employee.cabang}
-                    options={CABANG_OPTIONS}
+                    options={CABANG_DROPDOWN}
                     placeholder="Pilih cabang..."
                   />
                   <FieldError message={errors.cabang} />

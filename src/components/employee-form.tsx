@@ -10,19 +10,18 @@ import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
-import { createEmployeeSchema } from '@/lib/validation'
+import { createEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
 
 const POSISI_OPTIONS = [
-  { value: 'SALESMAN', label: 'Salesman', months: 6 },
-  { value: 'ADMINISTRASI', label: 'Administrasi', months: 3 },
-  { value: 'SUPERVISOR', label: 'Supervisor', months: 6 },
-  { value: 'MANAGER', label: 'Manager', months: 6 },
-  { value: 'STAFF IT', label: 'Staff IT', months: 6 },
-  { value: 'TEKNISI', label: 'Teknisi', months: 6 },
+  { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
+  { value: 'SALESGIRL', label: 'Salesgirl', months: 6 },
+  { value: 'COUNTER SALES', label: 'Counter Sales', months: 6 },
+  { value: 'MECHANIC', label: 'Mechanic', months: 6 },
+  { value: 'TEAM LEADER', label: 'Team Leader', months: 6 },
+  { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
 ]
 
-const REGION_OPTIONS = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA']
-const CABANG_OPTIONS = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN']
+const CABANG_DROPDOWN = CABANG_REF.map(c => ({ value: c.code, label: `${c.code} — ${c.label}` }))
 
 interface Department { id: string; name: string; code: string }
 
@@ -98,20 +97,7 @@ export function EmployeeForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required error={errors.ba} />
           <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required error={errors.baCabang} />
-          <div className="space-y-2">
-            <Label htmlFor="region" className="form-label">
-              Region <span className="text-red-500">*</span>
-            </Label>
-            <SelectCombobox
-              id="region"
-              name="region"
-              required
-              options={REGION_OPTIONS}
-              placeholder="Pilih region..."
-            />
-            <FieldError message={errors.region} />
-          </div>
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="cabang" className="form-label">
               Cabang <span className="text-red-500">*</span>
             </Label>
@@ -119,7 +105,7 @@ export function EmployeeForm({
               id="cabang"
               name="cabang"
               required
-              options={CABANG_OPTIONS}
+              options={CABANG_DROPDOWN}
               placeholder="Pilih cabang..."
             />
             <FieldError message={errors.cabang} />

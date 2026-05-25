@@ -3,8 +3,9 @@
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-const BAR_COLORS = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe']
-const BAR_COLORS_DARK = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a', '#172554']
+// Pekerja palette: cyan, lavender, mint, peach, pink, sky
+const BAR_COLORS = ['#06B6D4', '#A78BFA', '#34D399', '#FBBF24', '#F472B6', '#38BDF8']
+const BAR_COLORS_DARK = ['#22D3EE', '#C4B5FD', '#6EE7B7', '#FCD34D', '#F9A8D4', '#7DD3FC']
 
 interface Props {
   data: [posisi: string, count: number][]

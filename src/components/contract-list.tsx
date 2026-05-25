@@ -5,6 +5,7 @@ import { format, differenceInDays, differenceInMonths } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import type { Employee, ContractListItem } from '@/types'
 
 const PDFButton = dynamic(() => import('@/components/pdf-button'), {
   ssr: false,
@@ -17,8 +18,8 @@ export function ContractList({
   employee,
   contracts,
 }: {
-  employee: any
-  contracts: any[]
+  employee: Employee
+  contracts: ContractListItem[]
 }) {
   const now = new Date()
 

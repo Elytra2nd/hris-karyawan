@@ -5,10 +5,11 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { ContractPDF } from '@/components/contract-pdf';
 import { Button } from '@/components/ui/button';
 import { FileArrowDownIcon } from '@phosphor-icons/react';
+import type { Employee, ContractListItem } from '@/types';
 
 interface PDFButtonProps {
-  employee: any;
-  contract: any;
+  employee: Employee;
+  contract: ContractListItem;
 }
 
 export default function PDFButton({ employee, contract }: PDFButtonProps) {

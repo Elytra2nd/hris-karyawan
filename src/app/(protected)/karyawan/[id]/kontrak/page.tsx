@@ -101,7 +101,7 @@ export default async function TambahKontrakPage({
             <ul className="mt-1.5 space-y-1 text-amber-700">
               <li className="flex items-center gap-1.5">
                 <CheckCircle size={12} className="text-amber-500 shrink-0" />
-                Jabatan <strong>Administrasi</strong> → otomatis <strong>3 bulan</strong>
+                Jabatan <strong>Administrator</strong> → otomatis <strong>3 bulan</strong>
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle size={12} className="text-amber-500 shrink-0" />

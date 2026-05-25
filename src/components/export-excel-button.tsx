@@ -15,7 +15,6 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
   return rawData.map((emp) => ({
     'BA': emp.ba,
     'BA CABANG': emp.baCabang,
-    'REGION': emp.region,
     'CABANG': emp.cabang,
     'Nama Lengkap': emp.namaLengkap,
     'Status': emp.status,

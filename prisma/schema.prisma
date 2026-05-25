@@ -38,7 +38,7 @@ model Employee {
   id           String      @id @default(cuid())
   ba           String
   baCabang     String
-  region       String
+  region       String?
   cabang       String
   namaLengkap  String
   status       String      @default("AKTIF")

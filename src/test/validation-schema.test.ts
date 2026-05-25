@@ -4,15 +4,14 @@ import { createEmployeeSchema, updateEmployeeSchema, createContractSchema } from
 const validEmployee = {
   ba: 'BA001',
   baCabang: 'PT Astra Motor Pontianak',
-  region: 'PONTIANAK' as const,
-  cabang: 'PONTIANAK' as const,
+  cabang: 'H720' as const,
   namaLengkap: 'Budi Santoso',
   noKtp: '3271234567890001',
   tglLahir: '2000-01-15',
   namaIbu: 'Siti Rahayu',
   noHp: '081234567890',
   formConsent: 'ADA' as const,
-  posisi: 'SALESMAN' as const,
+  posisi: 'SALES EXECUTIVE' as const,
   traineeSejak: '2024-07-01',
 }
 
@@ -45,11 +44,6 @@ describe('Schema Validasi Karyawan — createEmployeeSchema', () => {
   it('harus menerima NIK kosong (null)', () => {
     const r = createEmployeeSchema.safeParse({ ...validEmployee, nik: null })
     expect(r.success).toBe(true)
-  })
-
-  it('harus menolak region yang tidak valid', () => {
-    const r = createEmployeeSchema.safeParse({ ...validEmployee, region: 'BALI' })
-    expect(r.success).toBe(false)
   })
 
   it('harus menolak cabang yang tidak valid', () => {
@@ -85,7 +79,7 @@ describe('Schema Validasi Karyawan — updateEmployeeSchema', () => {
 
 describe('Schema Validasi Kontrak — createContractSchema', () => {
   it('harus menerima kontrak valid', () => {
-    const r = createContractSchema.safeParse({ posisi: 'ADMINISTRASI', traineeSejak: '2024-07-01' })
+    const r = createContractSchema.safeParse({ posisi: 'ADMINISTRATOR', traineeSejak: '2024-07-01' })
     expect(r.success).toBe(true)
   })
 

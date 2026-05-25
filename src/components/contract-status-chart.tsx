@@ -18,10 +18,10 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
   const legendColor = isDark ? '#cbd5e1' : '#64748b'
 
   const data = [
-    { name: 'Aman',      value: safe,     color: '#16a34a' },
-    { name: 'Perhatian', value: warning,  color: '#f59e0b' },
-    { name: 'Kritis',    value: critical, color: '#ef4444' },
-    { name: 'Berakhir',  value: expired,  color: '#94a3b8' },
+    { name: 'Aman',      value: safe,     color: '#34D399' }, // mint
+    { name: 'Perhatian', value: warning,  color: '#FBBF24' }, // peach
+    { name: 'Kritis',    value: critical, color: '#F472B6' }, // pink
+    { name: 'Berakhir',  value: expired,  color: '#A78BFA' }, // lavender
   ].filter(d => d.value > 0)
 
   if (data.length === 0) {

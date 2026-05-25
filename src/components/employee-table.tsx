@@ -33,9 +33,10 @@ import {
 } from '@/components/ui/tooltip';
 import { CaretLeft, CaretRight, WarningCircle, Clock, Trash, CircleNotch } from '@phosphor-icons/react';
 import { deleteEmployee } from '@/app/actions/employee';
+import type { Employee, ContractListItem } from '@/types';
 
 interface EmployeeTableProps {
-  data: any[];
+  data: Employee[];
   currentPage: number;
   totalPages: number;
 }
@@ -61,7 +62,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
     }
   };
 
-  const calculateTotalTenure = (contracts: any[]) => {
+  const calculateTotalTenure = (contracts: ContractListItem[]) => {
     let totalMonths = 0;
     contracts.forEach(contract => {
       const start = new Date(contract.traineeSejak);

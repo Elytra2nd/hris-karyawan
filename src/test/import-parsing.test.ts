@@ -48,21 +48,20 @@ describe('Import Excel — Parsing Tanggal', () => {
 })
 
 describe('Import Excel — Validasi Kolom', () => {
-  const REQUIRED_COLS = ['BA', 'BA CABANG', 'REGION', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
+  const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
   it('baris lengkap tidak boleh ada kolom required yang kosong', () => {
     const row: Record<string, string> = {
       'BA': 'BA001',
       'BA CABANG': 'PT Astra Pontianak',
-      'REGION': 'PONTIANAK',
-      'CABANG': 'PONTIANAK',
+      'CABANG': 'H720',
       'NAMA LENGKAP': 'Budi Santoso',
       'NO KTP': '3271234567890001',
       'TGL LAHIR': '01.01.2000',
       'NAMA IBU': 'Siti',
       'NO HP': '08123456789',
       'FORM CONSENT': 'ADA',
-      'POSISI': 'SALESMAN',
+      'POSISI': 'SALES EXECUTIVE',
       'TRAINEE SEJAK': '01.07.2024',
     }
     const missing = REQUIRED_COLS.filter(col => !row[col] || row[col] === '-')

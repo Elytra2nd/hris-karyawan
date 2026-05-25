@@ -35,7 +35,7 @@ export async function createEmployee(formData: FormData) {
   }
 
   const {
-    ba, baCabang, region, cabang, namaLengkap,
+    ba, baCabang, cabang, namaLengkap,
     nik, noKtp, tglLahir, namaIbu, noHp,
     noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
   } = parsed.data
@@ -46,7 +46,7 @@ export async function createEmployee(formData: FormData) {
 
   const newEmployee = await prisma.employee.create({
     data: {
-      ba, baCabang, region, cabang, namaLengkap,
+      ba, baCabang, cabang, namaLengkap,
       status: 'AKTIF',
       nik: nik ?? null,
       noJamsostek: noJamsostek ?? null,
@@ -81,7 +81,7 @@ export async function updateEmployee(id: string, formData: FormData) {
   }
 
   const {
-    ba, baCabang, region, cabang, namaLengkap,
+    ba, baCabang, cabang, namaLengkap,
     nik, noKtp, tglLahir, namaIbu, noHp,
     noJamsostek, formConsent, status,
   } = parsed.data
@@ -91,7 +91,7 @@ export async function updateEmployee(id: string, formData: FormData) {
   await prisma.employee.update({
     where: { id },
     data: {
-      ba, baCabang, region, cabang, namaLengkap, status,
+      ba, baCabang, cabang, namaLengkap, status,
       nik: nik ?? null,
       noJamsostek: noJamsostek ?? null,
       noKtp, tglLahir, namaIbu, noHp, formConsent,

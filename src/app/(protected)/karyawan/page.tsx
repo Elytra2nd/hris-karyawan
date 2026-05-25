@@ -29,6 +29,7 @@ import { ImportExcelButton } from '@/components/import-excel-button'
 import { useDebounce } from '@/hooks/use-debounce'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationPrevious, PaginationNext, PaginationEllipsis,
@@ -49,6 +50,7 @@ export default function DataKaryawanPage() {
   const search = searchParams.get('search') ?? ''
   const cabang = searchParams.get('cabang') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
+  const contractFilter = searchParams.get('filter') ?? '' // expiring14 | expiring30 | expiring90 | expired
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
 
   const [sortCol, setSortCol] = useState<SortKey>('')
@@ -66,7 +68,7 @@ export default function DataKaryawanPage() {
       }
     })
     // Always reset to page 1 when filter changes
-    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined) {
+    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined) {
       params.set('page', '1')
     }
     router.push(`?${params.toString()}`, { scroll: false })
@@ -109,9 +111,24 @@ export default function DataKaryawanPage() {
     return { total, aktif, nonAktif: total - aktif, segera }
   }, [employees])
 
+  // Apply contract filter (expiring14 / expiring30 / expiring90 / expired)
+  const filteredEmployees = useMemo(() => {
+    if (!contractFilter) return employees
+    return employees.filter((e) => {
+      const c = e.contracts?.[0]
+      if (!c) return false
+      const d = differenceInDays(new Date(c.traineeSelesai), now)
+      if (contractFilter === 'expired') return d < 0
+      if (contractFilter === 'expiring14') return d >= 0 && d <= 14
+      if (contractFilter === 'expiring30') return d >= 0 && d <= 30
+      if (contractFilter === 'expiring90') return d >= 0 && d <= 90
+      return true
+    })
+  }, [employees, contractFilter])
+
   const sortedEmployees = useMemo(() => {
-    if (!sortCol) return employees
-    return [...employees].sort((a, b) => {
+    if (!sortCol) return filteredEmployees
+    return [...filteredEmployees].sort((a, b) => {
       let va: any, vb: any
       if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi || ''; vb = b.contracts?.[0]?.posisi || '' }
       else if (sortCol === 'traineeSelesai') { va = a.contracts?.[0]?.traineeSelesai || ''; vb = b.contracts?.[0]?.traineeSelesai || '' }
@@ -122,7 +139,7 @@ export default function DataKaryawanPage() {
       if (va > vb) return sortDir === 'asc' ? 1 : -1
       return 0
     })
-  }, [employees, sortCol, sortDir])
+  }, [filteredEmployees, sortCol, sortDir])
 
   const totalPages = Math.ceil(sortedEmployees.length / PER_PAGE)
   const rows = sortedEmployees.slice((page - 1) * PER_PAGE, page * PER_PAGE)
@@ -248,6 +265,42 @@ export default function DataKaryawanPage() {
         <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
           <Eye size={15} className="text-muted-foreground/70 shrink-0" />
           <span>Mode <strong>Pemirsa</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
+        </div>
+      )}
+
+      {/* ─── Active Contract Filter Banner ─── */}
+      {contractFilter && (
+        <div className={cn(
+          'flex items-center justify-between gap-3 rounded-md border px-4 py-3',
+          contractFilter === 'expired'
+            ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
+            : contractFilter === 'expiring14'
+              ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
+              : contractFilter === 'expiring30'
+                ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50'
+                : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50'
+        )}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Warning size={16} className={cn(
+              'shrink-0',
+              contractFilter === 'expired' || contractFilter === 'expiring14' ? 'text-red-600' :
+              contractFilter === 'expiring30' ? 'text-amber-600' : 'text-blue-600'
+            )} />
+            <p className="text-sm font-semibold truncate">
+              {contractFilter === 'expired' && 'Menampilkan kontrak yang sudah expired'}
+              {contractFilter === 'expiring14' && 'Menampilkan kontrak yang berakhir dalam 14 hari (kritis)'}
+              {contractFilter === 'expiring30' && 'Menampilkan kontrak yang berakhir dalam 30 hari'}
+              {contractFilter === 'expiring90' && 'Menampilkan kontrak yang perlu tindakan (≤ 90 hari)'}
+              <span className="ml-1.5 text-xs font-normal text-muted-foreground">({filteredEmployees.length} karyawan)</span>
+            </p>
+          </div>
+          <button
+            onClick={() => updateParams({ filter: '' })}
+            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2.5 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-1.5"
+          >
+            <XCircle size={13} />
+            Hapus Filter
+          </button>
         </div>
       )}
 
@@ -478,15 +531,15 @@ export default function DataKaryawanPage() {
                 <EmptyState
                   asTableRow
                   colSpan={10}
-                  icon={search || cabang || statusFilter ? MagnifyingGlass : User}
-                  title={search || cabang || statusFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+                  icon={search || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
+                  title={search || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
                   description={
-                    search || cabang || statusFilter
+                    search || cabang || statusFilter || contractFilter
                       ? 'Coba ubah filter atau kata kunci pencarian'
                       : 'Tambahkan karyawan pertama atau import dari Excel'
                   }
                   action={
-                    !search && !cabang && !statusFilter && isAdmin
+                    !search && !cabang && !statusFilter && !contractFilter && isAdmin
                       ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                       : undefined
                   }
@@ -562,71 +615,73 @@ export default function DataKaryawanPage() {
                         {getStatusChip(emp)}
                       </td>
                       {/* Action */}
-                      <td className="px-4 py-3.5 text-center">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded-md text-muted-foreground/70 hover:text-foreground/70 hover:bg-muted transition-colors">
-                              <DotsThreeVertical size={16} />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                              <Link href={`/karyawan/${emp.id}`}>
-                                <Eye className="h-4 w-4 text-muted-foreground/70" />
-                                Lihat Detail
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={`/karyawan/${emp.id}`}
+                                aria-label="Lihat detail karyawan"
+                                className="h-8 w-8 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
+                              >
+                                <Eye size={14} weight="bold" />
                               </Link>
-                            </DropdownMenuItem>
-                            {isAdmin && (
-                              <>
-                                <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                                  <Link href={`/karyawan/${emp.id}/edit`}>
-                                    <Pencil className="h-4 w-4 text-muted-foreground/70" />
-                                    Edit Profil
+                            </TooltipTrigger>
+                            <TooltipContent>Lihat detail</TooltipContent>
+                          </Tooltip>
+
+                          {isAdmin && (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Link
+                                    href={`/karyawan/${emp.id}/edit`}
+                                    aria-label="Edit data karyawan"
+                                    className="h-8 w-8 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
+                                  >
+                                    <Pencil size={14} weight="bold" />
                                   </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                                  <Link href={`/karyawan/${emp.id}/kontrak`}>
-                                    <ClockCounterClockwise className="h-4 w-4 text-muted-foreground/70" />
-                                    Kelola Kontrak
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem
-                                      className="gap-2 cursor-pointer text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
-                                      onSelect={(e) => e.preventDefault()}
+                                </TooltipTrigger>
+                                <TooltipContent>Edit data</TooltipContent>
+                              </Tooltip>
+
+                              <AlertDialog>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertDialogTrigger
+                                      aria-label="Hapus karyawan"
+                                      disabled={isDeleting === emp.id}
+                                      className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:outline-none"
                                     >
-                                      <Trash className="h-4 w-4" />
-                                      Hapus Data
-                                    </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Data <strong>{emp.namaLengkap}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Batal</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDelete(emp.id, emp.namaLengkap)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                        disabled={isDeleting === emp.id}
-                                      >
-                                        {isDeleting === emp.id
-                                          ? <CircleNotch size={14} className="animate-spin mr-1.5 inline" />
-                                          : null}
-                                        Ya, Hapus
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                      {isDeleting === emp.id
+                                        ? <CircleNotch size={14} className="animate-spin" />
+                                        : <Trash size={14} weight="bold" />}
+                                    </AlertDialogTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Hapus data</TooltipContent>
+                                </Tooltip>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Data <strong>{emp.namaLengkap}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(emp.id, emp.namaLengkap)}
+                                      className="bg-rose-600 hover:bg-rose-700"
+                                      disabled={isDeleting === emp.id}
+                                    >
+                                      Ya, Hapus
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -698,15 +753,15 @@ export default function DataKaryawanPage() {
           </div>
         ) : rows.length === 0 ? (
           <EmptyState
-            icon={search || cabang || statusFilter ? MagnifyingGlass : User}
-            title={search || cabang || statusFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+            icon={search || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
+            title={search || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
             description={
-              search || cabang || statusFilter
+              search || cabang || statusFilter || contractFilter
                 ? 'Coba ubah filter atau kata kunci'
                 : 'Tambahkan karyawan pertama atau import dari Excel'
             }
             action={
-              !search && !cabang && !statusFilter && isAdmin
+              !search && !cabang && !statusFilter && !contractFilter && isAdmin
                 ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                 : undefined
             }
@@ -760,62 +815,54 @@ export default function DataKaryawanPage() {
                   </div>
 
                   {/* Action */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="p-1 mt-0.5 rounded text-muted-foreground/70 hover:text-foreground/70 hover:bg-muted">
-                        <DotsThreeVertical size={16} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                        <Link href={`/karyawan/${emp.id}`}>
-                          <Eye className="h-4 w-4 text-muted-foreground/70" /> Lihat Detail
+                  <div className="flex items-center gap-1.5 mt-0.5 shrink-0">
+                    <Link
+                      href={`/karyawan/${emp.id}`}
+                      aria-label="Lihat detail"
+                      className="h-9 w-9 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors"
+                    >
+                      <Eye size={15} weight="bold" />
+                    </Link>
+                    {isAdmin && (
+                      <>
+                        <Link
+                          href={`/karyawan/${emp.id}/edit`}
+                          aria-label="Edit data"
+                          className="h-9 w-9 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors"
+                        >
+                          <Pencil size={15} weight="bold" />
                         </Link>
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <>
-                          <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                            <Link href={`/karyawan/${emp.id}/edit`}>
-                              <Pencil className="h-4 w-4 text-muted-foreground/70" /> Edit Profil
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild className="gap-2 cursor-pointer text-sm">
-                            <Link href={`/karyawan/${emp.id}/kontrak`}>
-                              <ClockCounterClockwise className="h-4 w-4 text-muted-foreground/70" /> Kelola Kontrak
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                className="gap-2 cursor-pointer text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
-                                onSelect={(e) => e.preventDefault()}
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            aria-label="Hapus"
+                            disabled={isDeleting === emp.id}
+                            className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50"
+                          >
+                            {isDeleting === emp.id
+                              ? <CircleNotch size={15} className="animate-spin" />
+                              : <Trash size={15} weight="bold" />}
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Data <strong>{emp.namaLengkap}</strong> akan dihapus permanen.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(emp.id, emp.namaLengkap)}
+                                className="bg-rose-600 hover:bg-rose-700"
                               >
-                                <Trash className="h-4 w-4" /> Hapus Data
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Data <strong>{emp.namaLengkap}</strong> akan dihapus permanen.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(emp.id, emp.namaLengkap)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Ya, Hapus
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                                Ya, Hapus
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+                  </div>
                 </div>
               )
             })}

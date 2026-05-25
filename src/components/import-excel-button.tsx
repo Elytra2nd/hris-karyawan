@@ -22,11 +22,11 @@ interface PreviewRow {
   error?: string
 }
 
-const REQUIRED_COLS = ['BA', 'BA CABANG', 'REGION', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
+const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
 function downloadTemplate() {
-  const headers = ['BA', 'BA CABANG', 'REGION', 'CABANG', 'NAMA LENGKAP', 'NIK', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'NO JAMSOSTEK', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
-  const example = ['BA001', 'PT. Astra Motor Pontianak', 'PONTIANAK', 'PONTIANAK', 'Budi Santoso', '1234', '3271234567890001', '01.01.2000', 'Siti Aminah', '081234567890', '', 'ADA', 'SALESMAN', '01.07.2024']
+  const headers = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NIK', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'NO JAMSOSTEK', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
+  const example = ['BA001', 'PT. Astra Motor Pontianak', 'H720', 'Budi Santoso', '1234', '3271234567890001', '01.01.2000', 'Siti Aminah', '081234567890', '', 'ADA', 'SALES EXECUTIVE', '01.07.2024']
   const ws = XLSX.utils.aoa_to_sheet([headers, example])
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Template')

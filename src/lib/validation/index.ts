@@ -1,10 +1,36 @@
 import { z } from 'zod'
 
 // ─── Konstanta ────────────────────────────────────────────────────────────────
-export const POSISI_VALID = ['SALESMAN', 'ADMINISTRASI', 'SUPERVISOR', 'MANAGER', 'STAFF IT', 'TEKNISI'] as const
-export const REGION_VALID = ['PONTIANAK', 'KALIMANTAN', 'SUMATERA', 'JAWA', 'SULAWESI', 'PAPUA'] as const
-export const CABANG_VALID = ['SAMBAS', 'PONTIANAK', 'SINGKAWANG', 'KETAPANG', 'SINTANG', 'SAMPIT', 'BANJARMASIN'] as const
+export const POSISI_VALID = [
+  'SALES EXECUTIVE',
+  'SALESGIRL',
+  'COUNTER SALES',
+  'MECHANIC',
+  'TEAM LEADER',
+  'ADMINISTRATOR',
+] as const
+
+export const CABANG_OPTIONS = [
+  { code: 'H720', label: 'REGION PONTIANAK' },
+  { code: 'H721', label: 'KETAPANG' },
+  { code: 'H722', label: 'PATTIMURA' },
+  { code: 'H723', label: 'SINGKAWANG' },
+  { code: 'H724', label: 'SANGGAU' },
+  { code: 'H725', label: 'IMAM BONJOL' },
+  { code: 'H726', label: 'NDS.AYANI' },
+  { code: 'H727', label: 'BENUA KAYONG' },
+  { code: 'H728', label: 'SINTANG' },
+  { code: 'H729', label: 'PUTUSSIBAU' },
+  { code: 'H730', label: 'SAMBAS' },
+] as const
+
+export const CABANG_VALID = ['H720', 'H721', 'H722', 'H723', 'H724', 'H725', 'H726', 'H727', 'H728', 'H729', 'H730'] as const
 export const STATUS_VALID = ['AKTIF', 'NON-AKTIF'] as const
+
+// Helper: get label dari kode cabang
+export function getCabangLabel(code: string): string {
+  return CABANG_OPTIONS.find(c => c.code === code)?.label ?? code
+}
 
 // Roles — in ascending privilege order
 // VIEWER       : read-only
@@ -18,7 +44,6 @@ export type AppRole = (typeof ROLE_VALID)[number]
 export const createEmployeeSchema = z.object({
   ba: z.string().min(1, 'Kode BA wajib diisi').max(20),
   baCabang: z.string().min(1, 'BA Cabang wajib diisi').max(100),
-  region: z.enum(REGION_VALID, { message: 'Region tidak valid' }),
   cabang: z.enum(CABANG_VALID, { message: 'Cabang tidak valid' }),
   namaLengkap: z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang'),
   nik: z.string().max(20).optional().nullable(),
