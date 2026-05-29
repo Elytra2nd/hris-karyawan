@@ -3,14 +3,13 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { addMonths, parse, isValid, format } from 'date-fns'
-import { requireAdmin, requirePermission } from "@/lib/auth-guard"
+import { requireAdmin } from "@/lib/auth-guard"
 import { createAuditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
-import { z } from 'zod'
-import {
-  POSISI_VALID, CABANG_VALID,
-  createEmployeeSchema,
-} from '@/lib/validation'
+import { createEmployeeSchema } from '@/lib/validation'
+
+// Batas baris per import — cegah payload raksasa / memory spike (DoS).
+const MAX_IMPORT_ROWS = 1000
 
 // ─── Column name → schema field mapping ──────────────────────────────────────
 const COL_MAP: Record<string, string> = {
@@ -85,6 +84,31 @@ export async function bulkImportEmployees(
 
   const result: ImportResult = { created: 0, skipped: 0, errors: [] }
 
+  // Tolak payload yang melebihi batas — cegah DoS via array raksasa.
+  if (rows.length > MAX_IMPORT_ROWS) {
+    result.errors.push({
+      row: 0,
+      message: `Maksimal ${MAX_IMPORT_ROWS} baris per import (diterima ${rows.length})`,
+    })
+    result.skipped = rows.length
+    return result
+  }
+
+  // Pre-fetch semua KTP yang sudah ada dalam SATU query (hindari N+1).
+  const candidateKtp = rows
+    .map(r => normalizeRow(r.raw).noKtp)
+    .filter((k): k is string => !!k)
+  const existingKtp = new Set(
+    (
+      await prisma.employee.findMany({
+        where: { noKtp: { in: candidateKtp } },
+        select: { noKtp: true },
+      })
+    ).map(e => e.noKtp)
+  )
+  // Lacak KTP duplikat di dalam file yang sama juga.
+  const seenInBatch = new Set<string>()
+
   for (const { index, raw } of rows) {
     const normalized = normalizeRow(raw)
 
@@ -102,13 +126,13 @@ export async function bulkImportEmployees(
       noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
     } = parsed.data
 
-    // Skip duplicate KTP
-    const existing = await prisma.employee.findFirst({ where: { noKtp } })
-    if (existing) {
+    // Skip duplikat KTP (sudah di DB atau duplikat dalam file ini)
+    if (existingKtp.has(noKtp) || seenInBatch.has(noKtp)) {
       result.errors.push({ row: index + 1, message: `No KTP ${noKtp} sudah terdaftar` })
       result.skipped++
       continue
     }
+    seenInBatch.add(noKtp)
 
     const traineeSejak = new Date(traineeSejakRaw)
     const traineeSelesai = posisi.toLowerCase().includes('admin')

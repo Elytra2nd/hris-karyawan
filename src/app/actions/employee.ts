@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { addMonths } from 'date-fns'
 import { createAuditLog } from '@/lib/audit'
-import { requireAdmin, requirePermission } from '@/lib/auth-guard'
+import { requirePermission } from '@/lib/auth-guard'
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -20,6 +20,14 @@ function calculateEndDate(posisi: string, startDate: Date): Date {
   return posisi.toLowerCase().includes('admin')
     ? addMonths(startDate, 3)
     : addMonths(startDate, 6)
+}
+
+// Prisma P2002 = unique constraint violation. Cek apakah menyangkut field noKtp.
+function isUniqueKtpError(error: unknown): boolean {
+  const e = error as { code?: string; meta?: { target?: unknown } }
+  if (e?.code !== 'P2002') return false
+  const target = e.meta?.target
+  return Array.isArray(target) ? target.includes('noKtp') : String(target ?? '').includes('noKtp')
 }
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
@@ -44,17 +52,26 @@ export async function createEmployee(formData: FormData) {
   const traineeSelesai = calculateEndDate(posisi, traineeSejak)
   const departmentId = raw['departmentId'] || null
 
-  const newEmployee = await prisma.employee.create({
-    data: {
-      ba, baCabang, cabang, namaLengkap,
-      status: 'AKTIF',
-      nik: nik ?? null,
-      noJamsostek: noJamsostek ?? null,
-      noKtp, tglLahir, namaIbu, noHp, formConsent,
-      departmentId,
-      contracts: { create: { posisi, traineeSejak, traineeSelesai } },
-    },
-  })
+  let newEmployee
+  try {
+    newEmployee = await prisma.employee.create({
+      data: {
+        ba, baCabang, cabang, namaLengkap,
+        status: 'AKTIF',
+        nik: nik ?? null,
+        noJamsostek: noJamsostek ?? null,
+        noKtp, tglLahir, namaIbu, noHp, formConsent,
+        departmentId,
+        contracts: { create: { posisi, traineeSejak, traineeSelesai } },
+      },
+    })
+  } catch (error) {
+    if (isUniqueKtpError(error)) {
+      throw new Error(`No KTP ${noKtp} sudah terdaftar`)
+    }
+    logger.error('createEmployee failed', { error: String(error) })
+    throw new Error('Gagal menyimpan data karyawan')
+  }
 
   await createAuditLog(
     session.id,
@@ -88,16 +105,24 @@ export async function updateEmployee(id: string, formData: FormData) {
 
   const departmentId = raw['departmentId'] || null
 
-  await prisma.employee.update({
-    where: { id },
-    data: {
-      ba, baCabang, cabang, namaLengkap, status,
-      nik: nik ?? null,
-      noJamsostek: noJamsostek ?? null,
-      noKtp, tglLahir, namaIbu, noHp, formConsent,
-      departmentId,
-    },
-  })
+  try {
+    await prisma.employee.update({
+      where: { id },
+      data: {
+        ba, baCabang, cabang, namaLengkap, status,
+        nik: nik ?? null,
+        noJamsostek: noJamsostek ?? null,
+        noKtp, tglLahir, namaIbu, noHp, formConsent,
+        departmentId,
+      },
+    })
+  } catch (error) {
+    if (isUniqueKtpError(error)) {
+      throw new Error(`No KTP ${noKtp} sudah dipakai karyawan lain`)
+    }
+    logger.error('updateEmployee failed', { id, error: String(error) })
+    throw new Error('Gagal memperbarui data karyawan')
+  }
 
   await createAuditLog(
     session.id,

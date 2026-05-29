@@ -44,7 +44,7 @@ model Employee {
   status       String      @default("AKTIF")
   nik          String?
   noJamsostek  String?
-  noKtp        String
+  noKtp        String      @unique
   tglLahir     String
   namaIbu      String
   noHp         String

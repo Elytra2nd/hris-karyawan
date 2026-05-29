@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   const start = Date.now()
@@ -15,8 +16,10 @@ export async function GET() {
       ts: new Date().toISOString(),
     })
   } catch (error) {
+    // Detail error hanya di log server — jangan bocorkan ke endpoint publik.
+    logger.error('health check failed', { error: String(error) })
     return NextResponse.json(
-      { status: 'error', db: 'unreachable', error: String(error) },
+      { status: 'error', db: 'unreachable', ts: new Date().toISOString() },
       { status: 503 }
     )
   }

@@ -27,6 +27,25 @@ declare module "next-auth/jwt" {
   }
 }
 
+// ─── Rate limiter login (brute-force protection) ──────────────────────────────
+// In-memory, single-instance. Untuk multi-instance/serverless ganti ke Redis.
+// Dijalankan di authorize() — bukan di proxy — karena matcher meng-exclude api/auth.
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const LOGIN_LIMIT = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 menit
+
+function checkLoginRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= LOGIN_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -35,7 +54,15 @@ export const authOptions: NextAuthOptions = {
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const ip =
+          (req?.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ??
+          'unknown';
+        if (!checkLoginRateLimit(ip)) {
+          logger.warn('Login blocked: rate limit exceeded', { ip });
+          throw new Error('Terlalu banyak percobaan login. Coba lagi dalam 15 menit.');
+        }
+
         if (!credentials?.username || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -92,5 +119,6 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login' 
   },
   secret: process.env.NEXTAUTH_SECRET,
-  useSecureCookies: false,
+  // Secure cookies hanya di production (HTTPS). Di dev (http://localhost) harus false.
+  useSecureCookies: process.env.NODE_ENV === 'production',
 };
