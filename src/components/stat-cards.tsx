@@ -15,9 +15,9 @@ export function StatCards({ user, type }: StatCardsProps) {
   // Tipe Profile: Menampilkan Identitas Pengguna
   if (type === 'profile') {
     return (
-      <Card className="border-none shadow-sm bg-card overflow-hidden h-full border-l-4 border-l-blue-600 font-sans">
+      <Card className="border-none shadow-sm bg-card overflow-hidden h-full border-l-4 border-l-primary font-sans">
         <CardContent className="p-4 flex items-center gap-4 h-full">
-          <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+          <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-primary shrink-0 shadow-inner">
             <UserCircle className="h-6 w-6" />
           </div>
           <div className="overflow-hidden">
@@ -29,7 +29,7 @@ export function StatCards({ user, type }: StatCardsProps) {
             </h3>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">
                 Otoritas: {user.role}
               </span>
             </div>
@@ -58,7 +58,7 @@ export function StatCards({ user, type }: StatCardsProps) {
               <Link href="/karyawan/tambah" className="w-full">
                 <Button 
                   size="sm" 
-                  className="h-8 w-full px-3 gap-2 text-[10px] font-bold bg-slate-900 hover:bg-slate-800 shadow-md transition-all active:scale-95"
+                  className="h-8 w-full px-3 gap-2 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all active:scale-95"
                 >
                   <UserPlus className="h-3.5 w-3.5" /> 
                   <span>Tambah Karyawan</span>

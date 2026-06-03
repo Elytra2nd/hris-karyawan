@@ -54,57 +54,57 @@
 :root {
   /* ─── Base ─────────────────────────────────────────── */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0.025 240);
+  --foreground: oklch(0.145 0 0);
 
   /* ─── Card & Popover ───────────────────────────────── */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.025 240);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.025 240);
+  --popover-foreground: oklch(0.145 0 0);
 
-  /* ─── Primary — Cyan #06B6D4 (Pekerja accent) ──────── */
-  --primary: oklch(0.72 0.13 215);
-  --primary-foreground: oklch(0.18 0.04 240);
+  /* ─── Primary — Astra Blue #1e40af ───────────────── */
+  --primary: oklch(0.379 0.191 264);
+  --primary-foreground: oklch(0.985 0 0);
 
-  /* ─── Secondary — Lavender ───────────────────────── */
-  --secondary: oklch(0.78 0.12 290);
-  --secondary-foreground: oklch(0.985 0 0);
+  /* ─── Secondary — Neutral ─────────────────────────── */
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.145 0 0);
 
   /* ─── Muted ────────────────────────────────────────── */
-  --muted: oklch(0.97 0.005 220);
-  --muted-foreground: oklch(0.5 0.02 230);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
 
-  /* ─── Accent (cyan pastel, hover bg) ──────────────── */
-  --accent: oklch(0.96 0.04 215);
-  --accent-foreground: oklch(0.45 0.13 215);
+  /* ─── Accent — Biru-50 #eff6ff (hover bg) ─────────── */
+  --accent: oklch(0.951 0.026 264);
+  --accent-foreground: oklch(0.379 0.191 264);
 
   /* ─── Destructive — pink-red ──────────────────────── */
   --destructive: oklch(0.65 0.22 15);
 
   /* ─── Border, Input, Ring ──────────────────────────── */
-  --border: oklch(0.93 0.008 220);
-  --input: oklch(0.93 0.008 220);
-  --ring: oklch(0.72 0.13 215);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.379 0.191 264);
 
-  /* ─── Chart — Cyan / Lavender / Mint / Peach / Pink ── */
-  --chart-1: oklch(0.72 0.13 215);  /* cyan */
-  --chart-2: oklch(0.78 0.12 290);  /* lavender */
-  --chart-3: oklch(0.76 0.14 165);  /* mint */
-  --chart-4: oklch(0.82 0.13 70);   /* peach */
-  --chart-5: oklch(0.72 0.18 15);   /* pink */
+  /* ─── Chart — Biru / Teal / Hijau / Kuning / Merah ── */
+  --chart-1: oklch(0.546 0.245 264.376);  /* biru */
+  --chart-2: oklch(0.488 0.163 200);      /* teal */
+  --chart-3: oklch(0.627 0.194 131);      /* hijau */
+  --chart-4: oklch(0.769 0.188 85);       /* kuning */
+  --chart-5: oklch(0.645 0.246 27);       /* merah */
 
   /* ─── Radius ───────────────────────────────────────── */
   --radius: 0.75rem;
 
   /* ─── Sidebar ──────────────────────────────────────── */
-  --sidebar: #ffffff;
+  --sidebar: #f8fafc;
   --sidebar-foreground: #1e293b;
-  --sidebar-primary: oklch(0.72 0.13 215);
+  --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.96 0.04 215);
-  --sidebar-accent-foreground: oklch(0.45 0.13 215);
-  --sidebar-border: oklch(0.93 0.008 220);
-  --sidebar-ring: oklch(0.72 0.13 215);
+  --sidebar-accent: #eff6ff;
+  --sidebar-accent-foreground: #1e40af;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: oklch(0.379 0.191 264);
   --destructive-foreground: var(--color-red-700);
 }
 

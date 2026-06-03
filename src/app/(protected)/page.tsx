@@ -128,9 +128,9 @@ export default async function DashboardPage() {
 
       {/* ─── Stat Cards (Pekerja-style: circular pastel icon) ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-cyan-200 transition-all">
-          <div className="h-12 w-12 rounded-full bg-cyan-50 flex items-center justify-center shrink-0 group-hover:bg-cyan-100 transition-colors">
-            <Users className="h-6 w-6 text-cyan-600" weight="duotone" />
+        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+          <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center shrink-0 group-hover:bg-accent/70 transition-colors">
+            <Users className="h-6 w-6 text-primary" weight="duotone" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">Total Trainee</p>
@@ -313,7 +313,7 @@ export default async function DashboardPage() {
               const pct = activeEmployees > 0 ? Math.round((count / activeEmployees) * 100) : 0
               const dotColors = [
                 'bg-blue-500', 'bg-emerald-500', 'bg-orange-400', 'bg-red-400',
-                'bg-violet-500', 'bg-pink-400', 'bg-cyan-500', 'bg-lime-500',
+                'bg-violet-500', 'bg-pink-400', 'bg-teal-500', 'bg-lime-500',
               ]
               return (
                 <div key={cabang} className="flex items-center gap-3 px-5 py-3">

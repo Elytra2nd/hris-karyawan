@@ -38,7 +38,7 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="h-8 gap-2 text-blue-600 hover:text-blue-700 hover:bg-accent font-bold text-[10px] uppercase"
+          className="h-8 gap-2 text-primary hover:text-primary/80 hover:bg-accent font-bold text-[10px] uppercase"
           disabled={loading}
         >
           <FileArrowDownIcon className="w-3.5 h-3.5" />

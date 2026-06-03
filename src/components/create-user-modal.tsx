@@ -104,7 +104,7 @@ export function CreateUserModal() {
                 </SelectItem>
                 <SelectItem value="HR_MANAGER">
                   <span className="flex items-center gap-2">
-                    <ShieldCheck size={13} className="text-blue-600" />
+                    <ShieldCheck size={13} className="text-primary" />
                     HR Manager — CRUD karyawan + kontrak
                   </span>
                 </SelectItem>

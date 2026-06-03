@@ -284,7 +284,7 @@ export default function DataKaryawanPage() {
             <Warning size={16} className={cn(
               'shrink-0',
               contractFilter === 'expired' || contractFilter === 'expiring14' ? 'text-red-600' :
-              contractFilter === 'expiring30' ? 'text-amber-600' : 'text-blue-600'
+              contractFilter === 'expiring30' ? 'text-amber-600' : 'text-primary'
             )} />
             <p className="text-sm font-semibold truncate">
               {contractFilter === 'expired' && 'Menampilkan kontrak yang sudah expired'}
@@ -622,7 +622,7 @@ export default function DataKaryawanPage() {
                               <Link
                                 href={`/karyawan/${emp.id}`}
                                 aria-label="Lihat detail karyawan"
-                                className="h-8 w-8 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
+                                className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                               >
                                 <Eye size={14} weight="bold" />
                               </Link>
@@ -637,7 +637,7 @@ export default function DataKaryawanPage() {
                                   <Link
                                     href={`/karyawan/${emp.id}/edit`}
                                     aria-label="Edit data karyawan"
-                                    className="h-8 w-8 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
+                                    className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                                   >
                                     <Pencil size={14} weight="bold" />
                                   </Link>
@@ -819,7 +819,7 @@ export default function DataKaryawanPage() {
                     <Link
                       href={`/karyawan/${emp.id}`}
                       aria-label="Lihat detail"
-                      className="h-9 w-9 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors"
+                      className="h-9 w-9 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors"
                     >
                       <Eye size={15} weight="bold" />
                     </Link>
@@ -828,7 +828,7 @@ export default function DataKaryawanPage() {
                         <Link
                           href={`/karyawan/${emp.id}/edit`}
                           aria-label="Edit data"
-                          className="h-9 w-9 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-600 flex items-center justify-center transition-colors"
+                          className="h-9 w-9 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors"
                         >
                           <Pencil size={15} weight="bold" />
                         </Link>

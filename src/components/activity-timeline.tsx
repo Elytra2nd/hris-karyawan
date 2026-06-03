@@ -34,7 +34,7 @@ export async function ActivityTimeline({ employeeId }: ActivityTimelineProps) {
       case 'CREATE':
         return <PlusCircle size={16} className="text-green-600" />
       case 'UPDATE':
-        return <Pencil size={16} className="text-blue-600" />
+        return <Pencil size={16} className="text-primary" />
       case 'DELETE':
         return <Trash size={16} className="text-red-600" />
       default:
