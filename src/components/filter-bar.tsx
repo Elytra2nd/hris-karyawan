@@ -10,15 +10,21 @@ import {
 } from "@/components/ui/select";
 import { MagnifyingGlass, MapPin, Funnel } from "@phosphor-icons/react";
 
-export function FilterBar({ onSearch, onFilterCabang, onFilterStatus }: any) {
+interface FilterBarProps {
+  onSearch: (value: string) => void
+  onFilterCabang: (value: string) => void
+  onFilterStatus: (value: string) => void
+}
+
+export function FilterBar({ onSearch, onFilterCabang, onFilterStatus }: FilterBarProps) {
   return (
     <div className="flex flex-col md:flex-row gap-3 mb-6 bg-card p-4 rounded-xl shadow-sm border border-border/60 font-sans">
       {/* MagnifyingGlass Input */}
       <div className="relative flex-1">
         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
-        <Input 
-          placeholder="Cari Nama atau NIK..." 
-          className="pl-10 h-10 border-border focus:ring-blue-500"
+        <Input
+          placeholder="Cari Nama atau NIK..."
+          className="pl-10 h-10 border-border focus:ring-ring"
           onChange={(e) => onSearch(e.target.value)}
         />
       </div>
@@ -27,7 +33,7 @@ export function FilterBar({ onSearch, onFilterCabang, onFilterStatus }: any) {
       <div className="w-full md:w-48">
         <Select onValueChange={onFilterCabang}>
           <SelectTrigger className="h-10 border-border">
-            <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+            <MapPin className="w-4 h-4 mr-2 text-primary" />
             <SelectValue placeholder="Semua Cabang" />
           </SelectTrigger>
           <SelectContent>

@@ -62,6 +62,7 @@ export const createEmployeeSchema = z.object({
   traineeSejak: z.string()
     .min(1, 'Tanggal mulai wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid'),
+  departmentId: z.string().min(1).optional().nullable(),
 })
 
 // ─── Employee Schema (Update — tanpa posisi + traineeSejak, tambah status) ────

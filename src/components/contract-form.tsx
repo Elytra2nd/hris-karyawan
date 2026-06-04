@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { addMonths, format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -19,12 +20,15 @@ const POSISI_OPTIONS = [
   { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
 ]
 
+import type { ActionResult } from '@/lib/result'
+
 interface ContractFormProps {
   employeeId: string
-  action: (id: string, formData: FormData) => Promise<void>
+  action: (id: string, formData: FormData) => Promise<ActionResult<{ employeeId: string }>>
 }
 
 export function ContractForm({ employeeId, action }: ContractFormProps) {
+  const router = useRouter()
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [tglSelesai, setTglSelesai] = useState('')
@@ -41,7 +45,14 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true)
     try {
-      await action(employeeId, formData)
+      const result = await action(employeeId, formData)
+      if (result.success) {
+        toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
+        router.push(`/karyawan/${employeeId}`)
+      } else {
+        toast.error(result.error)
+        setIsPending(false)
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
       toast.error(msg)

@@ -24,7 +24,7 @@ Tanggal audit: 2026-05-25
 
 ### 1. Dashboard → Drill-Down Belum Lengkap
 
-#### 1.1 Tabel "Sebaran Cabang" tidak clickable
+#### 1.1 Tabel "Sebaran Cabang" tidak clickable ✅
 - **File:** `src/app/(protected)/page.tsx:358-387`
 - **Masalah:** Row tabel pakai `hover:bg-muted/50` tapi tidak ada `href`/`onClick`
 - **Fix:** Bungkus dengan `<Link href={`/karyawan?cabang=${ba.baCabang}`}>` agar user bisa drill-down ke karyawan per cabang
@@ -36,7 +36,7 @@ Tanggal audit: 2026-05-25
 
 ### 2. Karyawan List → Status Chip Tidak Filter
 
-#### 2.1 Status chip tidak clickable
+#### 2.1 Status chip tidak clickable ✅
 - **File:** `src/app/(protected)/karyawan/page.tsx:198-228`
 - **Masalah:** Chip "Aktif" / "Segera Habis" / "Expired" hanya visual
 - **Fix:** `onClick={() => updateParams({ filter: status })}` agar auto-filter
@@ -48,7 +48,7 @@ Tanggal audit: 2026-05-25
 
 ### 3. Karyawan Detail → Kontrak Empty State
 
-#### 3.1 Empty state tanpa CTA button
+#### 3.1 Empty state tanpa CTA button ✅
 - **File:** `src/components/contract-list.tsx:26-42`
 - **Masalah:** Hanya teks "Tambahkan kontrak pertama karyawan ini" tanpa tombol
 - **Fix:** Tambahkan `<Button asChild><Link href={`/karyawan/${employee.id}/kontrak`}>Buat Kontrak Pertama</Link></Button>`
@@ -64,12 +64,12 @@ Tanggal audit: 2026-05-25
 
 ### 4. Admin → Audit Log
 
-#### 4.1 Tidak ada search/filter UI
+#### 4.1 Tidak ada search/filter UI ✅
 - **File:** `src/app/(protected)/admin/audit-log/page.tsx:1-242`
 - **Masalah:** 200 logs tanpa pencarian — tidak bisa cari aktivitas user tertentu
 - **Fix:** Tambah search input + filter action (CREATE/UPDATE/DELETE) + filter entity + date range
 
-#### 4.2 Tidak ada pagination
+#### 4.2 Tidak ada pagination ✅
 - **File:** `src/app/(protected)/admin/audit-log/page.tsx`
 - **Masalah:** Semua log dimuat sekaligus (max 200 dari DB tapi tetap berat)
 - **Fix:** Server-side pagination dengan `?page=` & `?limit=`
@@ -81,12 +81,12 @@ Tanggal audit: 2026-05-25
 
 ### 5. Admin → Users
 
-#### 5.1 Stat cards Total/Admin/Pemirsa tidak clickable
+#### 5.1 Stat cards Total/Admin/Pemirsa tidak clickable ✅
 - **File:** `src/app/(protected)/admin/users/page.tsx:47-77`
 - **Masalah:** Tidak bisa drill-down ke user dengan role tertentu
 - **Fix:** `<Link href="/admin/users?role=ADMIN">` wrap stat card
 
-#### 5.2 Tidak ada search user
+#### 5.2 Tidak ada search user ✅
 - **File:** `src/app/(protected)/admin/users/page.tsx:88-174`
 - **Masalah:** Cari user harus visual scan
 - **Fix:** Tambah search input by username + filter dropdown by role
@@ -103,12 +103,12 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Bisa delete dept yang in-use tanpa peringatan
 - **Fix:** Query count karyawan dulu; tampilkan "X karyawan tergabung" sebelum confirm
 
-#### 6.3 Create dept pakai window.location.reload()
+#### 6.3 Create dept pakai window.location.reload() ✅
 - **File:** `src/components/department-manager.tsx:43-44`
 - **Masalah:** Full page reload — jarring UX, context hilang
 - **Fix:** Optimistic update — `setDepts(prev => [...prev, newDept])` lalu revalidatePath
 
-#### 6.4 Tidak ada search department
+#### 6.4 Tidak ada search department ✅
 - **File:** `src/components/department-manager.tsx:72-110`
 - **Masalah:** List panjang harus scroll manual
 - **Fix:** Tambah search input client-side filter by name/code
@@ -141,7 +141,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** User dari `?filter=expiring90` → klik karyawan → back = filter hilang
 - **Fix:** Pakai `router.back()` instead of `<Link href="/karyawan">`, atau simpan filter di sessionStorage
 
-#### 8.2 Breadcrumb di /kontrak page tidak lengkap
+#### 8.2 Breadcrumb di /kontrak page tidak lengkap ✅
 - **File:** `src/app/(protected)/karyawan/[id]/kontrak/page.tsx:37-46`
 - **Masalah:** Breadcrumb hanya ke employee detail, tidak ke /karyawan
 - **Fix:** Full breadcrumb: Dashboard › Karyawan › [Nama] › Kelola Kontrak
@@ -160,7 +160,7 @@ Tanggal audit: 2026-05-25
 
 ### 10. Toast/Feedback
 
-#### 10.1 Contract form tidak ada success toast
+#### 10.1 Contract form tidak ada success toast ✅
 - **File:** `src/components/contract-form.tsx:40-50`
 - **Masalah:** Error → toast.error; sukses → redirect tanpa konfirmasi
 - **Fix:** `toast.success('Kontrak berhasil dibuat')` sebelum redirect

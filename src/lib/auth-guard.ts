@@ -1,7 +1,10 @@
 import 'server-only'
 import { verifySession } from './dal'
-import { fail } from './result'
+import { fail, type ActionResult } from './result'
 import type { AppRole } from './validation'
+
+type SessionUser = Awaited<ReturnType<typeof verifySession>>
+type GuardResult = { session: SessionUser; denied: null } | { session: null; denied: ActionResult<never> }
 
 // ─── Permission Matrix ────────────────────────────────────────────────────────
 // Define exactly what each role can do. Extend here as roles grow.
@@ -77,18 +80,18 @@ export async function requirePermission(permission: Permission) {
 }
 
 /** Returns ActionResult.fail instead of throwing — for actions that return values. */
-export async function guardAdmin() {
+export async function guardAdmin(): Promise<GuardResult> {
   const session = await verifySession()
   if (!hasPermission(session.role, 'user_manage')) {
-    return { session: null, denied: fail('Akses ditolak.', 'UNAUTHORIZED') as any }
+    return { session: null, denied: fail('Akses ditolak.', 'UNAUTHORIZED') }
   }
   return { session, denied: null }
 }
 
-export async function guardPermission(permission: Permission) {
+export async function guardPermission(permission: Permission): Promise<GuardResult> {
   const session = await verifySession()
   if (!hasPermission(session.role, permission)) {
-    return { session: null, denied: fail('Akses ditolak.', 'UNAUTHORIZED') as any }
+    return { session: null, denied: fail('Akses ditolak.', 'UNAUTHORIZED') }
   }
   return { session, denied: null }
 }

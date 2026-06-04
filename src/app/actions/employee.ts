@@ -46,11 +46,12 @@ export async function createEmployee(formData: FormData) {
     ba, baCabang, cabang, namaLengkap,
     nik, noKtp, tglLahir, namaIbu, noHp,
     noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
+    departmentId: deptId,
   } = parsed.data
 
   const traineeSejak = new Date(traineeSejakRaw)
   const traineeSelesai = calculateEndDate(posisi, traineeSejak)
-  const departmentId = raw['departmentId'] || null
+  const departmentId = deptId ?? null
 
   let newEmployee
   try {
@@ -101,9 +102,10 @@ export async function updateEmployee(id: string, formData: FormData) {
     ba, baCabang, cabang, namaLengkap,
     nik, noKtp, tglLahir, namaIbu, noHp,
     noJamsostek, formConsent, status,
+    departmentId: deptId,
   } = parsed.data
 
-  const departmentId = raw['departmentId'] || null
+  const departmentId = deptId ?? null
 
   try {
     await prisma.employee.update({
@@ -140,35 +142,42 @@ export async function updateEmployee(id: string, formData: FormData) {
 }
 
 // ─── Create Contract ──────────────────────────────────────────────────────────
-export async function createContract(employeeId: string, formData: FormData) {
-  const session = await requirePermission('contract_create')
-  const raw = formDataToObject(formData)
+export async function createContract(employeeId: string, formData: FormData): Promise<ActionResult<{ employeeId: string }>> {
+  try {
+    const session = await requirePermission('contract_create')
+    const raw = formDataToObject(formData)
 
-  const parsed = createContractSchema.safeParse(raw)
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? 'Data kontrak tidak valid')
+    const parsed = createContractSchema.safeParse(raw)
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? 'Data kontrak tidak valid', 'VALIDATION')
+    }
+
+    const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
+    const traineeSejak = new Date(traineeSejakRaw)
+    const traineeSelesai = calculateEndDate(posisi, traineeSejak)
+
+    const newContract = await prisma.contract.create({
+      data: { posisi, traineeSejak, traineeSelesai, employeeId },
+    })
+
+    await createAuditLog(
+      session.id,
+      session.username,
+      'CREATE',
+      'contract',
+      newContract.id,
+      { employeeId, posisiBaru: posisi }
+    )
+
+    revalidatePath(`/karyawan/${employeeId}`)
+    revalidatePath('/')
+    return ok({ employeeId }, 'Kontrak berhasil diterbitkan')
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
+    logger.error('createContract failed', { employeeId, error: String(error) })
+    return fail('Gagal menerbitkan kontrak', 'SERVER_ERROR')
   }
-
-  const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
-  const traineeSejak = new Date(traineeSejakRaw)
-  const traineeSelesai = calculateEndDate(posisi, traineeSejak)
-
-  const newContract = await prisma.contract.create({
-    data: { posisi, traineeSejak, traineeSelesai, employeeId },
-  })
-
-  await createAuditLog(
-    session.id,
-    session.username,
-    'CREATE',
-    'contract',
-    newContract.id,
-    { employeeId, posisiBaru: posisi }
-  )
-
-  revalidatePath(`/karyawan/${employeeId}`)
-  revalidatePath('/')
-  redirect(`/karyawan/${employeeId}`)
 }
 
 // ─── Delete Employee ──────────────────────────────────────────────────────────
@@ -199,8 +208,9 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     revalidatePath('/')
     revalidatePath('/karyawan')
     return ok({ id })
-  } catch (error: any) {
-    if (error.code === 'UNAUTHORIZED') return fail(error.message, 'UNAUTHORIZED')
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
     logger.error('deleteEmployee failed', { error: String(error) })
     return fail('Gagal menghapus data karyawan', 'SERVER_ERROR')
   }
@@ -221,37 +231,100 @@ export async function getAllEmployeesForExport() {
   }
 }
 
-// ─── Read: Filter karyawan ────────────────────────────────────────────────────
+// ─── Read: Filter karyawan (server-side pagination + contractFilter) ──────────
+const PER_PAGE = 10
+
+function addDays(date: Date, n: number): Date {
+  return new Date(date.getTime() + n * 86400000)
+}
+
+function buildContractWhere(contractFilter: string, today: Date) {
+  switch (contractFilter) {
+    case 'expired':    return { contracts: { some: { traineeSelesai: { lt: today } } } }
+    case 'expiring14': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 14) } } } }
+    case 'expiring30': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 30) } } } }
+    case 'expiring90': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 90) } } } }
+    default:           return {}
+  }
+}
+
 export async function getEmployees({
   search = '',
   cabang = '',
   status = '',
+  contractFilter = '',
+  page = 1,
+  perPage = PER_PAGE,
 }: {
   search?: string
   cabang?: string
   status?: string
+  contractFilter?: string
+  page?: number
+  perPage?: number
 } = {}) {
   try {
-    return await prisma.employee.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
-              { namaLengkap: { contains: search } },
-              { nik: { contains: search } },
-            ],
-          },
-          cabang ? { cabang } : {},
-          status ? { status } : {},
-        ],
-      },
-      include: {
-        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
-      },
-      orderBy: { namaLengkap: 'asc' },
-    })
+    const today = new Date()
+    const where = {
+      AND: [
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        cabang ? { cabang } : {},
+        status ? { status } : {},
+        buildContractWhere(contractFilter, today),
+      ],
+    }
+
+    const [employees, total] = await prisma.$transaction([
+      prisma.employee.findMany({
+        where,
+        include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
+        orderBy: { namaLengkap: 'asc' },
+        take: perPage,
+        skip: (page - 1) * perPage,
+      }),
+      prisma.employee.count({ where }),
+    ])
+
+    return { employees, total }
   } catch (error) {
     logger.error('getEmployees failed', { error: String(error) })
-    return []
+    return { employees: [], total: 0 }
+  }
+}
+
+// ─── Read: Aggregate stats untuk dashboard karyawan ──────────────────────────
+export async function getEmployeeStats({
+  search = '',
+  cabang = '',
+}: {
+  search?: string
+  cabang?: string
+} = {}) {
+  try {
+    const today = new Date()
+    const in30 = addDays(today, 30)
+
+    const baseWhere = {
+      AND: [
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        cabang ? { cabang } : {},
+      ],
+    }
+
+    const [total, aktif, segera] = await prisma.$transaction([
+      prisma.employee.count({ where: baseWhere }),
+      prisma.employee.count({ where: { ...baseWhere, status: 'AKTIF' } }),
+      prisma.employee.count({
+        where: {
+          ...baseWhere,
+          contracts: { some: { traineeSelesai: { gte: today, lte: in30 } } },
+        },
+      }),
+    ])
+
+    return { total, aktif, nonAktif: total - aktif, segera }
+  } catch (error) {
+    logger.error('getEmployeeStats failed', { error: String(error) })
+    return { total: 0, aktif: 0, nonAktif: 0, segera: 0 }
   }
 }

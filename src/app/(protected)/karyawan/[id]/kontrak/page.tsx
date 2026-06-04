@@ -1,10 +1,10 @@
-import { verifySession } from '@/lib/dal'
+import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { createContract } from '@/app/actions/employee'
 import { ContractForm } from '@/components/contract-form'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle } from '@phosphor-icons/react/ssr'
+import { notFound } from 'next/navigation'
+import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle, House } from '@phosphor-icons/react/ssr'
 import { format, differenceInDays } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
@@ -13,8 +13,7 @@ export default async function TambahKontrakPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const session = await verifySession()
-  if (session?.role !== 'ADMIN') redirect('/karyawan')
+  await requirePermission('contract_create')
 
   const { id } = await params
   const employee = await prisma.employee.findUnique({
@@ -37,13 +36,20 @@ export default async function TambahKontrakPage({
     <div className="space-y-5">
 
       {/* ─── Breadcrumb ─── */}
-      <Link
-        href={`/karyawan/${id}`}
-        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
-      >
-        <CaretLeft size={16} />
-        Kembali ke Detail Karyawan
-      </Link>
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
+        <Link href="/" className="flex items-center gap-1 hover:text-primary transition-colors">
+          <House size={13} />
+          Dashboard
+        </Link>
+        <CaretLeft size={12} className="rotate-180 opacity-40" />
+        <Link href="/karyawan" className="hover:text-primary transition-colors">Karyawan</Link>
+        <CaretLeft size={12} className="rotate-180 opacity-40" />
+        <Link href={`/karyawan/${id}`} className="hover:text-primary transition-colors truncate max-w-[160px]">
+          {employee.namaLengkap}
+        </Link>
+        <CaretLeft size={12} className="rotate-180 opacity-40" />
+        <span className="text-foreground font-medium">Kelola Kontrak</span>
+      </nav>
 
       {/* ─── Page header ─── */}
       <div>

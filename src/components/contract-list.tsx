@@ -1,10 +1,12 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { format, differenceInDays, differenceInMonths } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
-import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning } from '@phosphor-icons/react'
+import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning, Plus } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import type { Employee, ContractListItem } from '@/types'
 
 const PDFButton = dynamic(() => import('@/components/pdf-button'), {
@@ -33,10 +35,16 @@ export function ContractList({
           <h2 className="text-base font-semibold text-foreground">Riwayat Kontrak</h2>
           <span className="ml-auto text-xs text-muted-foreground">0 kontrak</span>
         </div>
-        <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
+        <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
           <ClockCounterClockwise size={32} className="text-muted-foreground/50" />
           <p className="text-sm font-semibold text-muted-foreground">Belum ada riwayat kontrak</p>
           <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama karyawan ini</p>
+          <Button asChild size="sm" className="mt-1 gap-1.5">
+            <Link href={`/karyawan/${employee.id}/kontrak`}>
+              <Plus size={13} />
+              Buat Kontrak Pertama
+            </Link>
+          </Button>
         </div>
       </div>
     )

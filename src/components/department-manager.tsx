@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Buildings, Plus, Trash, CircleNotch, Users } from '@phosphor-icons/react'
+import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { Buildings, Plus, Trash, CircleNotch, Users, MagnifyingGlass } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -28,10 +29,20 @@ interface Props {
 }
 
 export function DepartmentManager({ departments: initial, createAction, deleteAction }: Props) {
+  const router = useRouter()
   const [depts, setDepts] = useState(initial)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const filteredDepts = useMemo(
+    () => !search ? depts : depts.filter(d =>
+      d.name.toLowerCase().includes(search.toLowerCase()) ||
+      d.code.toLowerCase().includes(search.toLowerCase())
+    ),
+    [depts, search]
+  )
 
   const handleCreate = async (formData: FormData) => {
     setCreating(true)
@@ -40,8 +51,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       if (result.success) {
         toast.success(result.message ?? 'Departemen dibuat')
         setShowForm(false)
-        // Optimistic: refetch would be ideal but revalidatePath handles server side
-        window.location.reload()
+        router.refresh()
       } else {
         toast.error(result.error)
       }
@@ -74,12 +84,21 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
 
       {/* ─── Department List ─── */}
       <div className="lg:col-span-2 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-          <h2 className="text-base font-semibold text-foreground">
-            Daftar Departemen
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 gap-3">
+          <h2 className="text-base font-semibold text-foreground shrink-0">
+            Departemen
             <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
           </h2>
-          <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-1.5">
+          <div className="relative flex-1 max-w-xs">
+            <MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari nama atau kode..."
+              className="w-full h-8 pl-8 pr-3 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            />
+          </div>
+          <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-1.5 shrink-0">
             <Plus size={13} />
             Tambah
           </Button>
@@ -102,7 +121,14 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {depts.map(dept => (
+              {filteredDepts.length === 0 && search && (
+                <tr>
+                  <td colSpan={4} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                    Tidak ada departemen untuk &ldquo;{search}&rdquo;
+                  </td>
+                </tr>
+              )}
+              {filteredDepts.map(dept => (
                 <tr key={dept.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">

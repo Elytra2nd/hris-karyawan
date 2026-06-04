@@ -150,14 +150,14 @@ Chart palette di `globals.css` (lavender/mint/peach/pink) beda dari `desain.md` 
 | **P0** | A1 Revert warna ke Astra Blue | Sedang | ⬜ diminta user |
 | **P0** | A2 Tebalkan/gelapkan font | Kecil | ⬜ diminta user |
 | P1 | A3 Bersihkan hardcoded warna | Sedang | ⬜ |
-| P1 | S1 CSP + HSTS | Kecil | ⬜ |
-| P1 | Q3 Sinkron CLAUDE.md (roles/design) | Kecil | ⬜ |
-| P1 | P1 `cache()` session | Kecil | ⬜ |
-| P1 | P2 Server-side pagination | Sedang | ⬜ |
-| P2 | S2 Guard path traversal | Kecil | ⬜ |
-| P2 | S3 Validasi departmentId | Kecil | ⬜ |
-| P2 | Q1 Buang `as any` | Kecil | ⬜ |
-| P2 | A4/A5 Konsistensi typografi & chart | Sedang | ⬜ |
-| P3 | Q2, Q4, P3, S4, X1, test integrasi | Bervariasi | ⬜ |
+| P1 | S1 CSP + HSTS | Kecil | ✅ |
+| P1 | Q3 Sinkron CLAUDE.md (roles/design) | Kecil | ✅ |
+| P1 | P1 `cache()` session | Kecil | ✅ |
+| P1 | P2 Server-side pagination + contractFilter | Sedang | ✅ |
+| P2 | S2 Guard path traversal | Kecil | ✅ |
+| P2 | S3 Validasi departmentId | Kecil | ✅ |
+| P2 | Q1 Buang `as any` | Kecil | ✅ |
+| P2 | A4/A5 Konsistensi typografi & chart | Sedang | ✅ |
+| P3 | Q2 (console.error di error boundary — intentional), Q4, P3, S4, X1, test integrasi | Bervariasi | ⬜ P3 ✅ |
 
 > Untuk audit khusus UX/workflow (drill-down, filter, empty state), lihat `UX_AUDIT.md` yang sudah ada — saling melengkapi, tidak duplikat.

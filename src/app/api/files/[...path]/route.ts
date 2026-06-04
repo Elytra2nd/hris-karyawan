@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { readFile } from 'fs/promises'
-import { join, extname, normalize } from 'path'
+import { join, extname, normalize, sep } from 'path'
 import { NextRequest, NextResponse } from 'next/server'
 
 const PRIVATE_BASE = join(process.cwd(), 'private_uploads')
@@ -31,7 +31,8 @@ export async function GET(
   }
 
   const filePath = join(PRIVATE_BASE, relative)
-  if (!filePath.startsWith(PRIVATE_BASE)) {
+  const baseWithSep = PRIVATE_BASE.endsWith(sep) ? PRIVATE_BASE : PRIVATE_BASE + sep
+  if (!filePath.startsWith(baseWithSep)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

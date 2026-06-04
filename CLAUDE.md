@@ -51,8 +51,12 @@ src/
 ```
 
 ## Role & Access
-- **ADMIN:** Full access — CRUD karyawan, manajemen user, lihat audit log
+- **ADMIN:** Full access — CRUD karyawan, manajemen user, audit log, departments
+- **HR_MANAGER:** CRUD karyawan + kontrak, lihat audit log, export/import. Tidak bisa manajemen user.
+- **HR_STAFF:** Tambah & edit karyawan, buat kontrak, upload foto. Tidak bisa delete atau manajemen user.
 - **VIEWER:** Read-only — hanya bisa lihat data karyawan
+
+Permission matrix lengkap: `src/lib/auth-guard.ts` (PERMISSIONS object)
 
 ## Business Rules
 - Setiap karyawan bisa punya banyak kontrak (one-to-many)

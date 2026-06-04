@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getEmployees, deleteEmployee } from '@/app/actions/employee'
+import { getEmployees, getEmployeeStats, deleteEmployee } from '@/app/actions/employee'
+import type { Prisma } from '@prisma/client'
+
+type EmployeeRow = Prisma.EmployeeGetPayload<{
+  include: { contracts: true }
+}>
 import {
   CircleNotch, Eye, Pencil, ClockCounterClockwise, Trash, MagnifyingGlass,
   Sliders, ArrowsDownUp, ArrowUp, ArrowDown,
@@ -42,7 +47,9 @@ type SortKey = 'namaLengkap' | 'nik' | 'posisi' | 'cabang' | 'traineeSelesai' | 
 export default function DataKaryawanPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [employees, setEmployees] = useState<any[]>([])
+  const [employees, setEmployees] = useState<EmployeeRow[]>([])
+  const [total, setTotal] = useState(0)
+  const [stats, setStats] = useState({ total: 0, aktif: 0, nonAktif: 0, segera: 0 })
   const [loading, setLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
@@ -82,11 +89,16 @@ export default function DataKaryawanPage() {
 
   const fetchData = async () => {
     setLoading(true)
-    const data = await getEmployees({ search: debouncedSearch, cabang, status: statusFilter })
-    setEmployees(data)
+    const [result, statsResult] = await Promise.all([
+      getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, page, perPage: PER_PAGE }),
+      getEmployeeStats({ search: debouncedSearch, cabang }),
+    ])
+    setEmployees(result.employees)
+    setTotal(result.total)
+    setStats(statsResult)
     setLoading(false)
   }
-  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter])
+  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter, contractFilter, page])
 
   const cabangOptions = useMemo(
     () => [...new Set(employees.map((e) => e.cabang))].sort(),
@@ -95,54 +107,26 @@ export default function DataKaryawanPage() {
 
   const now = new Date()
 
-  const stats = useMemo(() => {
-    const total = employees.length
-    const aktif = employees.filter((e) => {
-      const c = e.contracts?.[0]
-      if (!c || e.status !== 'AKTIF') return false
-      return differenceInDays(new Date(c.traineeSelesai), now) >= 0
-    }).length
-    const segera = employees.filter((e) => {
-      const c = e.contracts?.[0]
-      if (!c) return false
-      const d = differenceInDays(new Date(c.traineeSelesai), now)
-      return d >= 0 && d <= 30
-    }).length
-    return { total, aktif, nonAktif: total - aktif, segera }
-  }, [employees])
-
-  // Apply contract filter (expiring14 / expiring30 / expiring90 / expired)
-  const filteredEmployees = useMemo(() => {
-    if (!contractFilter) return employees
-    return employees.filter((e) => {
-      const c = e.contracts?.[0]
-      if (!c) return false
-      const d = differenceInDays(new Date(c.traineeSelesai), now)
-      if (contractFilter === 'expired') return d < 0
-      if (contractFilter === 'expiring14') return d >= 0 && d <= 14
-      if (contractFilter === 'expiring30') return d >= 0 && d <= 30
-      if (contractFilter === 'expiring90') return d >= 0 && d <= 90
-      return true
-    })
-  }, [employees, contractFilter])
-
+  // Sort is applied client-side on the current page (server handles filtering + pagination)
   const sortedEmployees = useMemo(() => {
-    if (!sortCol) return filteredEmployees
-    return [...filteredEmployees].sort((a, b) => {
-      let va: any, vb: any
-      if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi || ''; vb = b.contracts?.[0]?.posisi || '' }
-      else if (sortCol === 'traineeSelesai') { va = a.contracts?.[0]?.traineeSelesai || ''; vb = b.contracts?.[0]?.traineeSelesai || '' }
-      else { va = a[sortCol] || ''; vb = b[sortCol] || '' }
-      if (typeof va === 'string') va = va.toLowerCase()
-      if (typeof vb === 'string') vb = vb.toLowerCase()
+    if (!sortCol) return employees
+    return [...employees].sort((a, b) => {
+      let va: string, vb: string
+      if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi ?? ''; vb = b.contracts?.[0]?.posisi ?? '' }
+      else if (sortCol === 'traineeSelesai') {
+        va = a.contracts?.[0]?.traineeSelesai ? String(a.contracts[0].traineeSelesai) : ''
+        vb = b.contracts?.[0]?.traineeSelesai ? String(b.contracts[0].traineeSelesai) : ''
+      }
+      else { va = String((a as Record<string, unknown>)[sortCol] ?? ''); vb = String((b as Record<string, unknown>)[sortCol] ?? '') }
+      va = va.toLowerCase(); vb = vb.toLowerCase()
       if (va < vb) return sortDir === 'asc' ? -1 : 1
       if (va > vb) return sortDir === 'asc' ? 1 : -1
       return 0
     })
-  }, [filteredEmployees, sortCol, sortDir])
+  }, [employees, sortCol, sortDir])
 
-  const totalPages = Math.ceil(sortedEmployees.length / PER_PAGE)
-  const rows = sortedEmployees.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const totalPages = Math.ceil(total / PER_PAGE)
+  const rows = sortedEmployees
 
   const pageNums = useMemo(() => {
     const p: (number | string)[] = []
@@ -193,23 +177,23 @@ export default function DataKaryawanPage() {
     }
   }
 
-  const fmtDate = (s: string) =>
+  const fmtDate = (s: string | Date) =>
     !s ? '-' : format(new Date(s), 'dd MMM yyyy', { locale: localeID })
 
-  const getStatusChip = (emp: any) => {
+  const getStatusChip = (emp: EmployeeRow) => {
     if (emp.status !== 'AKTIF') {
-      return <span className="chip-nonaktif">Non-Aktif</span>
+      return <button onClick={() => updateParams({ status: 'NON-AKTIF' })} className="chip-nonaktif hover:opacity-80 transition-opacity cursor-pointer">Non-Aktif</button>
     }
     const c = emp.contracts?.[0]
     if (c) {
       const d = differenceInDays(new Date(c.traineeSelesai), now)
-      if (d < 0) return <span className="chip-expired">Expired</span>
-      if (d <= 30) return <span className="chip-warning">Segera Habis</span>
+      if (d < 0) return <button onClick={() => updateParams({ filter: 'expired' })} className="chip-expired hover:opacity-80 transition-opacity cursor-pointer">Expired</button>
+      if (d <= 30) return <button onClick={() => updateParams({ filter: 'expiring30' })} className="chip-warning hover:opacity-80 transition-opacity cursor-pointer">Segera Habis</button>
     }
-    return <span className="chip-aktif">Aktif</span>
+    return <button onClick={() => updateParams({ status: 'AKTIF' })} className="chip-aktif hover:opacity-80 transition-opacity cursor-pointer">Aktif</button>
   }
 
-  const getDaysBadge = (emp: any) => {
+  const getDaysBadge = (emp: EmployeeRow) => {
     const c = emp.contracts?.[0]
     if (!c) return null
     const d = differenceInDays(new Date(c.traineeSelesai), now)
@@ -291,7 +275,7 @@ export default function DataKaryawanPage() {
               {contractFilter === 'expiring14' && 'Menampilkan kontrak yang berakhir dalam 14 hari (kritis)'}
               {contractFilter === 'expiring30' && 'Menampilkan kontrak yang berakhir dalam 30 hari'}
               {contractFilter === 'expiring90' && 'Menampilkan kontrak yang perlu tindakan (≤ 90 hari)'}
-              <span className="ml-1.5 text-xs font-normal text-muted-foreground">({filteredEmployees.length} karyawan)</span>
+              <span className="ml-1.5 text-xs font-normal text-muted-foreground">({total} karyawan)</span>
             </p>
           </div>
           <button
@@ -312,12 +296,14 @@ export default function DataKaryawanPage() {
           value={stats.total}
           label="Total Karyawan"
           primary
+          href="/karyawan"
         />
         <StatCard
           icon={<CheckCircle size={18} className="text-green-600" />}
           iconBg="bg-green-50"
           value={stats.aktif}
           label="Karyawan Aktif"
+          href="/karyawan?status=AKTIF"
         />
         <StatCard
           icon={<Clock size={18} className="text-amber-500" />}
@@ -325,12 +311,14 @@ export default function DataKaryawanPage() {
           value={stats.segera}
           label="Kontrak ≤ 30 hari"
           highlight={stats.segera > 0}
+          href="/karyawan?filter=expiring30"
         />
         <StatCard
           icon={<XCircle size={18} className="text-muted-foreground/70" />}
           iconBg="bg-muted/50"
           value={stats.nonAktif}
           label="Non-Aktif"
+          href="/karyawan?status=NON-AKTIF"
         />
       </div>
 
@@ -545,7 +533,7 @@ export default function DataKaryawanPage() {
                   }
                 />
               ) : (
-                rows.map((emp: any) => {
+                rows.map((emp) => {
                   const c = emp.contracts?.[0]
                   const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
                   const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
@@ -768,7 +756,7 @@ export default function DataKaryawanPage() {
           />
         ) : (
           <div className="divide-y divide-border/60">
-            {rows.map((emp: any) => {
+            {rows.map((emp) => {
               const c = emp.contracts?.[0]
               const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
               const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
@@ -902,6 +890,7 @@ function StatCard({
   label,
   primary = false,
   highlight = false,
+  href,
 }: {
   icon: React.ReactNode
   iconBg: string
@@ -909,16 +898,10 @@ function StatCard({
   label: string
   primary?: boolean
   highlight?: boolean
+  href?: string
 }) {
-  return (
-    <div className={cn(
-      'rounded-lg p-4 flex items-center gap-3 shadow-sm',
-      primary
-        ? 'bg-primary'
-        : highlight
-          ? 'bg-card border border-amber-200'
-          : 'bg-card border border-border'
-    )}>
+  const inner = (
+    <>
       <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconBg)}>
         {icon}
       </div>
@@ -930,8 +913,15 @@ function StatCard({
           {label}
         </p>
       </div>
-    </div>
+    </>
   )
+  const cls = cn(
+    'rounded-lg p-4 flex items-center gap-3 shadow-sm',
+    href && 'hover:shadow-md transition-shadow cursor-pointer',
+    primary ? 'bg-primary' : highlight ? 'bg-card border border-amber-200' : 'bg-card border border-border'
+  )
+  if (href) return <Link href={href} className={cls}>{inner}</Link>
+  return <div className={cls}>{inner}</div>
 }
 
 function PgBtn({

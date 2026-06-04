@@ -354,17 +354,20 @@ export default async function DashboardPage() {
               {statsBranch.map((b, i) => {
                 const pct = totalEmployees > 0 ? Math.round((b._count.ba / totalEmployees) * 100) : 0
                 return (
-                  <tr key={i} className="hover:bg-muted/50 transition-colors">
+                  <tr key={i} className="hover:bg-muted/50 transition-colors group">
                     <td className="px-5 py-3.5">
                       <span className="inline-block px-2.5 py-0.5 rounded bg-muted text-xs font-bold text-foreground font-mono">
                         {b.ba}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
-                        <span className="text-sm font-semibold text-foreground">{b.baCabang}</span>
-                      </div>
+                      <Link
+                        href={`/karyawan?cabang=${b.cabang}`}
+                        className="flex items-center gap-2 hover:text-primary transition-colors"
+                      >
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0 group-hover:text-primary transition-colors" />
+                        <span className="text-sm font-semibold">{b.baCabang}</span>
+                      </Link>
                     </td>
                     <td className="px-5 py-3.5 text-sm text-foreground/70 font-mono">{b.cabang}</td>
                     <td className="px-5 py-3.5 text-center text-base font-bold text-foreground">{b._count.ba}</td>

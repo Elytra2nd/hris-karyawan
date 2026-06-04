@@ -3,9 +3,9 @@
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-// Pekerja palette: cyan, lavender, mint, peach, pink, sky
-const BAR_COLORS = ['#06B6D4', '#A78BFA', '#34D399', '#FBBF24', '#F472B6', '#38BDF8']
-const BAR_COLORS_DARK = ['#22D3EE', '#C4B5FD', '#6EE7B7', '#FCD34D', '#F9A8D4', '#7DD3FC']
+// Astra brand palette — aligned with desain.md chart tokens
+const BAR_COLORS = ['#1d4ed8', '#0e7490', '#16a34a', '#ca8a04', '#dc2626', '#7c3aed']
+const BAR_COLORS_DARK = ['#3b82f6', '#22d3ee', '#4ade80', '#fbbf24', '#f87171', '#a78bfa']
 
 interface Props {
   data: [posisi: string, count: number][]
@@ -24,7 +24,7 @@ export function EmployeeChart({ data }: Props) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-muted-foreground font-bold uppercase tracking-wider">
+      <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
         Tidak ada data
       </div>
     )

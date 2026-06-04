@@ -59,8 +59,9 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
 
     revalidatePath('/admin/users')
     return ok({ id: user.id }, `Akun ${username} berhasil dibuat`)
-  } catch (error: any) {
-    if (error.code === 'UNAUTHORIZED') return fail(error.message, 'UNAUTHORIZED')
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
     logger.error('createUser failed', { error: String(error) })
     return fail('Gagal membuat akun', 'SERVER_ERROR')
   }
