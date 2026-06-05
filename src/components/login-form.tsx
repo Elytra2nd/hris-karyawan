@@ -45,9 +45,9 @@ export default function LoginForm() {
       <div className="text-center mb-8">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/astra-logo.png"
-          alt="Astra Motor Kalimantan Barat"
-          className="h-12 object-contain mx-auto mb-5"
+          src="/astra-motor.png"
+          alt="Astra Motor"
+          className="h-11 w-auto object-contain mx-auto mb-5"
         />
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
           HRIS Karyawan

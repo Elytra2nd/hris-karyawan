@@ -13,5 +13,11 @@ export default withAuth({
 })
 
 export const config = {
-  matcher: ['/((?!login|api/auth|api/health|_next/static|_next/image|favicon\\.ico).*)'],
+  // Kecualikan halaman publik, endpoint auth, dan aset statis (gambar/font di /public).
+  // Tanpa pengecualian ekstensi, request logo & font Satoshi ikut kena auth → redirect ke
+  // /login saat belum login (logo broken, font fallback). File di /api/files tetap aman
+  // karena route-nya melakukan cek sesi sendiri.
+  matcher: [
+    '/((?!login|api/auth|api/health|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpe?g|gif|svg|webp|ico|woff2?|ttf)$).*)',
+  ],
 }

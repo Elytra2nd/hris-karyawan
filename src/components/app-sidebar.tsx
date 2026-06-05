@@ -108,15 +108,15 @@ export function AppSidebar() {
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/astra-logo.png"
-            alt="Astra Motor Kalbar"
-            className="h-6 object-contain"
+            src="/astra-motor.png"
+            alt="Astra Motor"
+            className="h-6 w-auto object-contain"
           />
           <div className="h-4 w-px bg-sidebar-border" />
           <div>
             <p className="text-sm font-bold text-foreground leading-none">HRIS</p>
             <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-              Astra Motor Kalbar
+              Kalimantan Barat
             </p>
           </div>
         </div>
