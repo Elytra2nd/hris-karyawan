@@ -15,16 +15,6 @@ import {
   SignOut,
   UserGear,
   CaretDown,
-  CalendarBlank,
-  Clock,
-  AirplaneTilt,
-  Money,
-  Receipt,
-  HandCoins,
-  Target,
-  Star,
-  ChatCircleText,
-  Lock,
 } from '@phosphor-icons/react'
 import {
   Sidebar,
@@ -50,12 +40,10 @@ export function AppSidebar() {
   const { role, username } = useSidebar()
   const isAdmin       = role === 'ADMIN'
   const canManageHR   = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')
-  const canManageData = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const canReadAudit  = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const pathname = usePathname()
 
   useEffect(() => {
-    // Load persisted section state from localStorage
     const saved = typeof window !== 'undefined' ? localStorage.getItem('sidebar-sections') : null
     if (saved) {
       setOpenSections(JSON.parse(saved))
@@ -66,7 +54,6 @@ export function AppSidebar() {
   const toggle = (key: string) => {
     setOpenSections(p => {
       const updated = { ...p, [key]: !p[key] }
-      // Persist to localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem('sidebar-sections', JSON.stringify(updated))
       }
@@ -88,23 +75,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      {/* ─── Header: Module Switcher + Logo ─── */}
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3 space-y-3">
-        {/* Module Switcher */}
-        <div className="flex items-center gap-1.5">
-          <button className="px-3 py-1 text-xs font-semibold rounded-md bg-primary text-primary-foreground">
-            HRIS
-          </button>
-          <button
-            disabled
-            className="px-3 py-1 text-xs font-medium rounded-md text-muted-foreground/70 border border-border cursor-not-allowed"
-            title="Segera hadir"
-          >
-            ATS
-          </button>
-        </div>
-
-        {/* Logo & App Name */}
+      {/* ─── Header: Logo + App Name ─── */}
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -114,7 +86,7 @@ export function AppSidebar() {
           />
           <div className="h-4 w-px bg-sidebar-border" />
           <div>
-            <p className="text-sm font-bold text-foreground leading-none">HRIS</p>
+            <p className="text-sm font-bold text-foreground leading-none">TMS</p>
             <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
               Kalimantan Barat
             </p>
@@ -212,47 +184,15 @@ export function AppSidebar() {
           </div>
         </SidebarAdminOnly>
 
-        {/* ── Waktu — Coming Soon ── */}
-        <div>
-          <SectionHeaderDisabled label="Waktu" comingSoon="Q3 2026" />
-          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
-            <NavItemDisabled icon={<CalendarBlank size={16} />} label="Jadwal & Shift" />
-            <NavItemDisabled icon={<AirplaneTilt size={16} />} label="Cuti" />
-            <NavItemDisabled icon={<Clock size={16} />} label="Lembur" />
-          </nav>
-        </div>
-
-        {/* ── Keuangan — Coming Soon ── */}
-        <div>
-          <SectionHeaderDisabled label="Keuangan" comingSoon="Q4 2026" />
-          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
-            <NavItemDisabled icon={<Money size={16} />} label="Penggajian" />
-            <NavItemDisabled icon={<Receipt size={16} />} label="Reimbursement" />
-            <NavItemDisabled icon={<HandCoins size={16} />} label="Kasbon" />
-          </nav>
-        </div>
-
-        {/* ── Kinerja — Coming Soon ── */}
-        <div>
-          <SectionHeaderDisabled label="Kinerja" comingSoon="2027" />
-          <nav className="mt-1 space-y-0.5 opacity-50 pointer-events-none">
-            <NavItemDisabled icon={<Target size={16} />} label="KPI & OKR" />
-            <NavItemDisabled icon={<Star size={16} />} label="Penilaian Kinerja" />
-            <NavItemDisabled icon={<ChatCircleText size={16} />} label="Umpan Balik" />
-          </nav>
-        </div>
-
       </SidebarContent>
 
       {/* ─── Footer: User Info + Logout ─── */}
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-2.5">
-          {/* Avatar */}
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
             {initials}
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate leading-none">
               {username || 'Pengguna'}
@@ -262,7 +202,6 @@ export function AppSidebar() {
             </p>
           </div>
 
-          {/* Profil */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
@@ -272,12 +211,9 @@ export function AppSidebar() {
                 <UserGear size={15} weight="duotone" />
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              Profil & Ganti Password
-            </TooltipContent>
+            <TooltipContent side="top">Profil & Ganti Password</TooltipContent>
           </Tooltip>
 
-          {/* Logout */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -287,15 +223,12 @@ export function AppSidebar() {
                 <SignOut size={15} weight="bold" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              Keluar
-            </TooltipContent>
+            <TooltipContent side="top">Keluar</TooltipContent>
           </Tooltip>
         </div>
 
-        {/* Branding */}
         <p className="mt-3 text-[10px] text-muted-foreground/70 text-center">
-          HRIS Karyawan Trainee · v1.0
+          Trainee Monitoring System · v2.1
         </p>
       </SidebarFooter>
     </Sidebar>
@@ -333,25 +266,6 @@ function SectionHeader({
   )
 }
 
-function SectionHeaderDisabled({
-  label,
-  comingSoon,
-}: {
-  label: string
-  comingSoon: string
-}) {
-  return (
-    <div className="flex items-center justify-between w-full px-2 py-1">
-      <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
-        {label}
-      </span>
-      <span className="text-[9px] font-bold text-muted-foreground/70 bg-muted px-1.5 py-0.5 rounded uppercase tracking-wide">
-        {comingSoon}
-      </span>
-    </div>
-  )
-}
-
 function NavItem({
   href,
   icon,
@@ -373,32 +287,10 @@ function NavItem({
           : 'text-foreground/70 hover:bg-accent hover:text-primary font-medium'
       )}
     >
-      <span
-        className={cn(
-          'shrink-0',
-          active ? 'text-primary' : 'text-muted-foreground/70'
-        )}
-      >
+      <span className={cn('shrink-0', active ? 'text-primary' : 'text-muted-foreground/70')}>
         {icon}
       </span>
       {label}
     </Link>
-  )
-}
-
-function NavItemDisabled({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-muted-foreground/70 font-medium cursor-not-allowed">
-      <span className="shrink-0 text-muted-foreground/50">
-        <Lock size={14} />
-      </span>
-      {label}
-    </div>
   )
 }

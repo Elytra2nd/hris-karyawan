@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { Bell, Clock, Warning, CaretRight, ArrowsClockwise, MagnifyingGlass } from '@phosphor-icons/react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Bell, Clock, Warning, CaretRight, ArrowsClockwise, MagnifyingGlass, CheckCircle } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverPopup } from '@/components/ui/popover'
 import {
   Tooltip,
@@ -21,6 +21,22 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
+
+  // Load seen IDs from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('tms-notif-seen')
+      if (stored) setSeenIds(new Set(JSON.parse(stored) as string[]))
+    } catch { /* ignore */ }
+  }, [])
+
+  const markAllRead = useCallback(() => {
+    const allIds = [...data.critical, ...data.warning, ...data.approaching].map(i => i.employeeId)
+    const updated = new Set(allIds)
+    setSeenIds(updated)
+    try { localStorage.setItem('tms-notif-seen', JSON.stringify([...updated])) } catch { /* ignore */ }
+  }, [data])
 
   const fetch = async () => {
     setLoading(true)
@@ -42,7 +58,12 @@ export function NotificationBell() {
     const q = search.toLowerCase()
     return allItems.filter(i => i.namaLengkap.toLowerCase().includes(q) || i.cabang.toLowerCase().includes(q))
   }, [allItems, search])
-  const hasUrgent = data.totalUnread > 0
+
+  const unseenCount = useMemo(
+    () => allItems.filter(i => !seenIds.has(i.employeeId)).length,
+    [allItems, seenIds]
+  )
+  const hasUrgent = unseenCount > 0
 
   return (
     <Tooltip>
@@ -57,12 +78,12 @@ export function NotificationBell() {
                   'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   hasUrgent && 'text-red-600 hover:bg-red-50'
                 )}
-                aria-label={`${data.totalUnread} notifikasi`}
+                aria-label={`${unseenCount} notifikasi baru`}
               >
                 <Bell size={16} />
                 {hasUrgent && (
                   <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
-                    {data.totalUnread > 9 ? '9+' : data.totalUnread}
+                    {unseenCount > 9 ? '9+' : unseenCount}
                   </span>
                 )}
               </button>
@@ -72,15 +93,34 @@ export function NotificationBell() {
       <PopoverPopup className="w-80 p-0 overflow-hidden" side="bottom" align="end" sideOffset={8}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
-          <span className="text-sm font-bold text-foreground">Notifikasi Kontrak</span>
-          <button
-            onClick={fetch}
-            className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground/80 transition-colors"
-            disabled={loading}
-          >
-            <ArrowsClockwise size={11} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground">Notifikasi Kontrak</span>
+            {unseenCount > 0 && (
+              <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+                {unseenCount} baru
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {allItems.length > 0 && unseenCount > 0 && (
+              <button
+                onClick={markAllRead}
+                className="flex items-center gap-1 text-[11px] text-primary/70 hover:text-primary transition-colors"
+                title="Tandai semua dibaca"
+              >
+                <CheckCircle size={11} />
+                Baca semua
+              </button>
+            )}
+            <button
+              onClick={fetch}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground/80 transition-colors"
+              disabled={loading}
+            >
+              <ArrowsClockwise size={11} className={loading ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Search */}

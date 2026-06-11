@@ -51,7 +51,7 @@ export default async function UserManagementPage({
         <div>
           <h1 className="text-2xl font-bold text-foreground">Manajemen Pengguna</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Kelola akses pengguna sistem HRIS
+            Kelola akses pengguna sistem TMS
           </p>
         </div>
         <CreateUserModal />

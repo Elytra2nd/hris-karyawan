@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { ContractStatusChart } from '@/components/contract-status-chart'
 import { EmployeeChart } from '@/components/employee-chart'
+import { LiveClock } from '@/components/live-clock'
 
 export default async function DashboardPage() {
   const user = await verifySession()
@@ -72,10 +73,17 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold text-foreground">
             {greeting}, {user?.username || 'Pengguna'}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
-            <Calendar size={13} />
-            {format(now, "EEEE, dd MMMM yyyy", { locale: localeID })}
-          </p>
+          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Calendar size={13} />
+              {format(now, "EEEE, dd MMMM yyyy", { locale: localeID })}
+            </p>
+            <span className="text-muted-foreground/40 hidden sm:inline">·</span>
+            <p className="text-sm text-primary font-semibold flex items-center gap-1.5">
+              <Clock size={13} />
+              <LiveClock />
+            </p>
+          </div>
         </div>
         {user?.role === 'ADMIN' && (
           <Link href="/karyawan/tambah">

@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { RootThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
-  title: 'HRIS Astra Motor Kalimantan Barat',
-  description: 'Sistem Informasi Manajemen Karyawan',
+  title: 'TMS — Trainee Monitoring System',
+  description: 'Trainee Monitoring System — Astra Motor Kalimantan Barat',
 };
 
 export const viewport: Viewport = {

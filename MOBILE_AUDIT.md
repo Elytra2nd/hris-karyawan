@@ -63,15 +63,15 @@
 ## 🟡 SISA YANG MASIH KURANG (non-mobile, dari AUDIT.md & UX_AUDIT.md)
 
 ### Workflow / UX
-- **UX 1.2** — Chart "Distribusi Posisi" & "Sebaran Cabang" belum interaktif (klik → filter). ⬜
-- **UX 3.2** — Belum ada quick-action "Perpanjang / Hentikan kontrak" di tiap row contract-list. ⬜
-- **UX 6.1** — Department belum bisa di-**edit/rename** (cuma delete). ⬜
-- **UX 7.1** — Form belum validate **on-blur** (validasi hanya saat submit). ⬜
-- **UX 7.2** — Edit form tanpa peringatan **unsaved changes** sebelum pindah halaman. ⬜
-- **UX 7.3** — Ubah status ke NON-AKTIF tanpa **konfirmasi** (AlertDialog). ⬜
-- **UX 8.1** — Back dari detail karyawan **menghilangkan filter** sebelumnya. ⬜
-- **UX 9.1** — Notification bell tanpa **search**. ⬜
-- **UX 9.2** — Notifikasi tanpa **mark-as-read** (badge selalu muncul). ⬜
+- **UX 1.2** — Chart interaktif (klik → filter) ✅
+- **UX 3.2** — Quick-action "Perpanjang kontrak" ✅
+- **UX 6.1** — Edit/rename department ✅
+- **UX 7.1** — Form validate on-blur ✅
+- **UX 7.2** — Edit form unsaved changes warning ✅
+- **UX 7.3** — NON-AKTIF konfirmasi (AlertDialog) ✅
+- **UX 8.1** — Back preserve filter (router.back) ✅
+- **UX 9.1** — Notification search ✅
+- **UX 9.2** — Notifikasi mark-as-read (localStorage) ✅
 - **UX 10.2** — Image upload tanpa **progress indicator** jelas untuk file besar. ⬜
 
 ### Teknis / Best-practice (dari AUDIT.md)

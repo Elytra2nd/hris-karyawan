@@ -38,6 +38,19 @@ export function EmployeeForm({
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // On-blur per-field validation pakai Zod schema shape
+  const blurField = (name: keyof typeof createEmployeeSchema.shape, value: string) => {
+    const shape = createEmployeeSchema.shape
+    if (!(name in shape)) return
+    const result = (shape[name] as { safeParse: (v: unknown) => { success: boolean; error?: { issues: { message: string }[] } } })
+      .safeParse(value === '' ? null : value)
+    if (!result.success) {
+      setErrors(prev => ({ ...prev, [name]: result.error?.issues[0]?.message ?? 'Tidak valid' }))
+    } else {
+      setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
+    }
+  }
+
   useEffect(() => {
     if (posisi && tglMulai) {
       const opt = POSISI_OPTIONS.find(p => p.value === posisi)
@@ -95,8 +108,8 @@ export function EmployeeForm({
           color="blue"
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required error={errors.ba} />
-          <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required error={errors.baCabang} />
+          <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required error={errors.ba} onBlur={v => blurField('ba', v)} />
+          <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required error={errors.baCabang} onBlur={v => blurField('baCabang', v)} />
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="cabang" className="form-label">
               Cabang <span className="text-red-500">*</span>
@@ -146,18 +159,21 @@ export function EmployeeForm({
             name="namaLengkap" placeholder="Nama lengkap" required
             className="uppercase"
             error={errors.namaLengkap}
+            onBlur={v => blurField('namaLengkap', v)}
           />
           <FormField
             id="nik" label="NIK Karyawan"
             name="nik" placeholder="Diisi oleh HO"
             hint="Bisa dikosongkan dan diisi nanti"
             error={errors.nik}
+            onBlur={v => blurField('nik', v)}
           />
           <FormField
             id="noKtp" label="No KTP"
             name="noKtp" placeholder="16 digit angka" required
             className="font-mono"
             error={errors.noKtp}
+            onBlur={v => blurField('noKtp', v)}
           />
           <div className="space-y-2">
             <Label htmlFor="tglLahir" className="form-label">
@@ -170,18 +186,21 @@ export function EmployeeForm({
             id="namaIbu" label="Nama Ibu Kandung"
             name="namaIbu" placeholder="Sesuai KTP" required
             error={errors.namaIbu}
+            onBlur={v => blurField('namaIbu', v)}
           />
           <FormField
             id="noHp" label="No HP / WhatsApp"
             name="noHp" placeholder="08xxxxxxxxxx" required
             error={errors.noHp}
             hint="Diawali 08, 10-15 digit"
+            onBlur={v => blurField('noHp', v)}
           />
           <FormField
             id="noJamsostek" label="No Jamsostek"
             name="noJamsostek" placeholder="Opsional"
             className="font-mono"
             error={errors.noJamsostek}
+            onBlur={v => blurField('noJamsostek', v)}
           />
           <div className="space-y-2">
             <Label htmlFor="formConsent" className="form-label">
@@ -347,6 +366,7 @@ function FormField({
   hint,
   className,
   error,
+  onBlur,
 }: {
   id: string
   label: string
@@ -357,6 +377,7 @@ function FormField({
   hint?: string
   className?: string
   error?: string
+  onBlur?: (value: string) => void
 }) {
   return (
     <div className="space-y-2">
@@ -373,6 +394,7 @@ function FormField({
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         className={`h-9 text-sm ${error ? 'border-destructive' : ''} ${className ?? ''}`}
+        onBlur={onBlur ? (e) => onBlur((e.target as HTMLInputElement).value.trim()) : undefined}
       />
       <FieldError id={`${id}-error`} message={error} />
       {hint && !error && <p id={`${id}-hint`} className="text-xs text-muted-foreground">{hint}</p>}

@@ -52,7 +52,7 @@ export default function LayoutWrapper({
               </Tooltip>
               <Separator orientation="vertical" className="h-4 mx-1" />
               <span className="text-xs text-muted-foreground hidden sm:block flex-1">
-                HRIS Karyawan Trainee
+                Trainee Monitoring System
               </span>
 
               {/* ─── Right-side header actions ─── */}

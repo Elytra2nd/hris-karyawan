@@ -77,7 +77,7 @@ export function ContractList({
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden sm:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-border bg-accent/60">
@@ -200,7 +200,7 @@ export function ContractList({
       </div>
 
       {/* Mobile Timeline */}
-      <div className="sm:hidden divide-y divide-border/60">
+      <div className="md:hidden divide-y divide-border/60">
         {contracts.map((contract, index) => {
           const isActive = index === 0
           const isExpired = new Date(contract.traineeSelesai) < now

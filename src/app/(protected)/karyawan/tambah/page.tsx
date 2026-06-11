@@ -32,8 +32,8 @@ export default async function TambahKaryawanPage() {
         </p>
       </div>
 
-      {/* Form container */}
-      <div className="max-w-xl bg-card border border-border rounded-lg shadow-sm p-6">
+      {/* Form container — di-tengahin */}
+      <div className="max-w-2xl mx-auto bg-card border border-border rounded-lg shadow-sm p-6">
         <EmployeeForm action={createEmployee} departments={departments} />
       </div>
     </div>

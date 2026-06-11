@@ -57,7 +57,7 @@ export default async function AuditLogPage({
         <div>
           <h1 className="text-2xl font-bold text-foreground">Log Aktivitas</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Riwayat perubahan data sistem HRIS
+            Riwayat perubahan data sistem TMS
           </p>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

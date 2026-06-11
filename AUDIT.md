@@ -6,6 +6,48 @@
 
 ---
 
+## 🆕 REQUEST CLIENT — Rebranding & UI Corporate (2026-06-11)
+
+> Batch permintaan client: rebrand HRIS → TMS, login corporate, rampingkan sidebar sesuai scope.
+
+### R1. Form input data di-tengahin ✅
+- **Masalah:** Container form `max-w-xl` rata-kiri — terasa kosong di kanan pada layar lebar.
+- **Lokasi:** `src/app/(protected)/karyawan/tambah/page.tsx:38` (`<div className="max-w-xl ...">`) — tambahkan `mx-auto`. Cek juga form edit `karyawan/[id]/edit`.
+- **Fix:** `max-w-xl mx-auto` (atau `max-w-2xl mx-auto` biar lebih lega), header halaman ikut center bila perlu.
+
+### R2. Rename "HRIS" → "Trainee Monitoring System (TMS)" ✅
+- **Scope:** semua label UI yang menyebut "HRIS".
+- **Lokasi (11 titik):**
+  - `app/layout.tsx:7` — metadata `title`
+  - `components/app-sidebar.tsx:96` (module switcher), `:117` (logo app name), `:298` (footer branding)
+  - `components/layout-wrapper.tsx:55` — header "HRIS Karyawan Trainee"
+  - `components/login-form.tsx:53` ("HRIS Karyawan"), `:154` ("HRIS v2.1")
+  - `admin/audit-log/page.tsx:60`, `admin/users/page.tsx:54`, `create-user-modal.tsx:53` — "sistem HRIS"
+  - `export-excel-button.tsx:77,83` — filename & judul report (opsional ganti ke TMS)
+- **Fix:** brand utama jadi **"Trainee Monitoring System"** dengan singkatan **TMS**. Sidebar app name → "TMS", subtitle tetap "Kalimantan Barat".
+
+### R3. Login jadi corporate split-screen ✅
+- **Referensi:** mockup 2 panel — kiri panel branding (gradient biru Astra + greeting "Selamat Datang" + logo + tagline), kanan form login (email/username, password, remember me).
+- **Lokasi:** `components/login-form.tsx` + `app/login/page.tsx` (sekarang form tunggal di tengah).
+- **Fix:** layout `lg:grid-cols-2` — panel kiri brand (hidden di mobile, form full-width di mobile), panel kanan form. Pakai warna `--primary` (Astra Blue), bukan hardcode. "Sign up" TIDAK dipakai (registrasi via admin saja).
+
+### R4. Hapus modul ATS + sidebar "Waktu" ke bawah ✅
+- **Alasan:** di luar scope client (cuma monitoring trainee).
+- **Lokasi:** `components/app-sidebar.tsx`
+  - Hapus tombol **ATS** (`:98-104`) — module switcher tinggal 1, bisa dihapus seluruhnya atau jadikan label brand "TMS"
+  - Hapus 3 section disabled: **Waktu** (`:215-223`), **Keuangan** (`:225-233`), **Kinerja** (`:235-243`)
+  - Bersihkan: komponen `SectionHeaderDisabled` & `NavItemDisabled` + icon imports tak terpakai (`CalendarBlank, Clock, AirplaneTilt, Money, Receipt, HandCoins, Target, Star, ChatCircleText, Lock`)
+- **Fix:** sidebar tersisa: Umum (Dashboard) · Karyawan · Administrasi.
+
+### R5. Jam aktif (live clock) di dashboard ✅
+- **Alasan:** sentuhan corporate — tampilkan waktu real-time.
+- **Lokasi:** `app/(protected)/page.tsx` header dashboard (dekat greeting + tanggal).
+- **Fix:** komponen client baru `live-clock.tsx` — `HH:mm:ss` update tiap detik + tanggal lengkap (locale ID). Pakai `useEffect` + `setInterval`, guard hydration (mounted state).
+
+**Prioritas:** R2 & R4 cepat (rename + hapus) · R1 trivial · R3 & R5 butuh komponen baru.
+
+---
+
 ## 🎯 P0 — PERMINTAAN USER (belum dikerjakan)
 
 ### A1. Kembalikan warna ke Astra Blue (revert dari Cyan) ✅

@@ -50,7 +50,7 @@ export function CreateUserModal() {
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">Tambah Pengguna Baru</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Buat akun untuk Admin atau Pemirsa sistem HRIS.
+            Buat akun untuk Admin atau Pemirsa sistem TMS.
           </DialogDescription>
         </DialogHeader>
 

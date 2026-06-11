@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
@@ -30,6 +30,17 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [statusValue, setStatusValue] = useState(employee.status)
   const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   const handleStatusChange = (val: string) => {
     if (val === 'NON-AKTIF' && statusValue === 'AKTIF') {
@@ -85,7 +96,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             </p>
           </div>
 
-          <form action={handleSubmit} className="px-6 py-6 space-y-8">
+          <form action={handleSubmit} onChange={() => setIsDirty(true)} className="px-6 py-6 space-y-8">
 
             {/* ─── A. Data Operasional ─── */}
             <section className="space-y-4">
@@ -276,7 +287,13 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             </section>
 
             {/* ─── Submit ─── */}
-            <div className="pt-2 border-t border-border/60">
+            <div className="pt-2 border-t border-border/60 space-y-3">
+              {isDirty && !isPending && (
+                <p className="text-xs text-amber-600 flex items-center gap-1.5">
+                  <Warning size={12} />
+                  Ada perubahan belum disimpan
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={isPending}
