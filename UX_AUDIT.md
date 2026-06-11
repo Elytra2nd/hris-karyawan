@@ -29,7 +29,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Row tabel pakai `hover:bg-muted/50` tapi tidak ada `href`/`onClick`
 - **Fix:** Bungkus dengan `<Link href={`/karyawan?cabang=${ba.baCabang}`}>` agar user bisa drill-down ke karyawan per cabang
 
-#### 1.2 Chart "Distribusi Posisi" dan "Sebaran Cabang" tidak interaktif
+#### 1.2 Chart "Distribusi Posisi" dan "Sebaran Cabang" tidak interaktif ✅
 - **File:** `src/app/(protected)/page.tsx:287-300, 303-332`
 - **Masalah:** Klik bar/segment tidak filter karyawan
 - **Fix:** Tambahkan `onClick` ke chart Recharts untuk navigate ke list dengan filter
@@ -41,7 +41,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Chip "Aktif" / "Segera Habis" / "Expired" hanya visual
 - **Fix:** `onClick={() => updateParams({ filter: status })}` agar auto-filter
 
-#### 2.2 Stat cards di halaman karyawan tidak clickable
+#### 2.2 Stat cards di halaman karyawan tidak clickable ✅
 - **File:** `src/app/(protected)/karyawan/page.tsx:254-282`
 - **Masalah:** StatCard component tidak menerima href
 - **Fix:** Update `StatCard` untuk support `href` prop, wrap dengan Link
@@ -53,7 +53,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Hanya teks "Tambahkan kontrak pertama karyawan ini" tanpa tombol
 - **Fix:** Tambahkan `<Button asChild><Link href={`/karyawan/${employee.id}/kontrak`}>Buat Kontrak Pertama</Link></Button>`
 
-#### 3.2 Tidak ada quick-action "Perpanjang Kontrak"
+#### 3.2 Tidak ada quick-action "Perpanjang Kontrak" ✅
 - **File:** `src/components/contract-list.tsx` (kontrak yang masih running)
 - **Masalah:** Untuk kontrak yang segera habis, user harus navigate manual ke /kontrak
 - **Fix:** Tambah dropdown action di tiap row: "Perpanjang", "Hentikan", "Lihat PDF"
@@ -74,7 +74,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Semua log dimuat sekaligus (max 200 dari DB tapi tetap berat)
 - **Fix:** Server-side pagination dengan `?page=` & `?limit=`
 
-#### 4.3 Filter state tidak persist di URL
+#### 4.3 Filter state tidak persist di URL ✅
 - **File:** `src/app/(protected)/admin/audit-log/page.tsx:14-17`
 - **Masalah:** Refresh = state hilang
 - **Fix:** Pakai `useSearchParams` pattern seperti `karyawan/page.tsx`
@@ -93,12 +93,12 @@ Tanggal audit: 2026-05-25
 
 ### 6. Admin → Departments
 
-#### 6.1 Tidak bisa edit department
+#### 6.1 Tidak bisa edit department ✅
 - **File:** `src/components/department-manager.tsx:95-110`
 - **Masalah:** Hanya tombol delete; tidak bisa rename
 - **Fix:** Tambah tombol Edit (icon Pencil) + modal/inline edit
 
-#### 6.2 Delete tidak warning kalau dept punya karyawan
+#### 6.2 Delete tidak warning kalau dept punya karyawan ✅ (tombol disabled + guard server)
 - **File:** `src/components/department-manager.tsx:55-70`
 - **Masalah:** Bisa delete dept yang in-use tanpa peringatan
 - **Fix:** Query count karyawan dulu; tampilkan "X karyawan tergabung" sebelum confirm
@@ -129,14 +129,14 @@ Tanggal audit: 2026-05-25
 - **Masalah:** User bisa klik away tanpa peringatan
 - **Fix:** Track form dirty state; tombol "Simpan" disabled sampai ada perubahan; warning before navigate
 
-#### 7.3 Status change tidak konfirmasi
+#### 7.3 Status change tidak konfirmasi ✅
 - **File:** `src/components/edit-karyawan-form.tsx` (field status)
 - **Masalah:** Ubah karyawan ke "NON-AKTIF" langsung tanpa konfirmasi
 - **Fix:** AlertDialog konfirmasi: "Yakin set non-aktif? Aksi ini menghentikan tracking kontrak."
 
 ### 8. Navigation
 
-#### 8.1 Back button hilangkan filter context
+#### 8.1 Back button hilangkan filter context ✅
 - **File:** `src/app/(protected)/karyawan/[id]/page.tsx:60-71`
 - **Masalah:** User dari `?filter=expiring90` → klik karyawan → back = filter hilang
 - **Fix:** Pakai `router.back()` instead of `<Link href="/karyawan">`, atau simpan filter di sessionStorage
@@ -148,7 +148,7 @@ Tanggal audit: 2026-05-25
 
 ### 9. Notifications
 
-#### 9.1 Notification bell tidak ada search
+#### 9.1 Notification bell tidak ada search ✅
 - **File:** `src/components/notification-bell.tsx:80-127`
 - **Masalah:** Banyak kontrak → susah cari karyawan tertentu
 - **Fix:** Tambah search input di atas list (client-side filter by namaLengkap)
@@ -165,7 +165,7 @@ Tanggal audit: 2026-05-25
 - **Masalah:** Error → toast.error; sukses → redirect tanpa konfirmasi
 - **Fix:** `toast.success('Kontrak berhasil dibuat')` sebelum redirect
 
-#### 10.2 Image upload feedback tidak konsisten dengan form lain
+#### 10.2 Image upload feedback tidak konsisten dengan form lain ✅
 - **File:** `src/components/image-upload.tsx`
 - **Masalah:** Sudah pakai toast tapi tidak ada progress indicator untuk file besar
 - **Fix:** Tambah progress bar atau spinner overlay yang lebih jelas

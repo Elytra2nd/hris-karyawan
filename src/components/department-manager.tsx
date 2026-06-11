@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Buildings, Plus, Trash, CircleNotch, Users, MagnifyingGlass } from '@phosphor-icons/react'
+import { Buildings, Plus, Trash, CircleNotch, Users, MagnifyingGlass, Pencil, Check, X } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { createDepartment, deleteDepartment, getDepartments } from '@/app/actions/department'
+import type { createDepartment, deleteDepartment, updateDepartment, getDepartments } from '@/app/actions/department'
 
 type Department = Awaited<ReturnType<typeof getDepartments>>[0]
 
@@ -26,13 +26,18 @@ interface Props {
   departments: Department[]
   createAction: typeof createDepartment
   deleteAction: typeof deleteDepartment
+  updateAction: typeof updateDepartment
 }
 
-export function DepartmentManager({ departments: initial, createAction, deleteAction }: Props) {
+export function DepartmentManager({ departments: initial, createAction, deleteAction, updateAction }: Props) {
   const router = useRouter()
   const [depts, setDepts] = useState(initial)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editCode, setEditCode] = useState('')
+  const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -62,6 +67,39 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     }
   }
 
+  const startEdit = (dept: Department) => {
+    setEditing(dept.id)
+    setEditName(dept.name)
+    setEditCode(dept.code)
+  }
+
+  const cancelEdit = () => {
+    setEditing(null)
+    setEditName('')
+    setEditCode('')
+  }
+
+  const handleSaveEdit = async (id: string) => {
+    setSaving(true)
+    try {
+      const fd = new FormData()
+      fd.set('name', editName)
+      fd.set('code', editCode)
+      const result = await updateAction(id, fd)
+      if (result.success) {
+        toast.success(result.message ?? 'Departemen diperbarui')
+        setDepts(prev => prev.map(d => d.id === id ? { ...d, name: editName, code: editCode.toUpperCase() } : d))
+        cancelEdit()
+      } else {
+        toast.error(result.error)
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Gagal memperbarui')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleDelete = async (id: string, name: string) => {
     setDeleting(id)
     try {
@@ -84,24 +122,26 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
 
       {/* ─── Department List ─── */}
       <div className="lg:col-span-2 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 gap-3">
-          <h2 className="text-base font-semibold text-foreground shrink-0">
-            Departemen
-            <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
-          </h2>
-          <div className="relative flex-1 max-w-xs">
+        <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border/60 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
+              Departemen
+              <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
+            </h2>
+            <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-1.5 shrink-0">
+              <Plus size={13} />
+              Tambah
+            </Button>
+          </div>
+          <div className="relative">
             <MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari nama atau kode..."
-              className="w-full h-8 pl-8 pr-3 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              className="w-full h-9 pl-8 pr-3 text-base sm:text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
           </div>
-          <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-1.5 shrink-0">
-            <Plus size={13} />
-            Tambah
-          </Button>
         </div>
 
         {depts.length === 0 ? (
@@ -111,7 +151,8 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
             <p className="text-xs">Klik "Tambah" untuk membuat departemen pertama</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[400px]">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="th-standard text-left">Departemen</th>
@@ -131,17 +172,34 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
               {filteredDepts.map(dept => (
                 <tr key={dept.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Buildings size={14} className="text-primary" />
+                    {editing === dept.id ? (
+                      <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        className="w-full h-8 px-2 text-base sm:text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        autoFocus
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Buildings size={14} className="text-primary" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">{dept.name}</span>
                       </div>
-                      <span className="text-sm font-semibold text-foreground">{dept.name}</span>
-                    </div>
+                    )}
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className="font-mono text-xs font-bold bg-muted text-foreground/80 px-2 py-1 rounded">
-                      {dept.code}
-                    </span>
+                    {editing === dept.id ? (
+                      <input
+                        value={editCode}
+                        onChange={e => setEditCode(e.target.value.toUpperCase())}
+                        className="w-20 h-8 px-2 text-base sm:text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                      />
+                    ) : (
+                      <span className="font-mono text-xs font-bold bg-muted text-foreground/80 px-2 py-1 rounded">
+                        {dept.code}
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <div className="flex items-center justify-center gap-1 text-sm text-foreground/70">
@@ -149,53 +207,89 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                       {dept._count.employees}
                     </div>
                   </td>
-                  <td className="px-5 py-3.5 text-center">
-                    <AlertDialog>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AlertDialogTrigger asChild>
-                            <button
-                              disabled={deleting === dept.id || dept._count.employees > 0}
-                              className={cn(
-                                'h-7 w-7 rounded-md flex items-center justify-center transition-colors mx-auto',
-                                dept._count.employees > 0
-                                  ? 'text-muted-foreground/50 cursor-not-allowed'
-                                  : 'text-muted-foreground/70 hover:text-red-600 hover:bg-red-50'
-                              )}
-                            >
-                              {deleting === dept.id
-                                ? <CircleNotch size={13} className="animate-spin" />
-                                : <Trash size={13} />}
-                            </button>
-                          </AlertDialogTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {dept._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus departemen'}
-                        </TooltipContent>
-                      </Tooltip>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Departemen <strong>{dept.name}</strong> akan dihapus permanen. Aksi ini tidak bisa dibatalkan.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Batal</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(dept.id, dept.name)}
-                            className="bg-red-600 hover:bg-red-700"
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center justify-center gap-1">
+                      {editing === dept.id ? (
+                        <>
+                          <button
+                            onClick={() => handleSaveEdit(dept.id)}
+                            disabled={saving}
+                            className="h-9 w-9 rounded-md flex items-center justify-center text-green-600 hover:bg-green-50 transition-colors"
+                            title="Simpan"
                           >
-                            Hapus
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            {saving ? <CircleNotch size={13} className="animate-spin" /> : <Check size={13} weight="bold" />}
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="h-9 w-9 rounded-md flex items-center justify-center text-muted-foreground/70 hover:bg-muted/50 transition-colors"
+                            title="Batal"
+                          >
+                            <X size={13} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => startEdit(dept)}
+                                className="h-9 w-9 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit departemen</TooltipContent>
+                          </Tooltip>
+                          <AlertDialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <button
+                                    disabled={deleting === dept.id || dept._count.employees > 0}
+                                    className={cn(
+                                      'h-9 w-9 rounded-md flex items-center justify-center transition-colors',
+                                      dept._count.employees > 0
+                                        ? 'text-muted-foreground/50 cursor-not-allowed'
+                                        : 'text-muted-foreground/70 hover:text-red-600 hover:bg-red-50'
+                                    )}
+                                  >
+                                    {deleting === dept.id
+                                      ? <CircleNotch size={13} className="animate-spin" />
+                                      : <Trash size={13} />}
+                                  </button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {dept._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus departemen'}
+                              </TooltipContent>
+                            </Tooltip>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Departemen <strong>{dept.name}</strong> akan dihapus permanen. Aksi ini tidak bisa dibatalkan.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(dept.id, dept.name)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Hapus
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

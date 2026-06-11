@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { format, differenceInDays, differenceInMonths } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
-import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning, Plus } from '@phosphor-icons/react'
+import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning, Plus, ArrowBendUpRight } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Employee, ContractListItem } from '@/types'
@@ -19,9 +19,11 @@ const PDFButton = dynamic(() => import('@/components/pdf-button'), {
 export function ContractList({
   employee,
   contracts,
+  canCreateContract = false,
 }: {
   employee: Employee
   contracts: ContractListItem[]
+  canCreateContract?: boolean
 }) {
   const now = new Date()
 
@@ -61,9 +63,17 @@ export function ContractList({
           <h2 className="text-base font-semibold text-foreground">Riwayat Kontrak</h2>
           <p className="text-xs text-muted-foreground">Perjalanan kontrak trainee dari awal hingga sekarang</p>
         </div>
-        <span className="ml-auto text-xs text-muted-foreground shrink-0">
-          {contracts.length} kontrak
-        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{contracts.length} kontrak</span>
+          {canCreateContract && (
+            <Button asChild size="sm" variant="outline" className="gap-1.5 h-7 text-xs">
+              <Link href={`/karyawan/${employee.id}/kontrak`}>
+                <Plus size={12} />
+                Perpanjang
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Desktop Table */}
@@ -119,7 +129,18 @@ export function ContractList({
                       </span>
                     </div>
                     {isActive && (
-                      <p className="text-xs text-muted-foreground mt-0.5 ml-4">Kontrak berjalan</p>
+                      <div className="flex items-center gap-2 mt-1 ml-4">
+                        <p className="text-xs text-muted-foreground">Kontrak berjalan</p>
+                        {canCreateContract && (
+                          <Link
+                            href={`/karyawan/${employee.id}/kontrak`}
+                            className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                          >
+                            <ArrowBendUpRight size={11} />
+                            Perpanjang
+                          </Link>
+                        )}
+                      </div>
                     )}
                   </td>
 

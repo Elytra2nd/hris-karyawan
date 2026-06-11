@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function EmployeeChart({ data }: Props) {
+  const router = useRouter()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const chartData = data.map(([posisi, jumlah]) => ({ posisi, jumlah }))
@@ -20,7 +22,7 @@ export function EmployeeChart({ data }: Props) {
   const tickColor = isDark ? '#94a3b8' : '#94a3b8'
   const tooltipBg = isDark ? '#1e293b' : '#ffffff'
   const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
-  const cursorColor = isDark ? '#1e293b' : '#f8fafc'
+  const cursorColor = isDark ? '#334155' : '#f1f5f9'
 
   if (chartData.length === 0) {
     return (
@@ -32,7 +34,11 @@ export function EmployeeChart({ data }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+      <BarChart
+        data={chartData}
+        margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+        style={{ cursor: 'pointer' }}
+      >
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={gridColor} />
         <XAxis
           dataKey="posisi"
@@ -51,8 +57,17 @@ export function EmployeeChart({ data }: Props) {
           formatter={(value) => [`${value} orang`, 'Jumlah']}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
           cursor={{ fill: cursorColor }}
+          labelFormatter={(label) => `${label} — klik untuk filter`}
         />
-        <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} maxBarSize={48}>
+        <Bar
+          dataKey="jumlah"
+          radius={[4, 4, 0, 0]}
+          maxBarSize={48}
+          onClick={(_data, index) => {
+            const posisi = chartData[index]?.posisi
+            if (posisi) router.push(`/karyawan?posisi=${encodeURIComponent(posisi)}`)
+          }}
+        >
           {chartData.map((_, i) => (
             <Cell key={i} fill={palette[i % palette.length]} />
           ))}

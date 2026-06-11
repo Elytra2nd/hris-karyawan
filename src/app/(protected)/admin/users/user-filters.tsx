@@ -32,7 +32,7 @@ export function UserFilters({ q, role }: { q: string; role: string }) {
           defaultValue={q}
           onChange={e => push({ q: e.target.value })}
           placeholder="Cari username..."
-          className="w-full h-9 pl-9 pr-8 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
+          className="w-full h-9 pl-9 pr-8 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
         />
         {q && (
           <button onClick={() => push({ q: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">

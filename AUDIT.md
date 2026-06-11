@@ -147,9 +147,9 @@ Chart palette di `globals.css` (lavender/mint/peach/pink) beda dari `desain.md` 
 
 | Prio | Item | Effort | Status |
 |------|------|--------|--------|
-| **P0** | A1 Revert warna ke Astra Blue | Sedang | ⬜ diminta user |
-| **P0** | A2 Tebalkan/gelapkan font | Kecil | ⬜ diminta user |
-| P1 | A3 Bersihkan hardcoded warna | Sedang | ⬜ |
+| **P0** | A1 Revert warna ke Astra Blue | Sedang | ✅ |
+| **P0** | A2 Tebalkan/gelapkan font | Kecil | ✅ |
+| P1 | A3 Bersihkan hardcoded warna | Sedang | ✅ |
 | P1 | S1 CSP + HSTS | Kecil | ✅ |
 | P1 | Q3 Sinkron CLAUDE.md (roles/design) | Kecil | ✅ |
 | P1 | P1 `cache()` session | Kecil | ✅ |

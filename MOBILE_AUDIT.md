@@ -19,31 +19,31 @@
 
 ## 🔴 MASALAH MOBILE
 
-### M1. Tabel Admin Users tanpa mobile view — P1
+### M1. Tabel Admin Users tanpa mobile view — P1 ✅
 - **File:** `src/app/(protected)/admin/users/page.tsx`
 - **Masalah:** `<table>` 4 kolom (Pengguna/Role/Dibuat/Aksi) **tanpa** `overflow-x-auto` & **tanpa** card mobile → kolom terjepit di <640px. Stat cards `grid-cols-3` (3 kolom) terlalu sempit di HP.
 - **Fix:** tambah card view `md:hidden` + ubah stat cards ke `grid-cols-1 sm:grid-cols-3`.
 
-### M2. Department Manager tanpa mobile view — P1
+### M2. Department Manager tanpa mobile view — P1 ✅
 - **File:** `src/components/department-manager.tsx`
 - **Masalah:** tabel 4 kolom tanpa `overflow-x-auto`/card mobile. Header (judul + search input + tombol Tambah) `flex` tanpa wrap → di mobile search & tombol berdesakan/overflow. Layout `grid-cols-1 lg:grid-cols-3` (form di bawah, OK).
 - **Fix:** header `flex-wrap` atau stack vertical; tabel kasih `overflow-x-auto` atau card mobile.
 
-### M3. Touch target < 44px — P2 (a11y + mobile)
+### M3. Touch target < 44px — P2 ✅ (a11y + mobile)
 - **Sebaran:** 13× `h-7 w-7` (28px), 11× `h-8 w-8` (32px), 3× `size-7`, 4× `size-8` — tombol aksi (Eye/Pencil/Trash) di tabel & toolbar.
 - **Standar:** iOS HIG & WCAG 2.5.5 = min **44×44px**; WCAG 2.5.8 (AA) = min 24px.
 - **Fix:** action button yang sering ditekan (lihat/edit/hapus di list, hamburger) naik ke min `h-9 w-9` (36px) atau perbesar tap-area via padding di mobile.
 
-### M4. Font terlalu kecil + risiko iOS auto-zoom — P2
+### M4. Font terlalu kecil + risiko iOS auto-zoom — P2 ✅
 - **Sebaran:** 34× `text-[10px]`, 25× `text-[11px]`, 6× `text-[9px]`.
 - **Masalah utama:** input form pakai `text-sm` (14px). **iOS Safari auto-zoom** saat focus input dengan font <16px → UX jelek di iPhone.
 - **Fix:** input mobile ke 16px (`text-base sm:text-sm` atau `text-[16px] sm:text-sm`); label minimal naik ke `text-xs` (12px); hindari `text-[9px]`.
 
-### M5. Karyawan list header — 3 tombol berjejer overflow — P2
+### M5. Karyawan list header — 3 tombol berjejer overflow — P2 ✅
 - **File:** `src/app/(protected)/karyawan/page.tsx:233` — Export + Import + "Tambah Karyawan" dalam `flex items-center gap-2` tanpa wrap → overflow horizontal di <400px.
 - **Fix:** `flex-wrap`, atau icon-only di mobile, atau gabung ke dropdown "Aksi".
 
-### M6. Viewport meta tidak eksplisit — P3
+### M6. Viewport meta tidak eksplisit — P3 ✅
 - **File:** `src/app/layout.tsx` — tidak ada `export const viewport`.
 - **Catatan:** Next.js menambah default, tapi best practice deklarasi eksplisit untuk kontrol `themeColor`, `initialScale`, dll.
 - **Fix:** `export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1e40af' }`.

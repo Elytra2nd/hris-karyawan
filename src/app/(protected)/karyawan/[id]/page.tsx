@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { differenceInMonths, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
-  CaretLeft, User, MapPin, Phone, CreditCard, Clock,
+  User, MapPin, Phone, CreditCard, Clock,
   CalendarBlank, Pencil, PlusCircle, Buildings, SealCheckIcon,
   CheckCircle, XCircle, Warning, FileImage, FileText,
   Fingerprint, Hash,
 } from '@phosphor-icons/react/ssr'
+import { BackButton } from '@/components/back-button'
 import { ContractList } from '@/components/contract-list'
 import { ActivityTimeline } from '@/components/activity-timeline'
 import { EmployeeDetailActions } from '@/components/employee-detail-actions'
@@ -23,6 +24,7 @@ export default async function DetailKaryawanPage({
   const session = await verifySession()
   const { id } = await params
   const isAdmin = session?.role === 'ADMIN'
+  const canCreateContract = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(session?.role ?? '')
 
   const employee = await prisma.employee.findUnique({
     where: { id },
@@ -59,13 +61,7 @@ export default async function DetailKaryawanPage({
 
       {/* ─── Breadcrumb & Actions ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <Link
-          href="/karyawan"
-          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
-        >
-          <CaretLeft size={16} />
-          Kembali ke Data Karyawan
-        </Link>
+        <BackButton fallbackHref="/karyawan" label="Kembali ke Data Karyawan" />
 
         <EmployeeDetailActions id={id} isAdmin={isAdmin} />
       </div>
@@ -287,7 +283,7 @@ export default async function DetailKaryawanPage({
       </div>
 
       {/* ─── Riwayat Kontrak ─── */}
-      <ContractList employee={employee} contracts={employee.contracts} />
+      <ContractList employee={employee} contracts={employee.contracts} canCreateContract={canCreateContract} />
 
       {/* ─── Riwayat Aktivitas ─── */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden p-6">

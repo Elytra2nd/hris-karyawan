@@ -253,6 +253,7 @@ export async function getEmployees({
   cabang = '',
   status = '',
   contractFilter = '',
+  posisi = '',
   page = 1,
   perPage = PER_PAGE,
 }: {
@@ -260,6 +261,7 @@ export async function getEmployees({
   cabang?: string
   status?: string
   contractFilter?: string
+  posisi?: string
   page?: number
   perPage?: number
 } = {}) {
@@ -270,6 +272,7 @@ export async function getEmployees({
         { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
         cabang ? { cabang } : {},
         status ? { status } : {},
+        posisi ? { contracts: { some: { posisi } } } : {},
         buildContractWhere(contractFilter, today),
       ],
     }

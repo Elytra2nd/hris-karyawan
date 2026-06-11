@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
@@ -7,6 +8,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 const SEGMENT_COLORS = {
   light: { aman: '#16a34a', perhatian: '#d97706', kritis: '#dc2626', berakhir: '#475569' },
   dark:  { aman: '#4ade80', perhatian: '#fbbf24', kritis: '#f87171', berakhir: '#94a3b8' },
+}
+
+// Map segment name → karyawan filter URL
+const FILTER_MAP: Record<string, string> = {
+  'Aman':      '/karyawan?status=AKTIF',
+  'Perhatian': '/karyawan?filter=expiring90',
+  'Kritis':    '/karyawan?filter=expiring30',
+  'Berakhir':  '/karyawan?filter=expired',
 }
 
 interface Props {
@@ -17,6 +26,7 @@ interface Props {
 }
 
 export function ContractStatusChart({ safe, warning, critical, expired }: Props) {
+  const router = useRouter()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const c = isDark ? SEGMENT_COLORS.dark : SEGMENT_COLORS.light
@@ -41,7 +51,7 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <PieChart>
+      <PieChart style={{ cursor: 'pointer' }}>
         <Pie
           data={data}
           cx="50%"
@@ -50,13 +60,14 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
           outerRadius={85}
           paddingAngle={2}
           dataKey="value"
+          onClick={(entry: { name?: string }) => router.push(FILTER_MAP[entry.name ?? ''] ?? '/karyawan')}
         >
           {data.map((entry, i) => (
             <Cell key={i} fill={entry.color} />
           ))}
         </Pie>
         <Tooltip
-          formatter={(value) => [`${value} orang`]}
+          formatter={(value, name) => [`${value} orang`, `${name} — klik untuk filter`]}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
         />
         <Legend

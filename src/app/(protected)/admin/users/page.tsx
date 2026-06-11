@@ -58,7 +58,7 @@ export default async function UserManagementPage({
       </div>
 
       {/* ─── Stat Cards (clickable drill-down) ─── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href="/admin/users" className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-10 w-10 rounded-full bg-card/20 flex items-center justify-center shrink-0">
             <Users className="h-5 w-5 text-white" />
@@ -104,71 +104,118 @@ export default async function UserManagementPage({
       {/* ─── Search + Filter ─── */}
       <UserFilters q={q} role={roleFilter} />
 
-      {/* ─── Table ─── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-accent/60">
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Role</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dibuat</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-16">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {users.length === 0 ? (
-              <EmptyState
-                asTableRow
-                colSpan={4}
-                icon={Users}
-                title={q || roleFilter ? 'Tidak ada pengguna ditemukan' : 'Belum ada pengguna'}
-                description={q || roleFilter ? 'Coba ubah filter pencarian' : 'Buat akun pertama untuk Admin, HR, atau Pemirsa sistem'}
-              />
-            ) : (
-              users.map((user, i) => (
-                <tr key={user.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
-                        user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                        user.role === 'HR_MANAGER' ? 'bg-accent border-primary/20 text-primary' :
-                        user.role === 'HR_STAFF'   ? 'bg-green-50 border-green-200 text-green-700' :
-                                                     'bg-muted/50 border-border text-muted-foreground'
-                      }`}>
-                        {user.username[0].toUpperCase()}
+      {/* ─── Table Desktop ─── */}
+      <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[540px]">
+            <thead>
+              <tr className="border-b border-border bg-accent/60">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
+                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Role</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dibuat</th>
+                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-16">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {users.length === 0 ? (
+                <EmptyState
+                  asTableRow
+                  colSpan={4}
+                  icon={Users}
+                  title={q || roleFilter ? 'Tidak ada pengguna ditemukan' : 'Belum ada pengguna'}
+                  description={q || roleFilter ? 'Coba ubah filter pencarian' : 'Buat akun pertama untuk Admin, HR, atau Pemirsa sistem'}
+                />
+              ) : (
+                users.map((user, i) => (
+                  <tr key={user.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
+                          user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                          user.role === 'HR_MANAGER' ? 'bg-accent border-primary/20 text-primary' :
+                          user.role === 'HR_STAFF'   ? 'bg-green-50 border-green-200 text-green-700' :
+                                                       'bg-muted/50 border-border text-muted-foreground'
+                        }`}>
+                          {user.username[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{user.username}</p>
+                          <p className="text-xs text-muted-foreground">Pengguna #{i + 1}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{user.username}</p>
-                        <p className="text-xs text-muted-foreground">Pengguna #{i + 1}</p>
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <RoleBadge role={user.role} />
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 text-sm text-foreground/70">
+                        <Clock size={12} className="text-muted-foreground/70 shrink-0" />
+                        {user.createdAt
+                          ? format(new Date(user.createdAt), 'dd MMM yyyy', { locale: localeID })
+                          : '—'}
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <RoleBadge role={user.role} />
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1.5 text-sm text-foreground/70">
-                      <Clock size={12} className="text-muted-foreground/70 shrink-0" />
-                      {user.createdAt
-                        ? format(new Date(user.createdAt), 'dd MMM yyyy', { locale: localeID })
-                        : '—'}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center justify-center gap-1">
-                      <ResetPasswordButton id={user.id} username={user.username} />
-                      <DeleteUserButton id={user.id} username={user.username} />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-center gap-1">
+                        <ResetPasswordButton id={user.id} username={user.username} />
+                        <DeleteUserButton id={user.id} username={user.username} />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
         <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
           <p className="text-xs text-muted-foreground">
             {users.length} dari {allUsers.length} pengguna · {adminCount} admin · {hrCount} HR · {viewerCount} pemirsa
+          </p>
+        </div>
+      </div>
+
+      {/* ─── Card View Mobile ─── */}
+      <div className="md:hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        {users.length === 0 ? (
+          <div className="py-12 text-center text-sm text-muted-foreground">
+            {q || roleFilter ? 'Tidak ada pengguna ditemukan' : 'Belum ada pengguna'}
+          </div>
+        ) : (
+          <div className="divide-y divide-border/60">
+            {users.map((user) => (
+              <div key={user.id} className="px-4 py-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
+                    user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                    user.role === 'HR_MANAGER' ? 'bg-accent border-primary/20 text-primary' :
+                    user.role === 'HR_STAFF'   ? 'bg-green-50 border-green-200 text-green-700' :
+                                                 'bg-muted/50 border-border text-muted-foreground'
+                  }`}>
+                    {user.username[0].toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{user.username}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <RoleBadge role={user.role} />
+                      {user.createdAt && (
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(user.createdAt), 'dd MMM yyyy', { locale: localeID })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <ResetPasswordButton id={user.id} username={user.username} />
+                  <DeleteUserButton id={user.id} username={user.username} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="px-4 py-3 border-t border-border/60 bg-muted/50">
+          <p className="text-xs text-muted-foreground">
+            {users.length} dari {allUsers.length} pengguna
           </p>
         </div>
       </div>

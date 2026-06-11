@@ -58,6 +58,7 @@ export default function DataKaryawanPage() {
   const cabang = searchParams.get('cabang') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
   const contractFilter = searchParams.get('filter') ?? '' // expiring14 | expiring30 | expiring90 | expired
+  const posisiFilter = searchParams.get('posisi') ?? ''
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
 
   const [sortCol, setSortCol] = useState<SortKey>('')
@@ -90,7 +91,7 @@ export default function DataKaryawanPage() {
   const fetchData = async () => {
     setLoading(true)
     const [result, statsResult] = await Promise.all([
-      getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, page, perPage: PER_PAGE }),
+      getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, page, perPage: PER_PAGE }),
       getEmployeeStats({ search: debouncedSearch, cabang }),
     ])
     setEmployees(result.employees)
@@ -98,7 +99,7 @@ export default function DataKaryawanPage() {
     setStats(statsResult)
     setLoading(false)
   }
-  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter, contractFilter, page])
+  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, page])
 
   const cabangOptions = useMemo(
     () => [...new Set(employees.map((e) => e.cabang))].sort(),
@@ -230,12 +231,12 @@ export default function DataKaryawanPage() {
             Manajemen data trainee Astra Motor Kalimantan Barat
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isAdmin && <ExportExcelButton variant="default" />}
           {isAdmin && <ImportExcelButton />}
           {isAdmin && (
             <Link href="/karyawan/tambah">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap">
                 <Plus size={15} />
                 Tambah Karyawan
               </button>
@@ -288,6 +289,23 @@ export default function DataKaryawanPage() {
         </div>
       )}
 
+      {/* ─── Posisi Filter Banner ─── */}
+      {posisiFilter && (
+        <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3 bg-accent border-primary/20">
+          <p className="text-sm font-semibold text-primary truncate">
+            Posisi: <span className="font-bold">{posisiFilter}</span>
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">({total} karyawan)</span>
+          </p>
+          <button
+            onClick={() => updateParams({ posisi: '' })}
+            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2.5 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-1.5"
+          >
+            <XCircle size={13} />
+            Hapus Filter
+          </button>
+        </div>
+      )}
+
       {/* ─── Stat Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -332,7 +350,7 @@ export default function DataKaryawanPage() {
               value={search}
               onChange={(e) => updateParams({ search: e.target.value })}
               placeholder="Cari nama, NIK, atau posisi..."
-              className="w-full h-9 pl-9 pr-3 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
+              className="w-full h-9 pl-9 pr-3 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
             {search && (
               <button onClick={() => updateParams({ search: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
@@ -610,7 +628,7 @@ export default function DataKaryawanPage() {
                               <Link
                                 href={`/karyawan/${emp.id}`}
                                 aria-label="Lihat detail karyawan"
-                                className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                                className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                               >
                                 <Eye size={14} weight="bold" />
                               </Link>
@@ -625,7 +643,7 @@ export default function DataKaryawanPage() {
                                   <Link
                                     href={`/karyawan/${emp.id}/edit`}
                                     aria-label="Edit data karyawan"
-                                    className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                                    className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                                   >
                                     <Pencil size={14} weight="bold" />
                                   </Link>

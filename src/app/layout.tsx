@@ -1,10 +1,17 @@
 import './globals.css';
+import type { Viewport } from 'next';
 import { Toaster } from "@/components/ui/sonner";
 import { RootThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
   title: 'HRIS Astra Motor Kalimantan Barat',
   description: 'Sistem Informasi Manajemen Karyawan',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#1e40af',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

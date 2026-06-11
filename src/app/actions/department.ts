@@ -52,6 +52,33 @@ export async function createDepartment(formData: FormData): Promise<ActionResult
   }
 }
 
+export async function updateDepartment(id: string, formData: FormData): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requireAdmin()
+    const raw = { name: formData.get('name')?.toString().trim() ?? '', code: formData.get('code')?.toString().trim().toUpperCase() ?? '' }
+
+    const parsed = departmentSchema.safeParse(raw)
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? 'Data tidak valid', 'VALIDATION')
+    }
+
+    const existing = await prisma.department.findFirst({
+      where: { OR: [{ name: parsed.data.name }, { code: parsed.data.code }], NOT: { id } },
+    })
+    if (existing) return fail('Nama atau kode sudah digunakan departemen lain', 'DUPLICATE')
+
+    await prisma.department.update({ where: { id }, data: parsed.data })
+    await createAuditLog(session.id, session.username, 'UPDATE', 'department', id, { name: parsed.data.name, code: parsed.data.code })
+    revalidatePath('/admin/departments')
+    return ok({ id }, `Departemen diperbarui`)
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Unauthorized', 'UNAUTHORIZED')
+    logger.error('updateDepartment failed', { error: String(error) })
+    return fail('Gagal memperbarui departemen', 'SERVER_ERROR')
+  }
+}
+
 export async function deleteDepartment(id: string): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()

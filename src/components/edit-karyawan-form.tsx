@@ -5,10 +5,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
-import { FloppyDisk, CircleNotch, Buildings, User, UserCircleIcon, Info } from '@phosphor-icons/react'
+import { FloppyDisk, CircleNotch, Buildings, User, UserCircleIcon, Info, Warning } from '@phosphor-icons/react'
 import { ImageUpload } from '@/components/image-upload'
 import { toast } from 'sonner'
 import { FieldError } from '@/components/ui/field-error'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { updateEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
 import type { EmployeeWithoutContracts, Department } from '@/types'
 
@@ -23,6 +28,16 @@ interface EditKaryawanFormProps {
 export function EditKaryawanForm({ employee, updateAction, departments = [] }: EditKaryawanFormProps) {
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [statusValue, setStatusValue] = useState(employee.status)
+  const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
+
+  const handleStatusChange = (val: string) => {
+    if (val === 'NON-AKTIF' && statusValue === 'AKTIF') {
+      setShowNonAktifDialog(true)
+    } else {
+      setStatusValue(val)
+    }
+  }
 
   const handleSubmit = async (formData: FormData) => {
     const raw: Record<string, string | null> = {}
@@ -225,7 +240,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
                       id="status"
                       name="status"
                       required
-                      value={employee.status}
+                      value={statusValue}
+                      onValueChange={handleStatusChange}
                       options={['AKTIF', 'NON-AKTIF']}
                       placeholder="Pilih status..."
                     />
@@ -321,6 +337,34 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
           </div>
         </div>
       </div>
+
+      {/* ─── Konfirmasi Non-Aktif ─── */}
+      <AlertDialog open={showNonAktifDialog} onOpenChange={setShowNonAktifDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Warning size={18} className="text-amber-600" />
+              Ubah Status ke Non-Aktif?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Karyawan <strong>{employee.namaLengkap}</strong> akan ditandai sebagai Non-Aktif.
+              Aksi ini menghentikan tracking kontrak dan karyawan tidak akan muncul di laporan aktif.
+              Anda masih bisa mengubahnya kembali ke Aktif kapan saja.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowNonAktifDialog(false)}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setStatusValue('NON-AKTIF'); setShowNonAktifDialog(false) }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Ya, Set Non-Aktif
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )

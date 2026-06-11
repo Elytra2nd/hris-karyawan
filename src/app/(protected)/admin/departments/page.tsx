@@ -1,6 +1,6 @@
 import { verifySession } from '@/lib/dal'
 import { redirect } from 'next/navigation'
-import { getDepartments, createDepartment, deleteDepartment } from '@/app/actions/department'
+import { getDepartments, createDepartment, deleteDepartment, updateDepartment } from '@/app/actions/department'
 import { DepartmentManager } from '@/components/department-manager'
 import { Buildings } from '@phosphor-icons/react/ssr'
 
@@ -28,6 +28,7 @@ export default async function DepartmentsPage() {
         departments={departments}
         createAction={createDepartment}
         deleteAction={deleteDepartment}
+        updateAction={updateDepartment}
       />
     </div>
   )

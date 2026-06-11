@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Bell, Clock, Warning, CaretRight, ArrowsClockwise } from '@phosphor-icons/react'
+import { useState, useEffect, useMemo } from 'react'
+import { Bell, Clock, Warning, CaretRight, ArrowsClockwise, MagnifyingGlass } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverPopup } from '@/components/ui/popover'
 import {
   Tooltip,
@@ -20,6 +20,7 @@ export function NotificationBell() {
   const [data, setData] = useState<NotificationSummary>(EMPTY)
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
 
   const fetch = async () => {
     setLoading(true)
@@ -36,6 +37,11 @@ export function NotificationBell() {
   useEffect(() => { fetch() }, [])
 
   const allItems = [...data.critical, ...data.warning, ...data.approaching]
+  const filteredItems = useMemo(() => {
+    if (!search.trim()) return allItems
+    const q = search.toLowerCase()
+    return allItems.filter(i => i.namaLengkap.toLowerCase().includes(q) || i.cabang.toLowerCase().includes(q))
+  }, [allItems, search])
   const hasUrgent = data.totalUnread > 0
 
   return (
@@ -77,52 +83,74 @@ export function NotificationBell() {
           </button>
         </div>
 
+        {/* Search */}
+        {allItems.length > 3 && (
+          <div className="px-3 py-2 border-b border-border/60">
+            <div className="relative">
+              <MagnifyingGlass size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari karyawan..."
+                className="w-full h-7 pl-7 pr-3 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary/40"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Body */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-72 overflow-y-auto">
           {loading && allItems.length === 0 ? (
             <div className="flex items-center justify-center py-10">
               <ArrowsClockwise size={16} className="animate-spin text-muted-foreground/50" />
             </div>
-          ) : allItems.length === 0 ? (
+          ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground/70">
               <Bell size={24} className="opacity-30" />
               <p className="text-xs font-bold uppercase tracking-wider">Semua kontrak aman</p>
             </div>
           ) : (
             <div className="divide-y divide-border/40">
-              {/* Critical section */}
-              {data.critical.length > 0 && (
-                <>
-                  <div className="px-4 py-1.5 bg-red-50">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
-                      <Warning size={10} /> Kritis (≤ 14 hari)
-                    </span>
-                  </div>
-                  {data.critical.map(c => <NotifRow key={c.id} item={c} level="critical" onClick={() => setOpen(false)} />)}
-                </>
-              )}
-              {/* Warning section */}
-              {data.warning.length > 0 && (
-                <>
-                  <div className="px-4 py-1.5 bg-amber-50">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
-                      <Clock size={10} /> Perlu Perhatian (15–30 hari)
-                    </span>
-                  </div>
-                  {data.warning.map(c => <NotifRow key={c.id} item={c} level="warning" onClick={() => setOpen(false)} />)}
-                </>
-              )}
-              {/* Approaching section */}
-              {data.approaching.length > 0 && (
-                <>
-                  <div className="px-4 py-1.5 bg-muted/50">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <Clock size={10} /> Mendekati (31–60 hari)
-                    </span>
-                  </div>
-                  {data.approaching.map(c => <NotifRow key={c.id} item={c} level="approaching" onClick={() => setOpen(false)} />)}
-                </>
-              )}
+              {/* Render per section with search filter applied */}
+              {(() => {
+                const crit = data.critical.filter(i => filteredItems.includes(i))
+                const warn = data.warning.filter(i => filteredItems.includes(i))
+                const appr = data.approaching.filter(i => filteredItems.includes(i))
+                return (
+                  <>
+                    {crit.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-red-50">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
+                            <Warning size={10} /> Kritis (≤ 14 hari)
+                          </span>
+                        </div>
+                        {crit.map(c => <NotifRow key={c.id} item={c} level="critical" onClick={() => setOpen(false)} />)}
+                      </>
+                    )}
+                    {warn.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-amber-50">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                            <Clock size={10} /> Perlu Perhatian (15–30 hari)
+                          </span>
+                        </div>
+                        {warn.map(c => <NotifRow key={c.id} item={c} level="warning" onClick={() => setOpen(false)} />)}
+                      </>
+                    )}
+                    {appr.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-muted/50">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                            <Clock size={10} /> Mendekati (31–60 hari)
+                          </span>
+                        </div>
+                        {appr.map(c => <NotifRow key={c.id} item={c} level="approaching" onClick={() => setOpen(false)} />)}
+                      </>
+                    )}
+                  </>
+                )
+              })()}
             </div>
           )}
         </div>
