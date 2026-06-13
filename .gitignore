@@ -57,3 +57,6 @@ prisma/seed-real.ts
 # Private file uploads
 private_uploads/
 public/uploads/
+
+# User uploads
+/uploads

@@ -4,7 +4,7 @@ import { logger } from './logger'
 export async function createAuditLog(
   userId: string,
   userName: string,
-  action: 'CREATE' | 'UPDATE' | 'DELETE',
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPLOAD', 
   entity: string,
   entityId: string,
   details: object
