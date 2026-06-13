@@ -16,16 +16,18 @@ import {
 } from '@/components/ui/alert-dialog'
 import { updateEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
 import type { EmployeeWithoutContracts, Department } from '@/types'
+import { useRouter } from 'next/navigation'
 
 const CABANG_DROPDOWN = CABANG_REF.map(c => ({ value: c.code, label: `${c.code} — ${c.label}` }))
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (formData: FormData) => void
+  updateAction: (formData: FormData) => Promise<any>
   departments?: Department[]
 }
 
 export function EditKaryawanForm({ employee, updateAction, departments = [] }: EditKaryawanFormProps) {
+  const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [statusValue, setStatusValue] = useState(employee.status)
@@ -74,7 +76,14 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
     setErrors({})
     setIsPending(true)
     try {
-      await updateAction(formData)
+      const res = await updateAction(formData)
+      if (res && res.success === false) {
+        toast.error(res.error)
+        setIsPending(false)
+        return
+      }
+      toast.success('Data karyawan berhasil diperbarui!')
+      router.push(`/karyawan/${employee.id}`)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
       toast.error(msg)

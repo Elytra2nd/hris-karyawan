@@ -38,8 +38,7 @@ export async function createEmployee(formData: FormData) {
   const parsed = createEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message ?? 'Data tidak valid'
-    // Server action yang redirect tidak bisa return error — lempar exception
-    throw new Error(firstError)
+    return fail(firstError, 'VALIDATION')
   }
 
   const {
@@ -68,10 +67,10 @@ export async function createEmployee(formData: FormData) {
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      throw new Error(`No KTP ${noKtp} sudah terdaftar`)
+      return fail(`No KTP ${noKtp} sudah terdaftar`, 'DUPLICATE')
     }
     logger.error('createEmployee failed', { error: String(error) })
-    throw new Error('Gagal menyimpan data karyawan')
+    return fail('Gagal menyimpan data karyawan', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -85,7 +84,7 @@ export async function createEmployee(formData: FormData) {
 
   revalidatePath('/')
   revalidatePath('/karyawan')
-  redirect('/karyawan')
+  return ok({ id: newEmployee.id })
 }
 
 // ─── Update Employee ──────────────────────────────────────────────────────────
@@ -95,7 +94,7 @@ export async function updateEmployee(id: string, formData: FormData) {
 
   const parsed = updateEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? 'Data tidak valid')
+    return fail(parsed.error.issues[0]?.message ?? 'Data tidak valid', 'VALIDATION')
   }
 
   const {
@@ -120,10 +119,10 @@ export async function updateEmployee(id: string, formData: FormData) {
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      throw new Error(`No KTP ${noKtp} sudah dipakai karyawan lain`)
+      return fail(`No KTP ${noKtp} sudah dipakai karyawan lain`, 'DUPLICATE')
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
-    throw new Error('Gagal memperbarui data karyawan')
+    return fail('Gagal memperbarui data karyawan', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -138,7 +137,7 @@ export async function updateEmployee(id: string, formData: FormData) {
   revalidatePath('/')
   revalidatePath('/karyawan')
   revalidatePath(`/karyawan/${id}`)
-  redirect(`/karyawan/${id}`)
+  return ok({ id })
 }
 
 // ─── Create Contract ──────────────────────────────────────────────────────────

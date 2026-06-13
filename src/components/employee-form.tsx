@@ -11,6 +11,7 @@ import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
 import { createEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
+import { useRouter } from 'next/navigation'
 
 const POSISI_OPTIONS = [
   { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
@@ -29,9 +30,10 @@ export function EmployeeForm({
   action,
   departments = [],
 }: {
-  action: (formData: FormData) => void
+  action: (formData: FormData) => Promise<any>
   departments?: Department[]
 }) {
+  const router = useRouter()
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState('')
   const [tglSelesai, setTglSelesai] = useState('')
@@ -88,7 +90,14 @@ export function EmployeeForm({
     setErrors({})
     setIsPending(true)
     try {
-      await action(formData)
+      const res = await action(formData)
+      if (res && res.success === false) {
+        toast.error(res.error)
+        setIsPending(false)
+        return
+      }
+      toast.success('Karyawan berhasil ditambahkan!')
+      router.push('/karyawan')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
       toast.error(msg)
