@@ -1,20 +1,15 @@
-'use client';
+﻿'use client';
 
-import { useEffect } from 'react';
 import { AlertTriangle } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 
-export default function Error({
+export default function AdminError({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <div className="flex items-center justify-center min-h-[100dvh] bg-background px-4">
       <div className="flex flex-col items-center gap-6 text-center max-w-md">
@@ -23,9 +18,9 @@ export default function Error({
         </div>
 
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-foreground">Terjadi Kesalahan</h1>
+          <h1 className="text-2xl font-bold text-foreground">Admin Error</h1>
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Sesuatu tidak berjalan dengan semestinya. Silakan coba lagi.'}
+            {error.message || 'Terjadi kesalahan pada halaman admin.'}
           </p>
         </div>
 
@@ -34,7 +29,7 @@ export default function Error({
             Kembali
           </Button>
           <Button onClick={() => reset()} className="flex-1">
-            Coba Lagi
+            Refresh
           </Button>
         </div>
       </div>

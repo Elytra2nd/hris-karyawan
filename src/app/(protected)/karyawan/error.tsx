@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import { AlertTriangle } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 
-export default function AdminError({
+export default function KaryawanError({
   error,
   reset,
 }: {
@@ -18,9 +18,9 @@ export default function AdminError({
         </div>
 
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-foreground">Admin Error</h1>
+          <h1 className="text-2xl font-bold text-foreground">Gagal Memuat Data</h1>
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Terjadi kesalahan pada halaman admin.'}
+            {error.message || 'Tidak dapat memuat data karyawan. Silakan coba lagi.'}
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export default function AdminError({
             Kembali
           </Button>
           <Button onClick={() => reset()} className="flex-1">
-            Refresh
+            Muat Ulang
           </Button>
         </div>
       </div>

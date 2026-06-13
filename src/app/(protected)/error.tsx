@@ -1,15 +1,20 @@
-'use client';
+﻿'use client';
 
+import { useEffect } from 'react';
 import { AlertTriangle } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 
-export default function KaryawanError({
+export default function Error({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
     <div className="flex items-center justify-center min-h-[100dvh] bg-background px-4">
       <div className="flex flex-col items-center gap-6 text-center max-w-md">
@@ -18,9 +23,9 @@ export default function KaryawanError({
         </div>
 
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-foreground">Gagal Memuat Data</h1>
+          <h1 className="text-2xl font-bold text-foreground">Terjadi Kesalahan</h1>
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Tidak dapat memuat data karyawan. Silakan coba lagi.'}
+            {error.message || 'Sesuatu tidak berjalan dengan semestinya. Silakan coba lagi.'}
           </p>
         </div>
 
@@ -29,7 +34,7 @@ export default function KaryawanError({
             Kembali
           </Button>
           <Button onClick={() => reset()} className="flex-1">
-            Muat Ulang
+            Coba Lagi
           </Button>
         </div>
       </div>
