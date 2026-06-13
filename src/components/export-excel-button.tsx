@@ -8,23 +8,43 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { getAllEmployeesForExport } from '@/app/actions/employee'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 type Row = Record<string, string>
+
+/**
+ * Safely format a date-like value. The `tglLahir` field is stored as a plain
+ * string in the DB (e.g. "2000-01-15" or "15.01.2000"), NOT a Date object.
+ * Contract dates *are* real Date objects from Prisma.
+ */
+function safeDateFormat(value: unknown, fmt = 'dd.MM.yyyy'): string {
+  if (!value) return '-'
+  try {
+    const d = value instanceof Date ? value : new Date(String(value))
+    if (isNaN(d.getTime())) return String(value) // fallback — return raw
+    return format(d, fmt)
+  } catch {
+    return String(value)
+  }
+}
 
 function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): Row[] {
   return rawData.map((emp) => ({
     'BA': emp.ba,
     'BA CABANG': emp.baCabang,
+    'REGION': emp.region ?? '-',
     'CABANG': emp.cabang,
+    'DEPARTEMEN': emp.department?.name ?? '-',
+    'KODE DEPT': emp.department?.code ?? '-',
     'Nama Lengkap': emp.namaLengkap,
     'Status': emp.status,
     'NIK': emp.nik ?? '-',
     'No Jamsostek': emp.noJamsostek ?? '-',
     'No KTP': emp.noKtp,
-    'Tgl Lahir': emp.tglLahir ? format(new Date(emp.tglLahir), 'dd.MM.yyyy') : '-',
+    'Tgl Lahir': safeDateFormat(emp.tglLahir),
     'Nama Ibu': emp.namaIbu,
-    'Trainee Sejak': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSejak), 'dd.MM.yyyy') : '-',
-    'Trainee Selesai': emp.contracts[0] ? format(new Date(emp.contracts[0].traineeSelesai), 'dd.MM.yyyy') : '-',
+    'Trainee Sejak': emp.contracts[0] ? safeDateFormat(emp.contracts[0].traineeSejak) : '-',
+    'Trainee Selesai': emp.contracts[0] ? safeDateFormat(emp.contracts[0].traineeSelesai) : '-',
     'Posisi': emp.contracts[0]?.posisi ?? '-',
     'No HP': emp.noHp ?? '-',
     'Form Consent': emp.formConsent ?? '-',
@@ -56,13 +76,17 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     setLoading(true)
     try {
       const raw = await getAllEmployeesForExport()
+      if (raw.length === 0) {
+        toast.info('Tidak ada data karyawan untuk di-export')
+        return
+      }
       setAllRows(toRows(raw))
       setFilterCabang('')
       setFilterStatus('')
       setFilterPosisi('')
       setOpen(true)
     } catch {
-      alert('Gagal mengambil data.')
+      toast.error('Gagal mengambil data karyawan')
     } finally {
       setLoading(false)
     }
@@ -71,34 +95,70 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi('') }
 
   const downloadExcel = () => {
+    if (filtered.length === 0) {
+      toast.warning('Tidak ada data untuk di-export')
+      return
+    }
     const ws = XLSX.utils.json_to_sheet(filtered)
+
+    // Auto-fit column widths
+    const colWidths = Object.keys(filtered[0]).map(key => {
+      const maxLen = Math.max(
+        key.length,
+        ...filtered.map(r => (r[key] ?? '').length)
+      )
+      return { wch: Math.min(maxLen + 2, 40) }
+    })
+    ws['!cols'] = colWidths
+
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Report')
-    XLSX.writeFile(wb, `HRIS_Astra_${format(new Date(), 'yyyyMMdd')}.xlsx`)
+    const fileName = `HRIS_Astra_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`
+    XLSX.writeFile(wb, fileName)
+    toast.success(`File ${fileName} berhasil diunduh`)
     setOpen(false)
   }
 
   const downloadPDF = () => {
-    const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
+    if (filtered.length === 0) {
+      toast.warning('Tidak ada data untuk di-export')
+      return
+    }
+
+    // Kolom yang paling penting untuk PDF (tidak semua, karena lebar terbatas)
+    const pdfCols = ['BA', 'CABANG', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+
     const html = `<html><head><title>HRIS Report</title><style>
+      @page{size:landscape;margin:10mm}
       body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
-      h2{font-size:14px;margin-bottom:4px}p{color:#666;font-size:10px;margin-bottom:12px}
+      h2{font-size:14px;margin-bottom:4px}p.meta{color:#666;font-size:10px;margin-bottom:12px}
       table{width:100%;border-collapse:collapse}
       th{background:#1e293b;color:#fff;padding:4px 6px;text-align:left;font-size:8px;text-transform:uppercase}
       td{padding:4px 6px;border-bottom:1px solid #eee;font-size:9px}
       tr:nth-child(even){background:#f9f9f9}
+      .footer{margin-top:16px;font-size:8px;color:#999;text-align:right}
     </style></head><body>
     <h2>Laporan Data Karyawan — Astra Motor Kalimantan Barat</h2>
-    <p>Tanggal: ${format(new Date(), 'dd MMMM yyyy')} | Total: ${filtered.length} data</p>
-    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
-    ${filtered.map(row => '<tr>' + headers.map(h => `<td>${row[h]}</td>`).join('') + '</tr>').join('')}
-    </tbody></table></body></html>`
+    <p class="meta">Tanggal: ${format(new Date(), 'dd MMMM yyyy, HH:mm')} | Total: ${filtered.length} data${filterCabang ? ` | Cabang: ${filterCabang}` : ''}${filterStatus ? ` | Status: ${filterStatus}` : ''}${filterPosisi ? ` | Posisi: ${filterPosisi}` : ''}</p>
+    <table><thead><tr>${pdfCols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+    ${filtered.map(row => '<tr>' + pdfCols.map(h => `<td>${row[h] ?? '-'}</td>`).join('') + '</tr>').join('')}
+    </tbody></table>
+    <p class="footer">Dicetak oleh sistem TMS v2.1 — ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
+    </body></html>`
+
     const w = window.open('', '_blank')
-    if (w) { w.document.write(html); w.document.close(); w.print() }
+    if (w) {
+      w.document.write(html)
+      w.document.close()
+      w.print()
+    } else {
+      toast.error('Pop-up diblokir browser. Izinkan pop-up untuk mencetak PDF.')
+    }
     setOpen(false)
   }
 
   const cabangOpts = [...new Set(allRows.map(r => r['CABANG']))].sort()
+  const statusOpts = [...new Set(allRows.map(r => r['Status']))].sort()
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
@@ -133,14 +193,14 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
             <DialogTitle className="text-lg font-bold text-foreground">Export Data Karyawan</DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-              Funnel data sebelum download. {allRows.length} total karyawan tersedia.
+              Filter data sebelum download. {allRows.length} total karyawan tersedia.
             </DialogDescription>
           </DialogHeader>
 
           {/* Funnel row */}
           <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border/60 bg-muted/50 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              <Sliders size={13} /> Funnel:
+              <Sliders size={13} /> Filter:
             </div>
 
             <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} className={selectCls}>
@@ -150,8 +210,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={selectCls}>
               <option value="">Semua Status</option>
-              <option value="AKTIF">AKTIF</option>
-              <option value="NON-AKTIF">NON-AKTIF</option>
+              {statusOpts.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
 
             <select value={filterPosisi} onChange={e => setFilterPosisi(e.target.value)} className={selectCls}>
@@ -183,13 +242,20 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row, i) => (
+                {filtered.slice(0, 200).map((row, i) => (
                   <tr key={i} className={cn('border-b border-border/60', i % 2 === 0 ? 'bg-card' : 'bg-muted/80')}>
                     {headers.map(h => (
                       <td key={h} className="px-2 py-1 whitespace-nowrap text-foreground/70">{row[h]}</td>
                     ))}
                   </tr>
                 ))}
+                {filtered.length > 200 && (
+                  <tr>
+                    <td colSpan={headers.length} className="py-3 text-center text-xs font-semibold text-muted-foreground bg-accent/50">
+                      … dan {filtered.length - 200} baris lainnya (preview dibatasi 200 baris)
+                    </td>
+                  </tr>
+                )}
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={headers.length} className="py-12 text-center text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">
@@ -202,16 +268,27 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-border/60 bg-card">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-3 border-t border-border/60 bg-card">
             <span className="text-xs font-semibold text-muted-foreground/70">
               {filtered.length} data siap di-export
             </span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Tutup</Button>
-              <Button variant="outline" size="sm" onClick={downloadPDF} className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50">
-                <FileText size={13} /> PDF
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadPDF}
+                disabled={filtered.length === 0}
+                className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50"
+              >
+                <FileText size={13} /> Cetak PDF
               </Button>
-              <Button size="sm" onClick={downloadExcel} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button
+                size="sm"
+                onClick={downloadExcel}
+                disabled={filtered.length === 0}
+                className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+              >
                 <MicrosoftExcelLogoIcon size={13} /> Excel (.xlsx)
               </Button>
             </div>

@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Upload, MicrosoftExcelLogoIcon, WarningCircle, CheckCircle,
-  CircleNotch, Download, X, WarningIcon,
+  CircleNotch, Download, X, WarningIcon, CaretDown,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +24,7 @@ interface PreviewRow {
 
 const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
-function downloadTemplate() {
+export function downloadTemplate() {
   const headers = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NIK', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'NO JAMSOSTEK', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
   const example = ['BA001', 'PT. Astra Motor Pontianak', 'H720', 'Budi Santoso', '1234', '3271234567890001', '01.01.2000', 'Siti Aminah', '081234567890', '', 'ADA', 'SALES EXECUTIVE', '01.07.2024']
   const ws = XLSX.utils.aoa_to_sheet([headers, example])
@@ -125,17 +125,58 @@ export function ImportExcelButton() {
 
   const displayCols = ['NAMA LENGKAP', 'NO KTP', 'CABANG', 'POSISI', 'TRAINEE SEJAK']
 
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
     <>
       <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFile} />
 
-      <button
-        onClick={() => fileRef.current?.click()}
-        className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-primary bg-accent border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-      >
-        <Upload size={15} />
-        Import Excel
-      </button>
+      <div className="relative">
+        <div className="flex">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-primary bg-accent border border-blue-200 rounded-l-lg hover:bg-blue-100 transition-colors"
+          >
+            <Upload size={15} />
+            Import Excel
+          </button>
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            className="flex items-center h-9 px-2 text-primary bg-accent border border-l-0 border-blue-200 rounded-r-lg hover:bg-blue-100 transition-colors"
+          >
+            <CaretDown size={13} weight="bold" />
+          </button>
+        </div>
+
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px]">
+              <button
+                onClick={() => { fileRef.current?.click(); setMenuOpen(false) }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors text-left"
+              >
+                <Upload size={14} className="text-primary shrink-0" />
+                <div>
+                  <p className="font-semibold">Import File Excel</p>
+                  <p className="text-[11px] text-muted-foreground">Upload data karyawan (.xlsx)</p>
+                </div>
+              </button>
+              <div className="mx-3 my-1 border-t border-border/60" />
+              <button
+                onClick={() => { downloadTemplate(); setMenuOpen(false) }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors text-left"
+              >
+                <Download size={14} className="text-green-600 shrink-0" />
+                <div>
+                  <p className="font-semibold">Download Template</p>
+                  <p className="text-[11px] text-muted-foreground">File contoh format import</p>
+                </div>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       <Dialog open={open} onOpenChange={v => { if (!v) reset() }}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">

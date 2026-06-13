@@ -217,10 +217,13 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
 
 // ─── Read: Semua karyawan untuk export ───────────────────────────────────────
 export async function getAllEmployeesForExport() {
+  await requirePermission('employee_read')
+
   try {
     return await prisma.employee.findMany({
       include: {
         contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
+        department: { select: { name: true, code: true } },
       },
       orderBy: { namaLengkap: 'asc' },
     })
