@@ -197,17 +197,17 @@ export default async function AuditLogPage({
             {logs.map(log => (
               <div key={log.id} className="px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3 mb-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
                       {log.userName?.[0]?.toUpperCase() ?? '?'}
                     </div>
-                    <span className="text-sm font-semibold text-foreground">{log.userName}</span>
+                    <span className="text-sm font-semibold text-foreground truncate">{log.userName}</span>
                   </div>
                   <ActionBadge action={log.action} />
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">
                   <span className="capitalize font-medium text-foreground/70">{log.entity}</span>
-                  {log.details && <span className="ml-2">{log.details}</span>}
+                  {log.details && <span className="ml-2 break-all">{log.details}</span>}
                 </p>
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                   <Clock size={10} />
@@ -215,6 +215,18 @@ export default async function AuditLogPage({
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Mobile Pagination Footer */}
+        {total > 0 && (
+          <div className="px-4 py-3 border-t border-border/60 bg-muted/50 space-y-2">
+            <p className="text-xs text-muted-foreground">
+              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} dari {total} entri
+            </p>
+            {totalPages > 1 && (
+              <AuditPagination page={page} totalPages={totalPages} q={q} actionFilter={actionFilter} />
+            )}
           </div>
         )}
       </div>
@@ -263,7 +275,7 @@ function AuditPagination({ page, totalPages, q, actionFilter }: {
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 flex-wrap">
       {page > 1 && (
         <a href={buildHref(page - 1)} className="px-2.5 py-1 text-xs rounded border border-border bg-card hover:bg-muted/50 transition-colors">‹</a>
       )}

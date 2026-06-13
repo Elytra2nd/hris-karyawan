@@ -130,7 +130,8 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
             </h2>
             <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-1.5 shrink-0">
               <Plus size={13} />
-              Tambah
+              <span className="hidden sm:inline">Tambah</span>
+              <span className="sm:hidden">+</span>
             </Button>
           </div>
           <div className="relative">
@@ -148,10 +149,12 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
             <Buildings size={36} className="opacity-20" />
             <p className="text-sm font-bold uppercase tracking-wider">Belum ada departemen</p>
-            <p className="text-xs">Klik "Tambah" untuk membuat departemen pertama</p>
+            <p className="text-xs">Klik &quot;Tambah&quot; untuk membuat departemen pertama</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Desktop Table */}
+            <div className="hidden sm:block overflow-x-auto">
           <table className="w-full min-w-[400px]">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
@@ -290,6 +293,108 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
             </tbody>
           </table>
           </div>
+
+            {/* Mobile Card View */}
+            <div className="sm:hidden divide-y divide-border/60">
+              {filteredDepts.length === 0 && search && (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                  Tidak ada departemen untuk &ldquo;{search}&rdquo;
+                </div>
+              )}
+              {filteredDepts.map(dept => (
+                <div key={dept.id} className="px-4 py-3.5">
+                  {editing === dept.id ? (
+                    <div className="space-y-2">
+                      <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        className="w-full h-8 px-2 text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        autoFocus
+                        placeholder="Nama departemen"
+                      />
+                      <input
+                        value={editCode}
+                        onChange={e => setEditCode(e.target.value.toUpperCase())}
+                        className="w-24 h-8 px-2 text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        placeholder="KODE"
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => handleSaveEdit(dept.id)}
+                          disabled={saving}
+                          className="h-8 px-3 rounded-md text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
+                        >
+                          {saving ? 'Menyimpan...' : 'Simpan'}
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="h-8 px-3 rounded-md text-xs font-semibold border border-border hover:bg-muted/50 transition-colors"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Buildings size={15} className="text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{dept.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="font-mono text-[11px] font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded">{dept.code}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Users size={11} /> {dept._count.employees}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => startEdit(dept)}
+                          className="h-9 w-9 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        {dept._count.employees === 0 && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                disabled={deleting === dept.id}
+                                className="h-9 w-9 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                              >
+                                {deleting === dept.id
+                                  ? <CircleNotch size={14} className="animate-spin" />
+                                  : <Trash size={14} />}
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Departemen <strong>{dept.name}</strong> akan dihapus permanen.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(dept.id, dept.name)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Hapus
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

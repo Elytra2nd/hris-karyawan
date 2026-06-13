@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { ContractStatusChart } from '@/components/contract-status-chart'
 import { EmployeeChart } from '@/components/employee-chart'
 import { LiveClock } from '@/components/live-clock'
+import { BranchTable } from '@/components/branch-table'
 
 export default async function DashboardPage() {
   const user = await verifySession()
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
 
   const urgentList = [...expiring14, ...expiring30.filter(c => !expiring14.includes(c))]
     .sort((a, b) => differenceInDays(new Date(a.traineeSelesai), today) - differenceInDays(new Date(b.traineeSelesai), today))
-    .slice(0, 6)
+    .slice(0, 10)
 
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam'
@@ -181,7 +182,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Kontrak Segera Habis */}
-        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
             <div className="flex items-center gap-2.5">
               <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
@@ -192,12 +193,16 @@ export default async function DashboardPage() {
             <span className="text-xs text-muted-foreground">{expiring90.length} kontrak</span>
           </div>
 
-          <div className="divide-y divide-gray-50">
+          <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-border/40">
             {urgentList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
-                <CheckCircle className="h-8 w-8 text-green-400" />
-                <p className="text-sm font-semibold text-muted-foreground">Semua kontrak aman</p>
-                <p className="text-xs text-muted-foreground">Tidak ada kontrak yang kritis</p>
+              <div className="flex items-center gap-3 px-5 py-6">
+                <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                  <CheckCircle className="h-5 w-5 text-green-500" weight="fill" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Semua kontrak aman</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Tidak ada kontrak yang perlu tindakan segera</p>
+                </div>
               </div>
             ) : (
               urgentList.map((c) => {
@@ -208,15 +213,24 @@ export default async function DashboardPage() {
                   <Link
                     key={c.id}
                     href={`/karyawan/${c.employee.id}`}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/50 transition-colors group"
+                    className={cn(
+                      'flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors group',
+                      isKritis && 'bg-red-50/30',
+                    )}
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                        {c.employee.namaLengkap}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {c.posisi} · {c.employee.cabang}
-                      </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={cn(
+                        'h-2 w-2 rounded-full shrink-0',
+                        isKritis ? 'bg-red-500' : isMendekat ? 'bg-amber-400' : 'bg-blue-400'
+                      )} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                          {c.employee.namaLengkap}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {c.posisi} · {c.employee.cabang}
+                        </p>
+                      </div>
                     </div>
                     <span className={cn(
                       'ml-3 shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
@@ -234,7 +248,7 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {expiring90.length > 6 && (
+          {expiring90.length > urgentList.length && (
             <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
               <Link
                 href="/karyawan?filter=expiring90"
@@ -336,67 +350,16 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── Tabel Branch Overview ─── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
-            <MapPin className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Integrasi Branch</h2>
-            <p className="text-xs text-muted-foreground">Distribusi karyawan per kode cabang</p>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[540px]">
-            <thead>
-              <tr className="border-b border-border bg-accent/60">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode Cabang</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {statsBranch.map((b, i) => {
-                const pct = totalEmployees > 0 ? Math.round((b._count.ba / totalEmployees) * 100) : 0
-                return (
-                  <tr key={i} className="hover:bg-muted/50 transition-colors group">
-                    <td className="px-5 py-3.5">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-muted text-xs font-bold text-foreground font-mono">
-                        {b.ba}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <Link
-                        href={`/karyawan?cabang=${b.cabang}`}
-                        className="flex items-center gap-2 hover:text-primary transition-colors"
-                      >
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0 group-hover:text-primary transition-colors" />
-                        <span className="text-sm font-semibold">{b.baCabang}</span>
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-foreground/70 font-mono">{b.cabang}</td>
-                    <td className="px-5 py-3.5 text-center text-base font-bold text-foreground">{b._count.ba}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-semibold text-foreground/70 w-7 text-right">{pct}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* ─── Tabel Branch Overview (dengan paginasi) ─── */}
+      <BranchTable
+        data={statsBranch.map(b => ({
+          ba: b.ba,
+          baCabang: b.baCabang,
+          cabang: b.cabang,
+          count: b._count.ba,
+        }))}
+        totalEmployees={totalEmployees}
+      />
 
     </div>
   )
