@@ -54,7 +54,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         setIsPending(false)
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
+      const msg = 'Koneksi terputus — coba kirim ulang'
       toast.error(msg)
       setIsPending(false)
     }
@@ -63,7 +63,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)
 
   return (
-    <form action={handleSubmit} className="space-y-5">
+    <form action={handleSubmit} className="space-y-6">
 
       {/* Posisi */}
       <div className="space-y-2">
@@ -107,29 +107,29 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
               Otomatis
             </span>
           </Label>
-          <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-3 text-sm font-semibold text-primary">
+          <div className="h-8 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-4 text-sm font-semibold text-primary">
             <span className="truncate">
               {tglSelesai
                 ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
                 : 'Pilih posisi & tanggal'}
             </span>
-            <CalendarCheck size={14} className="opacity-70 shrink-0" />
+            <CalendarCheck size={16} className="opacity-70 shrink-0" />
           </div>
         </div>
       </div>
 
       {/* Info tip */}
       {posisi ? (
-        <div className="flex items-start gap-2.5 rounded-md bg-accent border border-blue-100 px-3.5 py-3">
-          <Info size={14} className="text-primary shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-2">
+          <Info size={16} className="text-primary shrink-0 mt-0.5" />
           <p className="text-sm text-blue-700">
             Jabatan <strong>{selectedOpt?.label}</strong> mendapat kontrak{' '}
             <strong>{selectedOpt?.months} bulan</strong> dari tanggal mulai.
           </p>
         </div>
       ) : (
-        <div className="flex items-start gap-2.5 rounded-md bg-muted/50 border border-border px-3.5 py-3">
-          <CalendarCheck size={14} className="text-muted-foreground/70 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-md bg-muted/50 border border-border px-4 py-2">
+          <CalendarCheck size={16} className="text-muted-foreground/70 shrink-0 mt-0.5" />
           <p className="text-sm text-muted-foreground">
             Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
           </p>
@@ -140,10 +140,10 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
       <button
         type="submit"
         disabled={isPending || !posisi || !tglMulai}
-        className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
-          <><CircleNotch size={15} className="animate-spin" /> Menerbitkan...</>
+          <><CircleNotch size={16} className="animate-spin" /> Menerbitkan...</>
         ) : (
           'Terbitkan Kontrak Baru'
         )}

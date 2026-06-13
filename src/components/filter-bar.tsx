@@ -18,7 +18,7 @@ interface FilterBarProps {
 
 export function FilterBar({ onSearch, onFilterCabang, onFilterStatus }: FilterBarProps) {
   return (
-    <div className="flex flex-col md:flex-row gap-3 mb-6 bg-card p-4 rounded-xl shadow-sm border border-border/60 font-sans">
+    <div className="flex flex-col md:flex-row gap-4 mb-6 bg-card p-4 rounded-xl shadow-sm border border-border/60 font-sans">
       {/* MagnifyingGlass Input */}
       <div className="relative flex-1">
         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />

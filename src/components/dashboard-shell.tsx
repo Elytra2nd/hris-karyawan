@@ -38,7 +38,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Tooltip>
           <TooltipTrigger asChild>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" aria-label="Sembunyikan/tampilkan ringkasan" className="h-8 w-8 p-0">
                 <CaretDown className="h-4 w-4" />
               </Button>
             </CollapsibleTrigger>

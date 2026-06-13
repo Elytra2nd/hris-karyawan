@@ -24,7 +24,7 @@ export default function LoginPage() {
 
         {/* Greeting */}
         <div className="relative z-10 space-y-4">
-          <h1 className="text-5xl font-bold text-white leading-tight">
+          <h1 className="text-5xl font-bold text-white leading-snug">
             Selamat<br />Datang!
           </h1>
           <p className="text-blue-100 text-base leading-relaxed max-w-xs">

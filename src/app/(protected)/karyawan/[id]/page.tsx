@@ -92,19 +92,19 @@ export default async function DetailKaryawanPage({
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <CreditCard size={13} className="text-muted-foreground/70" />
+                <CreditCard size={12} className="text-muted-foreground/70" />
                 NIK: <span className="font-medium text-foreground/80 font-mono">{employee.nik || '—'}</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-muted-foreground/70" />
+                <MapPin size={12} className="text-muted-foreground/70" />
                 {employee.cabang}
               </span>
               <span className="flex items-center gap-1.5">
-                <Phone size={13} className="text-muted-foreground/70" />
+                <Phone size={12} className="text-muted-foreground/70" />
                 {employee.noHp || '—'}
               </span>
               <span className="flex items-center gap-1.5">
-                <Buildings size={13} className="text-muted-foreground/70" />
+                <Buildings size={12} className="text-muted-foreground/70" />
                 {latestContract?.posisi || '—'}
               </span>
             </div>
@@ -192,7 +192,7 @@ export default async function DetailKaryawanPage({
         {/* Identitas Pribadi */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
               <User className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-base font-semibold text-foreground">Identitas Pribadi</h2>
@@ -223,7 +223,7 @@ export default async function DetailKaryawanPage({
         {/* Data Operasional */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-md bg-green-50 flex items-center justify-center">
               <Buildings className="h-4 w-4 text-green-600" />
             </div>
             <h2 className="text-base font-semibold text-foreground">Data Operasional</h2>
@@ -249,7 +249,7 @@ export default async function DetailKaryawanPage({
       {/* ─── Dokumen ─── */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-orange-50 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-md bg-orange-50 flex items-center justify-center">
             <SealCheckIcon className="h-4 w-4 text-orange-500" />
           </div>
           <h2 className="text-base font-semibold text-foreground">Dokumen</h2>
@@ -350,7 +350,7 @@ function DocCard({
       )}>
         {icon}
       </div>
-      <p className="text-[11px] font-semibold text-foreground/70 leading-tight">{label}</p>
+      <p className="text-[11px] font-semibold text-foreground/70 leading-snug">{label}</p>
       {customValue ? (
         <p className="text-xs text-foreground/80 font-mono">{customValue}</p>
       ) : available ? (
@@ -361,16 +361,16 @@ function DocCard({
             rel="noopener noreferrer"
             className="text-[11px] font-semibold text-green-700 flex items-center gap-1 hover:underline"
           >
-            <CheckCircle size={11} /> Tersedia
+            <CheckCircle size={12} /> Tersedia
           </a>
         ) : (
           <span className="text-[11px] font-semibold text-green-700 flex items-center gap-1">
-            <CheckCircle size={11} /> Tersedia
+            <CheckCircle size={12} /> Tersedia
           </span>
         )
       ) : (
         <span className="text-[11px] font-semibold text-muted-foreground/70 flex items-center gap-1">
-          <XCircle size={11} /> Belum ada
+          <XCircle size={12} /> Belum ada
         </span>
       )}
     </div>

@@ -150,10 +150,19 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Satoshi', ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
   }
   html {
     @apply font-sans;
   }
+
+  /* ─── WCAG 2.1 SC 1.4.12 — Line-height ≥ 1.5× font-size ── */
+  /* Tailwind text-xs = 12px/16px (lh 1.33) → override ke 1.5  */
+  /* Tailwind text-sm = 14px/20px (lh 1.43) → override ke 1.5  */
+  /* Tailwind text-xl = 20px/28px (lh 1.4)  → override ke 1.5  */
+  .text-xs  { line-height: 1.5; }   /* 12px → 18px */
+  .text-sm  { line-height: 1.5; }   /* 14px → 21px */
+  .text-xl  { line-height: 1.5; }   /* 20px → 30px */
 }
 
 /* ─── Satoshi Font ─────────────────────────────────────────────── */
@@ -168,36 +177,36 @@
 @layer utilities {
   /* Kontrak aktif / karyawan aktif — mint pastel */
   .chip-aktif {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100;
   }
   /* Kontrak mendekati habis (≤30 hari) — peach pastel */
   .chip-warning {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100;
   }
   /* Kontrak habis / expired — pink pastel */
   .chip-expired {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-100;
   }
   /* Karyawan tidak aktif / resign */
   .chip-nonaktif {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-600 border border-rose-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-600 border border-rose-100;
   }
   /* Trainee / kontrak — cyan pastel */
   .chip-trainee {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100;
   }
   /* Admin */
   .chip-admin {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700;
   }
   /* Viewer */
   .chip-viewer {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600;
   }
 
   /* ─── Table header standar ─── */
   .th-standard {
-    @apply px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-blue-50/60;
+    @apply px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-blue-50/60;
   }
 
   /* ─── Card standar ─── */

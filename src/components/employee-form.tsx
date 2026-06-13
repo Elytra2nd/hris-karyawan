@@ -77,7 +77,7 @@ export function EmployeeForm({
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Periksa kembali isian yang ditandai')
+      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
       // Focus first invalid field
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) {
@@ -96,11 +96,10 @@ export function EmployeeForm({
         setIsPending(false)
         return
       }
-      toast.success('Karyawan berhasil ditambahkan!')
+      toast.success('Data karyawan berhasil disimpan')
       router.push('/karyawan')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
-      toast.error(msg)
+    } catch {
+      toast.error('Koneksi terputus — coba simpan ulang')
       setIsPending(false)
     }
   }
@@ -111,7 +110,7 @@ export function EmployeeForm({
       {/* ─── A. Data Operasional ─── */}
       <section className="space-y-4">
         <SectionHeader
-          icon={<Buildings size={15} className="text-primary" />}
+          icon={<Buildings size={16} className="text-primary" />}
           letter="A"
           title="Data Operasional"
           color="blue"
@@ -157,7 +156,7 @@ export function EmployeeForm({
       {/* ─── B. Identitas Karyawan ─── */}
       <section className="space-y-4">
         <SectionHeader
-          icon={<User size={15} className="text-green-600" />}
+          icon={<User size={16} className="text-green-600" />}
           letter="B"
           title="Identitas Karyawan"
           color="green"
@@ -230,7 +229,7 @@ export function EmployeeForm({
       {/* ─── C. Kontrak Pertama ─── */}
       <section className="space-y-4">
         <SectionHeader
-          icon={<FileTextIcon size={15} className="text-orange-500" />}
+          icon={<FileTextIcon size={16} className="text-orange-500" />}
           letter="C"
           title="Kontrak Pertama"
           color="orange"
@@ -278,21 +277,21 @@ export function EmployeeForm({
                 Otomatis
               </span>
             </Label>
-            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-3 text-sm font-semibold text-primary">
+            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-4 text-sm font-semibold text-primary">
               <span className="truncate">
                 {tglSelesai
                   ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
                   : 'Pilih posisi & tanggal'}
               </span>
-              <CalendarCheck size={14} className="opacity-70 shrink-0" />
+              <CalendarCheck size={16} className="opacity-70 shrink-0" />
             </div>
           </div>
         </div>
 
         {/* Info tip */}
         {posisi && (
-          <div className="flex items-start gap-2.5 rounded-md bg-accent border border-blue-100 px-4 py-3">
-            <Info size={15} className="text-primary shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-2">
+            <Info size={16} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
               Jabatan <strong>{posisi}</strong> otomatis mendapat kontrak{' '}
               <strong>{POSISI_OPTIONS.find(p => p.value === posisi)?.months} bulan</strong>{' '}
@@ -302,8 +301,8 @@ export function EmployeeForm({
         )}
 
         {!posisi && (
-          <div className="flex items-start gap-2.5 rounded-md bg-muted/50 border border-border px-4 py-3">
-            <CalendarCheck size={15} className="text-muted-foreground/70 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-md bg-muted/50 border border-border px-4 py-2">
+            <CalendarCheck size={16} className="text-muted-foreground/70 shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground">
               Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
             </p>
@@ -315,7 +314,7 @@ export function EmployeeForm({
       <button
         type="submit"
         disabled={isPending}
-        className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
           <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
@@ -353,7 +352,7 @@ function SectionHeader({
     orange: 'bg-orange-500 text-white',
   }
   return (
-    <div className={`flex items-center gap-2.5 pb-3 border-b ${colorMap[color].split(' ')[1]}`}>
+    <div className={`flex items-center gap-2 pb-3 border-b ${colorMap[color].split(' ')[1]}`}>
       <span className={`h-6 w-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${letterMap[color]}`}>
         {letter}
       </span>

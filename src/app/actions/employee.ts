@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { addMonths } from 'date-fns'
 import { createAuditLog } from '@/lib/audit'
-import { requirePermission } from '@/lib/auth-guard'
+import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -14,6 +14,7 @@ import {
 } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
 import { logger } from '@/lib/logger'
+import type { Prisma } from '@prisma/client'
 
 // ─── Business Rule: hitung tanggal selesai ────────────────────────────────────
 function calculateEndDate(posisi: string, startDate: Date): Date {
@@ -37,7 +38,7 @@ export async function createEmployee(formData: FormData) {
 
   const parsed = createEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Data tidak valid'
+    const firstError = parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali formulir'
     return fail(firstError, 'VALIDATION')
   }
 
@@ -63,14 +64,14 @@ export async function createEmployee(formData: FormData) {
         noKtp, tglLahir, namaIbu, noHp, formConsent,
         departmentId,
         contracts: { create: { posisi, traineeSejak, traineeSelesai } },
-      },
+      } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah terdaftar`, 'DUPLICATE')
+      return fail(`No KTP ${noKtp} sudah terdaftar di sistem — gunakan nomor KTP lain`, 'DUPLICATE')
     }
     logger.error('createEmployee failed', { error: String(error) })
-    return fail('Gagal menyimpan data karyawan', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan data — coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -94,7 +95,7 @@ export async function updateEmployee(id: string, formData: FormData) {
 
   const parsed = updateEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
-    return fail(parsed.error.issues[0]?.message ?? 'Data tidak valid', 'VALIDATION')
+    return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali formulir', 'VALIDATION')
   }
 
   const {
@@ -115,14 +116,14 @@ export async function updateEmployee(id: string, formData: FormData) {
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
         departmentId,
-      },
+      } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah dipakai karyawan lain`, 'DUPLICATE')
+      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain — gunakan nomor KTP berbeda`, 'DUPLICATE')
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
-    return fail('Gagal memperbarui data karyawan', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan perubahan — coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -148,7 +149,7 @@ export async function createContract(employeeId: string, formData: FormData): Pr
 
     const parsed = createContractSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Data kontrak tidak valid', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian kontrak yang belum lengkap — periksa kembali', 'VALIDATION')
     }
 
     const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
@@ -173,9 +174,9 @@ export async function createContract(employeeId: string, formData: FormData): Pr
     return ok({ employeeId }, 'Kontrak berhasil diterbitkan')
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini — hubungi Admin', 'UNAUTHORIZED')
     logger.error('createContract failed', { employeeId, error: String(error) })
-    return fail('Gagal menerbitkan kontrak', 'SERVER_ERROR')
+    return fail('Kami belum bisa menerbitkan kontrak — coba kirim ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 }
 
@@ -190,7 +191,7 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     })
 
     if (!employee) {
-      return fail('Data karyawan tidak ditemukan', 'NOT_FOUND')
+      return fail('Data karyawan tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
     }
 
     await prisma.employee.delete({ where: { id } })
@@ -209,25 +210,54 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     return ok({ id })
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini — hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteEmployee failed', { error: String(error) })
-    return fail('Gagal menghapus data karyawan', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus data — coba ulangi dalam beberapa saat', 'SERVER_ERROR')
   }
 }
 
 // ─── Read: Semua karyawan untuk export ───────────────────────────────────────
-export async function getAllEmployeesForExport() {
-  await requirePermission('employee_read')
+type EmployeeExportItem = {
+  ba: string
+  baCabang: string
+  region: string | null
+  cabang: string
+  namaLengkap: string
+  status: string
+  nik: string | null
+  noJamsostek: string | null
+  noKtp: string
+  tglLahir: string
+  namaIbu: string
+  noHp: string
+  formConsent: string
+  contracts: { posisi: string; traineeSejak: Date; traineeSelesai: Date }[]
+  department: { name: string; code: string } | null
+}
+
+export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> {
+  await requireAuth()
 
   try {
-    return await prisma.employee.findMany({
-      include: {
-        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
-        department: { select: { name: true, code: true } },
-      },
-      orderBy: { namaLengkap: 'asc' },
-    })
+    // Fetch employees and departments separately to avoid Prisma cache issues with include
+    const [employees, departments] = await Promise.all([
+      prisma.employee.findMany({
+        include: {
+          contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
+        },
+        orderBy: { namaLengkap: 'asc' },
+      }),
+      prisma.department.findMany({ select: { id: true, name: true, code: true } }),
+    ])
+
+    const deptMap = new Map(departments.map(d => [d.id, { name: d.name, code: d.code }]))
+
+    return employees.map(emp => ({
+      ...emp,
+      department: emp.departmentId ? deptMap.get(emp.departmentId) ?? null : null,
+    })) as unknown as EmployeeExportItem[]
   } catch (error) {
+    console.error('getAllEmployeesForExport failed:', error)
     logger.error('getAllEmployeesForExport failed', { error: String(error) })
     return []
   }
@@ -294,6 +324,20 @@ export async function getEmployees({
   } catch (error) {
     logger.error('getEmployees failed', { error: String(error) })
     return { employees: [], total: 0 }
+  }
+}
+
+// ─── Read: Distinct cabang untuk filter dropdown ──────────────────────────────
+export async function getDistinctCabang(): Promise<string[]> {
+  try {
+    const result = await prisma.employee.findMany({
+      select: { cabang: true },
+      distinct: ['cabang'],
+      orderBy: { cabang: 'asc' },
+    })
+    return result.map(r => r.cabang)
+  } catch {
+    return []
   }
 }
 

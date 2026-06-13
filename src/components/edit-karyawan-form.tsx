@@ -67,7 +67,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Periksa kembali isian yang ditandai')
+      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(String(firstField))?.focus()
       return
@@ -82,11 +82,10 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
         setIsPending(false)
         return
       }
-      toast.success('Data karyawan berhasil diperbarui!')
+      toast.success('Perubahan berhasil disimpan')
       router.push(`/karyawan/${employee.id}`)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan server'
-      toast.error(msg)
+    } catch {
+      toast.error('Koneksi terputus — coba simpan ulang')
       setIsPending(false)
     }
   }
@@ -111,7 +110,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-blue-100">
                 <span className="h-6 w-6 rounded-md bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">A</span>
-                <Buildings size={15} className="text-primary" />
+                <Buildings size={16} className="text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">Data Operasional</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -150,7 +149,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-green-100">
                 <span className="h-6 w-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">B</span>
-                <User size={15} className="text-green-600" />
+                <User size={16} className="text-green-600" />
                 <h3 className="text-sm font-semibold text-foreground">Identitas Karyawan</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -296,7 +295,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
             </section>
 
             {/* ─── Submit ─── */}
-            <div className="pt-2 border-t border-border/60 space-y-3">
+            <div className="pt-2 border-t border-border/60 space-y-4">
               {isDirty && !isPending && (
                 <p className="text-xs text-amber-600 flex items-center gap-1.5">
                   <Warning size={12} />
@@ -306,7 +305,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
               >
                 {isPending ? (
                   <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
@@ -325,8 +324,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
 
           {/* Photo card */}
           <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-              <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+              <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
                 <UserCircleIcon className="h-4 w-4 text-primary" />
               </div>
               <h2 className="text-base font-semibold text-foreground">Foto Karyawan</h2>
@@ -340,15 +339,15 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
           </div>
 
           {/* Info card */}
-          <div className="flex items-start gap-3 px-4 py-3.5 rounded-lg border border-blue-100 bg-accent/50">
-            <Info size={15} className="text-primary shrink-0 mt-0.5" />
+          <div className="flex items-start gap-4 px-4 py-3.5 rounded-lg border border-blue-100 bg-accent/50">
+            <Info size={16} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700 leading-relaxed">
               Gunakan foto dengan latar belakang polos untuk mempermudah proses pembuatan ID Card.
             </p>
           </div>
 
           {/* Meta info */}
-          <div className="bg-card border border-border rounded-lg px-5 py-4 space-y-2.5">
+          <div className="bg-card border border-border rounded-lg px-6 py-4 space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Info Sistem</p>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">ID</span>
@@ -369,7 +368,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [] }: E
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Warning size={18} className="text-amber-600" />
+              <Warning size={20} className="text-amber-600" />
               Ubah Status ke Non-Aktif?
             </AlertDialogTitle>
             <AlertDialogDescription>

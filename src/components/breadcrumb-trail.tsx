@@ -90,7 +90,7 @@ export function BreadcrumbTrail() {
   }
 
   return (
-    <Breadcrumb className="px-6 py-3 border-b border-border bg-muted/30">
+    <Breadcrumb className="px-4 md:px-8 py-2 border-b border-border bg-muted/30">
       <BreadcrumbList>
         {breadcrumbs.map((crumb, index) => (
           <React.Fragment key={`${crumb.label}-${index}`}>

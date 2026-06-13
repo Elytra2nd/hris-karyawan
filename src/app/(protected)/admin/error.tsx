@@ -14,7 +14,7 @@ export default function AdminError({
     <div className="flex items-center justify-center min-h-[100dvh] bg-background px-4">
       <div className="flex flex-col items-center gap-6 text-center max-w-md">
         <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-          <Warning size={32} className="text-red-600 dark:text-red-400" weight="fill" />
+          <Warning size={32} className="text-red-600 dark:text-red-400" />
         </div>
 
         <div className="flex flex-col gap-2">

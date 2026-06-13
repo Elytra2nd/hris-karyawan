@@ -25,10 +25,10 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
       if (result.success) {
         toast.success(`Akun ${username} berhasil dihapus`)
       } else {
-        toast.error(result.error || 'Gagal menghapus akun')
+        toast.error(result.error)
       }
     } catch {
-      toast.error('Terjadi kesalahan. Coba lagi.')
+      toast.error('Koneksi terputus — coba ulangi')
     } finally {
       setLoading(false)
     }
@@ -44,8 +44,8 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
               className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             >
               {loading
-                ? <CircleNotch size={15} className="animate-spin" />
-                : <Trash size={15} />}
+                ? <CircleNotch size={16} className="animate-spin" />
+                : <Trash size={16} />}
             </button>
           </AlertDialogTrigger>
         </TooltipTrigger>

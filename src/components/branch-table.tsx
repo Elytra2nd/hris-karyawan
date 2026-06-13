@@ -45,9 +45,9 @@ export function BranchTable({
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
             <MapPin className="h-4 w-4 text-primary" />
           </div>
           <div>
@@ -63,11 +63,11 @@ export function BranchTable({
         <table className="w-full min-w-[540px]">
           <thead>
             <tr className="border-b border-border bg-accent/60">
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode Cabang</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode Cabang</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -76,7 +76,7 @@ export function BranchTable({
               return (
                 <tr key={`${b.ba}-${b.cabang}-${i}`} className="hover:bg-muted/50 transition-colors group">
                   <td className="px-5 py-3.5">
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-muted text-xs font-bold text-foreground font-mono">
+                    <span className="inline-block px-2 py-0.5 rounded bg-muted text-xs font-bold text-foreground font-mono">
                       {b.ba}
                     </span>
                   </td>
@@ -111,7 +111,7 @@ export function BranchTable({
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-border/60 bg-muted/50">
+        <div className="flex items-center justify-between px-6 py-2 border-t border-border/60 bg-muted/50">
           <p className="text-xs text-muted-foreground">
             {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, data.length)} dari{' '}
             <span className="font-semibold text-foreground/80">{data.length}</span> cabang
@@ -123,7 +123,7 @@ export function BranchTable({
               className="h-8 w-8 flex items-center justify-center rounded-md border border-border bg-card hover:bg-muted/50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
               aria-label="Halaman sebelumnya"
             >
-              <CaretLeft size={14} />
+              <CaretLeft size={16} />
             </button>
             {pageNums.map((p, i) =>
               typeof p === 'number' ? (
@@ -151,7 +151,7 @@ export function BranchTable({
               className="h-8 w-8 flex items-center justify-center rounded-md border border-border bg-card hover:bg-muted/50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
               aria-label="Halaman berikutnya"
             >
-              <CaretRight size={14} />
+              <CaretRight size={16} />
             </button>
           </div>
         </div>

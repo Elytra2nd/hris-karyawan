@@ -45,9 +45,9 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     await requirePermission('upload_photo')
 
     const file = formData.get('file') as File
-    if (!file || file.size === 0) return { success: false, message: 'File tidak valid' }
+    if (!file || file.size === 0) return { success: false, message: 'Pilih file foto terlebih dahulu' }
     if (file.size > MAX_BYTES) {
-      return { success: false, message: 'Ukuran file maksimal 2 MB' }
+      return { success: false, message: 'Ukuran foto terlalu besar — maksimal 2 MB' }
     }
 
     const bytes = await file.arrayBuffer()
@@ -56,7 +56,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     // Validasi berdasarkan isi file (magic-byte), bukan file.type yang bisa dipalsukan.
     const detectedMime = sniffImageMime(buffer)
     if (!detectedMime) {
-      return { success: false, message: 'Hanya format JPG, PNG, atau WEBP yang diizinkan' }
+      return { success: false, message: 'Format foto tidak didukung — gunakan JPG, PNG, atau WEBP' }
     }
 
     const employee = await prisma.employee.findUnique({
@@ -64,7 +64,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
       select: { image: true },
     })
     if (!employee) {
-      return { success: false, message: 'Karyawan tidak ditemukan' }
+      return { success: false, message: 'Data karyawan tidak ditemukan — mungkin sudah dihapus' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'profiles')
@@ -98,8 +98,8 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     return { success: true, url: relativePath }
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return { success: false, message: e.message }
+    if (e?.code === 'UNAUTHORIZED') return { success: false, message: 'Anda tidak memiliki izin mengunggah foto — hubungi Admin' }
     logger.error('uploadEmployeePhoto failed', { employeeId, error: String(error) })
-    return { success: false, message: 'Gagal memproses unggahan' }
+    return { success: false, message: 'Kami belum bisa mengunggah foto — coba unggah ulang' }
   }
 }

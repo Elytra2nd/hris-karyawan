@@ -30,20 +30,20 @@ export function ContractList({
   if (contracts.length === 0) {
     return (
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+          <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
             <ClockCounterClockwise className="h-4 w-4 text-primary" />
           </div>
           <h2 className="text-base font-semibold text-foreground">Riwayat Kontrak</h2>
           <span className="ml-auto text-xs text-muted-foreground">0 kontrak</span>
         </div>
-        <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+        <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
           <ClockCounterClockwise size={32} className="text-muted-foreground/50" />
           <p className="text-sm font-semibold text-muted-foreground">Belum ada riwayat kontrak</p>
           <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama karyawan ini</p>
-          <Button asChild size="sm" className="mt-1 gap-1.5">
+          <Button asChild size="sm" className="mt-1 gap-2 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700">
             <Link href={`/karyawan/${employee.id}/kontrak`}>
-              <Plus size={13} />
+              <Plus size={12} />
               Buat Kontrak Pertama
             </Link>
           </Button>
@@ -55,8 +55,8 @@ export function ContractList({
   return (
     <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-        <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+        <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
           <ClockCounterClockwise className="h-4 w-4 text-primary" />
         </div>
         <div>
@@ -66,7 +66,7 @@ export function ContractList({
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{contracts.length} kontrak</span>
           {canCreateContract && (
-            <Button asChild size="sm" variant="outline" className="gap-1.5 h-7 text-xs">
+            <Button asChild size="sm" variant="outline" className="gap-2 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950">
               <Link href={`/karyawan/${employee.id}/kontrak`}>
                 <Plus size={12} />
                 Perpanjang
@@ -81,12 +81,12 @@ export function ContractList({
         <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-border bg-accent/60">
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-6">No</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jabatan / Posisi</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Periode</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Durasi</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Status</th>
-              <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dokumen</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-6">No</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jabatan / Posisi</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Periode</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Durasi</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Status</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dokumen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -136,7 +136,7 @@ export function ContractList({
                             href={`/karyawan/${employee.id}/kontrak`}
                             className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
                           >
-                            <ArrowBendUpRight size={11} />
+                            <ArrowBendUpRight size={12} />
                             Perpanjang
                           </Link>
                         )}
@@ -161,11 +161,11 @@ export function ContractList({
                         isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
                       )}>
                         {isKritis ? (
-                          <><Warning size={11} /> {daysLeft} hari tersisa</>
+                          <><Warning size={12} /> {daysLeft} hari tersisa</>
                         ) : isMendekat ? (
-                          <><Clock size={11} /> {daysLeft} hari tersisa</>
+                          <><Clock size={12} /> {daysLeft} hari tersisa</>
                         ) : (
-                          <><CheckCircle size={11} /> {daysLeft} hari tersisa</>
+                          <><CheckCircle size={12} /> {daysLeft} hari tersisa</>
                         )}
                       </div>
                     )}
@@ -173,8 +173,8 @@ export function ContractList({
 
                   {/* Durasi */}
                   <td className="px-5 py-4 text-center">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground/70 bg-muted px-2.5 py-1 rounded-full">
-                      <Clock size={11} />
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground/70 bg-muted px-2 py-1 rounded-full">
+                      <Clock size={12} />
                       {durationMonths} bln
                     </span>
                   </td>
@@ -215,7 +215,7 @@ export function ContractList({
             <div
               key={contract.id}
               className={cn(
-                'px-5 py-4 flex items-start gap-3',
+                'px-5 py-4 flex items-start gap-4',
                 isKritis && 'bg-red-50/40'
               )}
             >
@@ -249,7 +249,7 @@ export function ContractList({
                   {' → '}
                   {format(new Date(contract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
                 </p>
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-4 mt-2">
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {durationMonths} bulan
                   </span>
@@ -262,7 +262,7 @@ export function ContractList({
       </div>
 
       {/* Footer summary */}
-      <div className="px-5 py-3 border-t border-border/60 bg-muted/50 flex items-center justify-between">
+      <div className="px-5 py-2 border-t border-border/60 bg-muted/50 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
           Total akumulasi:{' '}
           <span className="font-semibold text-foreground/80">

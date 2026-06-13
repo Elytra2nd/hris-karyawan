@@ -13,7 +13,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Account info card */}
-      <div className="bg-card border border-border rounded-lg shadow-sm p-5 flex items-center gap-4">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6 flex items-center gap-4">
         <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-black text-lg shrink-0">
           {session.username.charAt(0).toUpperCase()}
         </div>
@@ -31,9 +31,9 @@ export default async function ProfilePage() {
 
       {/* Change password card */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
-            <Key size={14} className="text-primary" />
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+          <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
+            <Key size={16} className="text-primary" />
           </div>
           <h2 className="text-base font-semibold text-foreground">Ganti Password</h2>
         </div>

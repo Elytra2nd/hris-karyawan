@@ -33,7 +33,7 @@ export default function DetailKaryawanLoading() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="bg-card border border-border rounded-lg shadow-sm">
            <div className="px-5 py-4 border-b border-border/60 flex items-center gap-3">
-             <Skeleton className="h-7 w-7 rounded-md" />
+             <Skeleton className="h-8 w-8 rounded-md" />
              <Skeleton className="h-5 w-[150px]" />
            </div>
            <div className="p-5 grid grid-cols-2 gap-y-6 gap-x-4">
@@ -45,7 +45,7 @@ export default function DetailKaryawanLoading() {
         </div>
         <div className="bg-card border border-border rounded-lg shadow-sm">
            <div className="px-5 py-4 border-b border-border/60 flex items-center gap-3">
-             <Skeleton className="h-7 w-7 rounded-md" />
+             <Skeleton className="h-8 w-8 rounded-md" />
              <Skeleton className="h-5 w-[150px]" />
            </div>
            <div className="p-5 grid grid-cols-2 gap-y-6 gap-x-4">

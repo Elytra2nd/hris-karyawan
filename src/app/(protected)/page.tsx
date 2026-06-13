@@ -74,22 +74,22 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold text-foreground">
             {greeting}, {user?.username || 'Pengguna'}
           </h1>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-              <Calendar size={13} />
+          <div className="flex items-center gap-4 mt-1 flex-wrap">
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <Calendar size={12} />
               {format(now, "EEEE, dd MMMM yyyy", { locale: localeID })}
             </p>
             <span className="text-muted-foreground/40 hidden sm:inline">·</span>
-            <p className="text-sm text-primary font-semibold flex items-center gap-1.5">
-              <Clock size={13} />
+            <p className="text-sm text-primary font-semibold flex items-center gap-2">
+              <Clock size={12} />
               <LiveClock />
             </p>
           </div>
         </div>
         {user?.role === 'ADMIN' && (
           <Link href="/karyawan/tambah">
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
-              <PlusCircle size={15} />
+            <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
+              <PlusCircle size={16} />
               Tambah Karyawan
             </button>
           </Link>
@@ -98,7 +98,7 @@ export default async function DashboardPage() {
 
       {/* ─── Alert Banner ─── */}
       {expiring14.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3.5">
+        <div className="flex items-start gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-4">
           <Warning className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-800">
@@ -112,13 +112,13 @@ export default async function DashboardPage() {
             href="/karyawan?filter=expiring14"
             className="text-sm font-semibold text-red-700 hover:text-red-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
-            Lihat <CaretRight size={14} />
+            Lihat <CaretRight size={16} />
           </Link>
         </div>
       )}
 
       {expiring30.length > 0 && expiring14.length === 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
+        <div className="flex items-start gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
           <Warning className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-amber-800">
@@ -130,50 +130,50 @@ export default async function DashboardPage() {
             href="/karyawan?filter=expiring30"
             className="text-sm font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 shrink-0 mt-0.5"
           >
-            Lihat <CaretRight size={14} />
+            Lihat <CaretRight size={16} />
           </Link>
         </div>
       )}
 
       {/* ─── Stat Cards (Pekerja-style: circular pastel icon) ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
           <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center shrink-0 group-hover:bg-accent/70 transition-colors">
-            <Users className="h-6 w-6 text-primary" weight="duotone" />
+            <Users className="h-6 w-6 text-primary" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">Total Trainee</p>
-            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{totalEmployees}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{totalEmployees}</p>
           </div>
         </Link>
 
-        <Link href="/karyawan?status=AKTIF" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
+        <Link href="/karyawan?status=AKTIF" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
-            <UserCheck className="h-6 w-6 text-emerald-600" weight="duotone" />
+            <UserCheck className="h-6 w-6 text-emerald-600" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">Aktif ({activePercent}%)</p>
-            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{activeEmployees}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{activeEmployees}</p>
           </div>
         </Link>
 
-        <Link href="/karyawan?filter=expiring30" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
+        <Link href="/karyawan?filter=expiring30" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
-            <Clock className="h-6 w-6 text-amber-600" weight="duotone" />
+            <Clock className="h-6 w-6 text-amber-600" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">Kontrak ≤ 30 hari</p>
-            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{expiring30.length}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{expiring30.length}</p>
           </div>
         </Link>
 
-        <Link href="/karyawan?status=NON-AKTIF" className="group bg-card border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
+        <Link href="/karyawan?status=NON-AKTIF" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
-            <UserMinusIcon className="h-6 w-6 text-rose-500" weight="duotone" />
+            <UserMinusIcon className="h-6 w-6 text-rose-500" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">Non-Aktif</p>
-            <p className="text-2xl font-bold text-foreground leading-tight mt-0.5 tracking-tight">{nonActive}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{nonActive}</p>
           </div>
         </Link>
       </div>
@@ -183,9 +183,9 @@ export default async function DashboardPage() {
 
         {/* Kontrak Segera Habis */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-md bg-red-50 flex items-center justify-center">
                 <Warning className="h-4 w-4 text-red-500" />
               </div>
               <h2 className="text-base font-semibold text-foreground">Kontrak Perlu Tindakan</h2>
@@ -195,9 +195,9 @@ export default async function DashboardPage() {
 
           <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-border/40">
             {urgentList.length === 0 ? (
-              <div className="flex items-center gap-3 px-5 py-6">
+              <div className="flex items-center gap-4 px-6 py-6">
                 <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                  <CheckCircle className="h-5 w-5 text-green-500" weight="fill" />
+                  <CheckCircle className="h-5 w-5 text-green-500" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Semua kontrak aman</p>
@@ -214,11 +214,11 @@ export default async function DashboardPage() {
                     key={c.id}
                     href={`/karyawan/${c.employee.id}`}
                     className={cn(
-                      'flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors group',
+                      'flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors group',
                       isKritis && 'bg-red-50/30',
                     )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div className={cn(
                         'h-2 w-2 rounded-full shrink-0',
                         isKritis ? 'bg-red-500' : isMendekat ? 'bg-amber-400' : 'bg-blue-400'
@@ -233,7 +233,7 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                     <span className={cn(
-                      'ml-3 shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                      'ml-4 shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold',
                       isKritis
                         ? 'bg-red-100 text-red-700'
                         : isMendekat
@@ -249,12 +249,12 @@ export default async function DashboardPage() {
           </div>
 
           {expiring90.length > urgentList.length && (
-            <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
+            <div className="px-6 py-4 border-t border-border/60 bg-muted/50">
               <Link
                 href="/karyawan?filter=expiring90"
                 className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
               >
-                Lihat semua {expiring90.length} kontrak <CaretRight size={14} />
+                Lihat semua {expiring90.length} kontrak <CaretRight size={16} />
               </Link>
             </div>
           )}
@@ -262,8 +262,8 @@ export default async function DashboardPage() {
 
         {/* Ringkasan Status Kontrak */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
               <TrendUp className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-base font-semibold text-foreground">Ringkasan Kontrak Aktif</h2>
@@ -278,14 +278,14 @@ export default async function DashboardPage() {
             />
           </div>
 
-          <div className="px-5 py-2 divide-y divide-gray-50 border-t border-border/60 mt-1">
+          <div className="px-6 py-2 divide-y divide-gray-50 border-t border-border/60 mt-1">
             <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={safe.length} dotColor="bg-green-500" valueColor="text-green-700" />
             <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={expiring90.length - expiring30.length} dotColor="bg-amber-400" valueColor="text-amber-700" />
             <SummaryRow label="Kritis" sub="≤ 30 hari" value={expiring30.length} dotColor="bg-red-500" valueColor="text-red-700" />
             <SummaryRow label="Sudah Berakhir" sub="Expired" value={expired.length} dotColor="bg-muted-foreground/40" valueColor="text-muted-foreground" />
           </div>
 
-          <div className="px-5 pt-3 pb-4 border-t border-border/60 space-y-1.5">
+          <div className="px-6 pt-4 pb-4 border-t border-border/60 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="font-semibold text-foreground">Total Karyawan Aktif</span>
               <span className="font-bold text-foreground">{activeEmployees}</span>
@@ -303,8 +303,8 @@ export default async function DashboardPage() {
 
         {/* Distribusi Posisi */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
               <TrendUp className="h-4 w-4 text-primary" />
             </div>
             <div>
@@ -319,8 +319,8 @@ export default async function DashboardPage() {
 
         {/* Sebaran per Cabang */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-green-50 flex items-center justify-center">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-green-50 flex items-center justify-center">
               <Buildings className="h-4 w-4 text-green-600" />
             </div>
             <div>
@@ -330,7 +330,7 @@ export default async function DashboardPage() {
           </div>
           <div className="divide-y divide-gray-50">
             {statsCabang.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6 px-5">Tidak ada data</p>
+              <p className="text-sm text-muted-foreground text-center py-6 px-6">Tidak ada data</p>
             ) : statsCabang.map(([cabang, count], i) => {
               const pct = activeEmployees > 0 ? Math.round((count / activeEmployees) * 100) : 0
               const dotColors = [
@@ -338,7 +338,7 @@ export default async function DashboardPage() {
                 'bg-violet-500', 'bg-pink-400', 'bg-teal-500', 'bg-lime-500',
               ]
               return (
-                <div key={cabang} className="flex items-center gap-3 px-5 py-3">
+                <div key={cabang} className="flex items-center gap-4 px-6 py-4">
                   <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColors[i % dotColors.length])} />
                   <span className="text-sm font-medium text-foreground/80 flex-1 truncate">{cabang}</span>
                   <span className="text-sm font-bold text-foreground">{count}</span>
@@ -383,8 +383,8 @@ function SummaryRow({
   valueColor: string
 }) {
   return (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex items-center gap-2.5">
+    <div className="flex items-center justify-between py-4">
+      <div className="flex items-center gap-2">
         <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColor)} />
         <span className="text-sm font-medium text-foreground/80">{label}</span>
         <span className="text-xs text-muted-foreground hidden sm:inline">{sub}</span>

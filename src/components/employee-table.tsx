@@ -215,7 +215,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
               size="sm"
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="h-8 gap-1 px-3"
+              className="h-8 gap-1 px-4"
             >
               <CaretLeft className="h-4 w-4" /> Prev
             </Button>
@@ -224,7 +224,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
               size="sm"
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="h-8 gap-1 px-3"
+              className="h-8 gap-1 px-4"
             >
               Next <CaretRight className="h-4 w-4" />
             </Button>

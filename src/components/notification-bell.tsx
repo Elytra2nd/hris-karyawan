@@ -73,6 +73,7 @@ export function NotificationBell() {
             render={
               <button
                 type="button"
+                aria-label="Notifikasi kontrak"
                 className={cn(
                   'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
                   'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
@@ -82,7 +83,7 @@ export function NotificationBell() {
               >
                 <Bell size={16} />
                 {hasUrgent && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">
                     {unseenCount > 9 ? '9+' : unseenCount}
                   </span>
                 )}
@@ -92,7 +93,7 @@ export function NotificationBell() {
 
       <PopoverPopup className="w-80 p-0 overflow-hidden" side="bottom" align="end" sideOffset={8}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border/60">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-foreground">Notifikasi Kontrak</span>
             {unseenCount > 0 && (
@@ -108,7 +109,7 @@ export function NotificationBell() {
                 className="flex items-center gap-1 text-[11px] text-primary/70 hover:text-primary transition-colors"
                 title="Tandai semua dibaca"
               >
-                <CheckCircle size={11} />
+                <CheckCircle size={12} />
                 Baca semua
               </button>
             )}
@@ -117,7 +118,7 @@ export function NotificationBell() {
               className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground/80 transition-colors"
               disabled={loading}
             >
-              <ArrowsClockwise size={11} className={loading ? 'animate-spin' : ''} />
+              <ArrowsClockwise size={12} className={loading ? 'animate-spin' : ''} />
               Refresh
             </button>
           </div>
@@ -132,6 +133,7 @@ export function NotificationBell() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Cari karyawan..."
+                aria-label="Cari notifikasi"
                 className="w-full h-7 pl-7 pr-3 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary/40"
               />
             </div>
@@ -162,7 +164,7 @@ export function NotificationBell() {
                       <>
                         <div className="px-4 py-1.5 bg-red-50">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
-                            <Warning size={10} /> Kritis (≤ 14 hari)
+                            <Warning size={12} /> Kritis (≤ 14 hari)
                           </span>
                         </div>
                         {crit.map(c => <NotifRow key={c.id} item={c} level="critical" onClick={() => setOpen(false)} />)}
@@ -172,7 +174,7 @@ export function NotificationBell() {
                       <>
                         <div className="px-4 py-1.5 bg-amber-50">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
-                            <Clock size={10} /> Perlu Perhatian (15–30 hari)
+                            <Clock size={12} /> Perlu Perhatian (15–30 hari)
                           </span>
                         </div>
                         {warn.map(c => <NotifRow key={c.id} item={c} level="warning" onClick={() => setOpen(false)} />)}
@@ -182,7 +184,7 @@ export function NotificationBell() {
                       <>
                         <div className="px-4 py-1.5 bg-muted/50">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                            <Clock size={10} /> Mendekati (31–60 hari)
+                            <Clock size={12} /> Mendekati (31–60 hari)
                           </span>
                         </div>
                         {appr.map(c => <NotifRow key={c.id} item={c} level="approaching" onClick={() => setOpen(false)} />)}
@@ -197,13 +199,13 @@ export function NotificationBell() {
 
         {/* Footer */}
         {allItems.length > 0 && (
-          <div className="px-4 py-2.5 border-t border-border/60 bg-muted/60">
+          <div className="px-4 py-2 border-t border-border/60 bg-muted/60">
             <Link
               href="/karyawan?filter=expiring90"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
-              Lihat semua kontrak perlu tindakan <CaretRight size={13} />
+              Lihat semua kontrak perlu tindakan <CaretRight size={12} />
             </Link>
           </div>
         )}
@@ -236,7 +238,7 @@ function NotifRow({
     <Link
       href={`/karyawan/${item.employeeId}`}
       onClick={onClick}
-      className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
+      className="flex items-start gap-4 px-4 py-2 hover:bg-muted/50 transition-colors"
     >
       <span className={cn('mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black', color)}>
         {item.daysLeft}h
@@ -250,7 +252,7 @@ function NotifRow({
           {format(new Date(item.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
         </p>
       </div>
-      <CaretRight size={13} className="text-muted-foreground/50 mt-1 shrink-0" />
+      <CaretRight size={12} className="text-muted-foreground/50 mt-1 shrink-0" />
     </Link>
   )
 }

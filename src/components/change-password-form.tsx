@@ -27,7 +27,7 @@ function PasswordInput({ id, name, label, placeholder }: { id: string; name: str
           onClick={() => setShow(v => !v)}
           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80 transition-colors"
         >
-          {show ? <EyeSlash size={14} /> : <Eye size={14} />}
+          {show ? <EyeSlash size={16} /> : <Eye size={16} />}
         </button>
       </div>
     </div>
@@ -50,7 +50,7 @@ export function ChangePasswordForm() {
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      toast.error('Koneksi terputus — coba simpan ulang')
     } finally {
       setPending(false)
     }
@@ -69,11 +69,11 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={pending}
-        className="flex items-center justify-center gap-2 h-9 px-5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="flex items-center justify-center gap-2 h-8 px-6 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {pending
-          ? <><CircleNotch size={14} className="animate-spin" /> Menyimpan...</>
-          : <><Key size={14} /> Ubah Password</>}
+          ? <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
+          : <><Key size={16} /> Ubah Password</>}
       </button>
     </form>
   )

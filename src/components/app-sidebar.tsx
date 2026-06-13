@@ -76,8 +76,8 @@ export function AppSidebar() {
   return (
     <Sidebar>
       {/* ─── Header: Logo + App Name ─── */}
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
-        <div className="flex items-center gap-2.5">
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+        <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/astra-motor.png"
@@ -86,8 +86,8 @@ export function AppSidebar() {
           />
           <div className="h-4 w-px bg-sidebar-border" />
           <div>
-            <p className="text-sm font-bold text-foreground leading-none">TMS</p>
-            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
+            <p className="text-sm font-bold text-foreground leading-snug">TMS</p>
+            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">
               Kalimantan Barat
             </p>
           </div>
@@ -95,17 +95,17 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* ─── Navigation ─── */}
-      <SidebarContent className="px-3 py-4 overflow-y-auto space-y-5">
+      <SidebarContent className="px-4 py-4 overflow-y-auto space-y-6">
 
         {/* ── Umum ── */}
         <div>
-          <p className="px-2 mb-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
+          <p className="px-2 mb-2 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
             Umum
           </p>
           <nav className="space-y-0.5">
             <NavItem
               href="/"
-              icon={<SquaresFour size={16} weight="duotone" />}
+              icon={<SquaresFour size={16} />}
               label="Dashboard"
               active={isActive('/')}
             />
@@ -123,14 +123,14 @@ export function AppSidebar() {
             <nav className="mt-1 space-y-0.5">
               <NavItem
                 href="/karyawan"
-                icon={<Users size={16} weight="duotone" />}
+                icon={<Users size={16} />}
                 label="Data Karyawan"
                 active={isActive('/karyawan') && !pathname.includes('tambah')}
               />
               {canManageHR && (
                 <NavItem
                   href="/karyawan/tambah"
-                  icon={<UserPlus size={16} weight="duotone" />}
+                  icon={<UserPlus size={16} />}
                   label="Tambah Karyawan"
                   active={isActive('/karyawan/tambah')}
                 />
@@ -153,13 +153,13 @@ export function AppSidebar() {
                   <>
                     <NavItem
                       href="/admin/users"
-                      icon={<Shield size={16} weight="duotone" />}
+                      icon={<Shield size={16} />}
                       label="Manajemen Pengguna"
                       active={isActive('/admin/users')}
                     />
                     <NavItem
                       href="/admin/departments"
-                      icon={<Buildings size={16} weight="duotone" />}
+                      icon={<Buildings size={16} />}
                       label="Departemen"
                       active={isActive('/admin/departments')}
                     />
@@ -168,14 +168,14 @@ export function AppSidebar() {
                 {canReadAudit && (
                   <NavItem
                     href="/admin/audit-log"
-                    icon={<ClipboardText size={16} weight="duotone" />}
+                    icon={<ClipboardText size={16} />}
                     label="Log Aktivitas"
                     active={isActive('/admin/audit-log')}
                   />
                 )}
                 <NavItem
                   href="/admin/settings"
-                  icon={<GearSix size={16} weight="duotone" />}
+                  icon={<GearSix size={16} />}
                   label="Pengaturan"
                   active={isActive('/admin/settings')}
                 />
@@ -187,17 +187,17 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* ─── Footer: User Info + Logout ─── */}
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-2.5">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
             {initials}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate leading-none">
+            <p className="text-sm font-semibold text-foreground truncate leading-snug">
               {username || 'Pengguna'}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-none">
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
               {{ ADMIN: 'Administrator', HR_MANAGER: 'HR Manager', HR_STAFF: 'HR Staff', VIEWER: 'Pemirsa' }[role ?? ''] ?? role}
             </p>
           </div>
@@ -208,7 +208,7 @@ export function AppSidebar() {
                 href="/profile"
                 className="p-1.5 rounded-md text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
               >
-                <UserGear size={15} weight="duotone" />
+                <UserGear size={16} />
               </Link>
             </TooltipTrigger>
             <TooltipContent side="top">Profil & Ganti Password</TooltipContent>
@@ -220,7 +220,7 @@ export function AppSidebar() {
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
-                <SignOut size={15} weight="bold" />
+                <SignOut size={16} />
               </button>
             </TooltipTrigger>
             <TooltipContent side="top">Keluar</TooltipContent>
@@ -255,8 +255,8 @@ function SectionHeader({
     >
       {label}
       <CaretDown
-        size={13}
-        weight="bold"
+        size={12}
+       
         className={cn(
           'text-muted-foreground/70 transition-transform duration-200',
           open ? 'rotate-0' : '-rotate-90'
@@ -281,7 +281,7 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
+        'flex items-center gap-2 px-2 py-2 rounded-md text-sm transition-colors',
         active
           ? 'bg-accent text-primary font-semibold'
           : 'text-foreground/70 hover:bg-accent hover:text-primary font-medium'

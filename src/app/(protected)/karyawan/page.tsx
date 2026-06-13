@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getEmployees, getEmployeeStats, deleteEmployee } from '@/app/actions/employee'
+import { getEmployees, getEmployeeStats, deleteEmployee, getDistinctCabang } from '@/app/actions/employee'
 import type { Prisma } from '@prisma/client'
 
 type EmployeeRow = Prisma.EmployeeGetPayload<{
@@ -64,6 +64,7 @@ export default function DataKaryawanPage() {
   const [sortCol, setSortCol] = useState<SortKey>('')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [showFilter, setShowFilter] = useState(false)
+  const [cabangOptions, setCabangOptions] = useState<string[]>([])
 
   // Helper to update URL params
   const updateParams = (updates: Record<string, string | null>) => {
@@ -101,10 +102,10 @@ export default function DataKaryawanPage() {
   }
   useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, page])
 
-  const cabangOptions = useMemo(
-    () => [...new Set(employees.map((e) => e.cabang))].sort(),
-    [employees]
-  )
+  // Load cabang options once on mount (from all data, not just current page)
+  useEffect(() => { getDistinctCabang().then(setCabangOptions) }, [])
+
+
 
   const now = new Date()
 
@@ -149,7 +150,7 @@ export default function DataKaryawanPage() {
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!isAdmin) { toast.error('Akses ditolak'); return }
+    if (!isAdmin) { toast.error('Anda tidak memiliki izin menghapus — hubungi Admin'); return }
     setIsDeleting(id)
 
     // Optimistic: remove from UI immediately
@@ -159,20 +160,20 @@ export default function DataKaryawanPage() {
     try {
       const r = await deleteEmployee(id)
       if (r.success) {
-        toast.success(`${name} berhasil dihapus`)
+        toast.success(`Data ${name} berhasil dihapus`)
       } else {
         // Restore on error
         if (deletedEmployee) {
           setEmployees(prev => [...prev, deletedEmployee])
         }
-        toast.error(r.error || 'Gagal menghapus')
+        toast.error(r.error)
       }
     } catch (err) {
       // Restore on network error
       if (deletedEmployee) {
         setEmployees(prev => [...prev, deletedEmployee])
       }
-      toast.error('Gagal menghubungkan ke server')
+      toast.error('Koneksi terputus — data dikembalikan, coba ulangi')
     } finally {
       setIsDeleting(null)
     }
@@ -199,32 +200,32 @@ export default function DataKaryawanPage() {
     if (!c) return null
     const d = differenceInDays(new Date(c.traineeSelesai), now)
     if (d < 0) {
-      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600"><XCircle size={11} /> Expired</span>
+      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600"><XCircle size={12} /> Expired</span>
     }
     if (d <= 14) {
-      return <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600"><Warning size={11} /> {d}h</span>
+      return <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600"><Warning size={12} /> {d}h</span>
     }
     if (d <= 30) {
-      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Clock size={11} /> {d}h</span>
+      return <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Clock size={12} /> {d}h</span>
     }
     if (d <= 90) {
       return <span className="text-[11px] font-medium text-muted-foreground">{d}h</span>
     }
-    return <span className="inline-flex items-center gap-1 text-[11px] text-green-600"><CheckCircle size={11} /> {d}h</span>
+    return <span className="inline-flex items-center gap-1 text-[11px] text-green-600"><CheckCircle size={12} /> {d}h</span>
   }
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortCol !== col) return <ArrowsDownUp size={13} className="ml-1 text-muted-foreground/50 inline-block" />
+    if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
     return sortDir === 'asc'
-      ? <ArrowUp size={13} className="ml-1 text-primary inline-block" />
-      : <ArrowDown size={13} className="ml-1 text-primary inline-block" />
+      ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
+      : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
 
       {/* ─── Page Header ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Data Karyawan</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -236,8 +237,8 @@ export default function DataKaryawanPage() {
           {isAdmin && <ImportExcelButton />}
           {isAdmin && (
             <Link href="/karyawan/tambah">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap">
-                <Plus size={15} />
+              <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap dark:bg-emerald-600 dark:hover:bg-emerald-700">
+                <Plus size={16} />
                 Tambah Karyawan
               </button>
             </Link>
@@ -247,8 +248,8 @@ export default function DataKaryawanPage() {
 
       {/* ─── Viewer Notice ─── */}
       {!isAdmin && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
-          <Eye size={15} className="text-muted-foreground/70 shrink-0" />
+        <div className="flex items-center gap-2 px-4 py-4 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
+          <Eye size={16} className="text-muted-foreground/70 shrink-0" />
           <span>Mode <strong>Pemirsa</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
         </div>
       )}
@@ -256,7 +257,7 @@ export default function DataKaryawanPage() {
       {/* ─── Active Contract Filter Banner ─── */}
       {contractFilter && (
         <div className={cn(
-          'flex items-center justify-between gap-3 rounded-md border px-4 py-3',
+          'flex items-center justify-between gap-4 rounded-md border px-4 py-4',
           contractFilter === 'expired'
             ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
             : contractFilter === 'expiring14'
@@ -265,7 +266,7 @@ export default function DataKaryawanPage() {
                 ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50'
                 : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50'
         )}>
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             <Warning size={16} className={cn(
               'shrink-0',
               contractFilter === 'expired' || contractFilter === 'expiring14' ? 'text-red-600' :
@@ -281,9 +282,9 @@ export default function DataKaryawanPage() {
           </div>
           <button
             onClick={() => updateParams({ filter: '' })}
-            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2.5 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-1.5"
+            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-2"
           >
-            <XCircle size={13} />
+            <XCircle size={12} />
             Hapus Filter
           </button>
         </div>
@@ -291,16 +292,16 @@ export default function DataKaryawanPage() {
 
       {/* ─── Posisi Filter Banner ─── */}
       {posisiFilter && (
-        <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3 bg-accent border-primary/20">
+        <div className="flex items-center justify-between gap-4 rounded-md border px-4 py-4 bg-accent border-primary/20">
           <p className="text-sm font-semibold text-primary truncate">
             Posisi: <span className="font-bold">{posisiFilter}</span>
             <span className="ml-1.5 text-xs font-normal text-muted-foreground">({total} karyawan)</span>
           </p>
           <button
             onClick={() => updateParams({ posisi: '' })}
-            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2.5 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-1.5"
+            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-2"
           >
-            <XCircle size={13} />
+            <XCircle size={12} />
             Hapus Filter
           </button>
         </div>
@@ -309,7 +310,7 @@ export default function DataKaryawanPage() {
       {/* ─── Stat Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          icon={<User size={18} className="text-white" />}
+          icon={<User size={20} className="text-white" />}
           iconBg="bg-primary"
           value={stats.total}
           label="Total Karyawan"
@@ -317,14 +318,14 @@ export default function DataKaryawanPage() {
           href="/karyawan"
         />
         <StatCard
-          icon={<CheckCircle size={18} className="text-green-600" />}
+          icon={<CheckCircle size={20} className="text-green-600" />}
           iconBg="bg-green-50"
           value={stats.aktif}
           label="Karyawan Aktif"
           href="/karyawan?status=AKTIF"
         />
         <StatCard
-          icon={<Clock size={18} className="text-amber-500" />}
+          icon={<Clock size={20} className="text-amber-500" />}
           iconBg="bg-amber-50"
           value={stats.segera}
           label="Kontrak ≤ 30 hari"
@@ -332,7 +333,7 @@ export default function DataKaryawanPage() {
           href="/karyawan?filter=expiring30"
         />
         <StatCard
-          icon={<XCircle size={18} className="text-muted-foreground/70" />}
+          icon={<XCircle size={20} className="text-muted-foreground/70" />}
           iconBg="bg-muted/50"
           value={stats.nonAktif}
           label="Non-Aktif"
@@ -341,20 +342,21 @@ export default function DataKaryawanPage() {
       </div>
 
       {/* ─── MagnifyingGlass + Funnel Toolbar ─── */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           {/* MagnifyingGlass */}
           <div className="relative flex-1 max-w-sm">
-            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
               value={search}
               onChange={(e) => updateParams({ search: e.target.value })}
               placeholder="Cari nama, NIK, atau posisi..."
-              className="w-full h-9 pl-9 pr-3 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
+              aria-label="Cari karyawan"
+              className="w-full h-8 pl-8 pr-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
             {search && (
-              <button onClick={() => updateParams({ search: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
-                <XCircle size={14} />
+              <button onClick={() => updateParams({ search: '' })} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
+                <XCircle size={16} />
               </button>
             )}
           </div>
@@ -363,12 +365,12 @@ export default function DataKaryawanPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
-                'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
+                'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
                 sortCol
                   ? 'border-primary text-primary bg-accent font-semibold'
                   : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
               )}>
-                <ArrowsDownUp size={14} />
+                <ArrowsDownUp size={16} />
                 Urutkan
                 {sortCol && <span className="ml-1 text-xs">({sortCol === 'namaLengkap' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol})</span>}
               </button>
@@ -406,13 +408,13 @@ export default function DataKaryawanPage() {
           <button
             onClick={() => setShowFilter(!showFilter)}
             className={cn(
-              'flex items-center gap-2 h-9 px-3 text-sm border rounded-md transition-colors',
+              'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
               showFilter
                 ? 'border-primary text-primary bg-accent font-semibold'
                 : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
             )}
           >
-            <Sliders size={14} />
+            <Sliders size={16} />
             Funnel
             {(cabang || statusFilter) && (
               <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
@@ -422,23 +424,25 @@ export default function DataKaryawanPage() {
 
         {/* Funnel Panel */}
         {showFilter && (
-          <div className="flex flex-wrap gap-3 px-4 py-3 rounded-md bg-muted/50 border border-border">
-            <div className="space-y-1">
+          <div className="flex flex-wrap gap-4 px-4 py-4 rounded-md bg-muted/50 border border-border">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cabang</label>
               <select
                 value={cabang}
                 onChange={(e) => updateParams({ cabang: e.target.value })}
+                aria-label="Filter cabang"
                 className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Cabang</option>
                 {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => updateParams({ status: e.target.value })}
+                aria-label="Filter status"
                 className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Status</option>
@@ -449,7 +453,7 @@ export default function DataKaryawanPage() {
             {(cabang || statusFilter) && (
               <button
                 onClick={() => updateParams({ cabang: '', status: '' })}
-                className="self-end h-8 px-3 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
+                className="self-end h-8 px-4 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
               >
                 Reset
               </button>
@@ -464,58 +468,56 @@ export default function DataKaryawanPage() {
           <table className="w-full min-w-[960px]">
             <thead>
               <tr className="border-b border-border bg-accent/60">
-                <th className="w-10 px-4 py-3 text-center">
-                  <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
-                </th>
+
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('namaLengkap')}
                 >
                   Nama Karyawan <SortIcon col="namaLengkap" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('nik')}
                 >
                   NIK <SortIcon col="nik" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('posisi')}
                 >
                   Posisi <SortIcon col="posisi" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('cabang')}
                 >
                   Cabang <SortIcon col="cabang" />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Trainee Sejak
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('traineeSelesai')}
                 >
                   Selesai <SortIcon col="traineeSelesai" />
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                <th className="px-4 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Sisa
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                <th className="px-4 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="w-10 px-4 py-3" />
+                <th className="w-10 px-4 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {loading ? (
                 Array.from({ length: PER_PAGE }).map((_, i) => (
                   <tr key={i} className="hover:bg-muted/50">
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-4" /></td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-3">
+
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-4">
                         <Skeleton className="h-8 w-8 rounded-full" />
                         <div className="flex-1 space-y-2">
                           <Skeleton className="h-4 w-32" />
@@ -523,14 +525,14 @@ export default function DataKaryawanPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-20" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-28" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-24" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-28" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-28" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-6 w-20 rounded-full mx-auto" /></td>
-                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-4" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-6 w-20 rounded-full mx-auto" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-4" /></td>
                   </tr>
                 ))
               ) : rows.length === 0 ? (
@@ -566,18 +568,16 @@ export default function DataKaryawanPage() {
                         isMendekat && !isKritis && 'bg-amber-50/30',
                       )}
                     >
-                      <td className="px-4 py-3.5 text-center">
-                        <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
-                      </td>
+
                       {/* Nama */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-4">
                           {emp.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={emp.image} alt={`Foto ${emp.namaLengkap}`} className="h-8 w-8 rounded-full object-cover shrink-0" />
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-                              <User size={15} className="text-primary" />
+                              <User size={16} className="text-primary" />
                             </div>
                           )}
                           <div className="min-w-0">
@@ -589,7 +589,7 @@ export default function DataKaryawanPage() {
                         </div>
                       </td>
                       {/* NIK */}
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-2">
                         <Link
                           href={`/karyawan/${emp.id}`}
                           className="text-sm font-mono text-primary hover:underline font-medium"
@@ -598,39 +598,39 @@ export default function DataKaryawanPage() {
                         </Link>
                       </td>
                       {/* Posisi */}
-                      <td className="px-4 py-3.5 text-sm text-foreground/80">
+                      <td className="px-4 py-2 text-sm text-foreground/80">
                         {c?.posisi || '—'}
                       </td>
                       {/* Cabang */}
-                      <td className="px-4 py-3.5 text-sm text-foreground/80">{emp.cabang}</td>
+                      <td className="px-4 py-2 text-sm text-foreground/80">{emp.cabang}</td>
                       {/* Sejak */}
-                      <td className="px-4 py-3.5 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '—'}</td>
+                      <td className="px-4 py-2 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '—'}</td>
                       {/* Selesai */}
                       <td className={cn(
-                        'px-4 py-3.5 text-sm font-medium',
+                        'px-4 py-2 text-sm font-medium',
                         isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-foreground/80'
                       )}>
                         {c ? fmtDate(c.traineeSelesai) : '—'}
                       </td>
                       {/* Sisa hari */}
-                      <td className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-2 text-center">
                         {getDaysBadge(emp)}
                       </td>
                       {/* Status */}
-                      <td className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-2 text-center">
                         {getStatusChip(emp)}
                       </td>
                       {/* Action */}
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1.5">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Link
                                 href={`/karyawan/${emp.id}`}
                                 aria-label="Lihat detail karyawan"
-                                className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
+                                className="h-8 w-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
                               >
-                                <Eye size={14} weight="bold" />
+                                <Eye size={16} />
                               </Link>
                             </TooltipTrigger>
                             <TooltipContent>Lihat detail</TooltipContent>
@@ -643,9 +643,9 @@ export default function DataKaryawanPage() {
                                   <Link
                                     href={`/karyawan/${emp.id}/edit`}
                                     aria-label="Edit data karyawan"
-                                    className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
+                                    className="h-8 w-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
                                   >
-                                    <Pencil size={14} weight="bold" />
+                                    <Pencil size={16} />
                                   </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>Edit data</TooltipContent>
@@ -657,11 +657,11 @@ export default function DataKaryawanPage() {
                                     <AlertDialogTrigger
                                       aria-label="Hapus karyawan"
                                       disabled={isDeleting === emp.id}
-                                      className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:outline-none"
+                                      className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:outline-none dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
                                     >
                                       {isDeleting === emp.id
-                                        ? <CircleNotch size={14} className="animate-spin" />
-                                        : <Trash size={14} weight="bold" />}
+                                        ? <CircleNotch size={16} className="animate-spin" />
+                                        : <Trash size={16} />}
                                     </AlertDialogTrigger>
                                   </TooltipTrigger>
                                   <TooltipContent>Hapus data</TooltipContent>
@@ -699,7 +699,7 @@ export default function DataKaryawanPage() {
 
         {/* Pagination */}
         {totalPages > 0 && !loading && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/50">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               {sortedEmployees.length === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, sortedEmployees.length)}`} dari{' '}
               <span className="font-semibold text-foreground/80">{sortedEmployees.length}</span> karyawan
@@ -744,7 +744,7 @@ export default function DataKaryawanPage() {
         {loading ? (
           <div className="divide-y divide-border/60">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="px-4 py-4 flex items-start gap-3">
+              <div key={i} className="px-4 py-4 flex items-start gap-4">
                 <Skeleton className="h-10 w-10 rounded-full shrink-0" />
                 <div className="flex-1 min-w-0 space-y-2">
                   <Skeleton className="h-4 w-32" />
@@ -783,7 +783,7 @@ export default function DataKaryawanPage() {
                 <div
                   key={emp.id}
                   className={cn(
-                    'px-4 py-4 flex items-start gap-3',
+                    'px-4 py-4 flex items-start gap-4',
                     isKritis && 'bg-red-50/40'
                   )}
                 >
@@ -803,7 +803,7 @@ export default function DataKaryawanPage() {
                       </div>
                       {getStatusChip(emp)}
                     </div>
-                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    <div className="flex items-center gap-4 mt-2 flex-wrap">
                       {emp.nik && (
                         <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
                           {emp.nik}
@@ -821,32 +821,32 @@ export default function DataKaryawanPage() {
                   </div>
 
                   {/* Action */}
-                  <div className="flex items-center gap-1.5 mt-0.5 shrink-0">
+                  <div className="flex items-center gap-2 mt-1 shrink-0">
                     <Link
                       href={`/karyawan/${emp.id}`}
                       aria-label="Lihat detail"
-                      className="h-9 w-9 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors"
+                      className="h-8 w-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
                     >
-                      <Eye size={15} weight="bold" />
+                      <Eye size={16} />
                     </Link>
                     {isAdmin && (
                       <>
                         <Link
                           href={`/karyawan/${emp.id}/edit`}
                           aria-label="Edit data"
-                          className="h-9 w-9 rounded-lg bg-accent hover:bg-accent/70 text-primary flex items-center justify-center transition-colors"
+                          className="h-8 w-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
                         >
-                          <Pencil size={15} weight="bold" />
+                          <Pencil size={16} />
                         </Link>
                         <AlertDialog>
                           <AlertDialogTrigger
                             aria-label="Hapus"
                             disabled={isDeleting === emp.id}
-                            className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50"
+                            className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
                           >
                             {isDeleting === emp.id
-                              ? <CircleNotch size={15} className="animate-spin" />
-                              : <Trash size={15} weight="bold" />}
+                              ? <CircleNotch size={16} className="animate-spin" />
+                              : <Trash size={16} />}
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -877,16 +877,16 @@ export default function DataKaryawanPage() {
 
         {/* Mobile Pagination */}
         {totalPages > 1 && !loading && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/50">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               Hal. {page} / {totalPages}
             </p>
             <div className="flex items-center gap-2">
               <PgBtn onClick={() => updateParams({ page: String(Math.max(1, page - 1)) })} disabled={page <= 1}>
-                <CaretLeft size={14} />
+                <CaretLeft size={16} />
               </PgBtn>
               <PgBtn onClick={() => updateParams({ page: String(Math.min(totalPages, page + 1)) })} disabled={page >= totalPages}>
-                <CaretRight size={14} />
+                <CaretRight size={16} />
               </PgBtn>
             </div>
           </div>
@@ -924,7 +924,7 @@ function StatCard({
         {icon}
       </div>
       <div>
-        <p className={cn('text-2xl font-bold leading-none', primary ? 'text-white' : 'text-foreground')}>
+        <p className={cn('text-2xl font-bold leading-snug', primary ? 'text-white' : 'text-foreground')}>
           {value.toLocaleString('id-ID')}
         </p>
         <p className={cn('text-xs mt-1', primary ? 'text-blue-100' : 'text-muted-foreground')}>
@@ -934,7 +934,7 @@ function StatCard({
     </>
   )
   const cls = cn(
-    'rounded-lg p-4 flex items-center gap-3 shadow-sm',
+    'rounded-lg p-4 flex items-center gap-4 shadow-sm',
     href && 'hover:shadow-md transition-shadow cursor-pointer',
     primary ? 'bg-primary' : highlight ? 'bg-card border border-amber-200' : 'bg-card border border-border'
   )

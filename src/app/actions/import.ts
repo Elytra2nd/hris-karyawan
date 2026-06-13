@@ -88,7 +88,7 @@ export async function bulkImportEmployees(
   if (rows.length > MAX_IMPORT_ROWS) {
     result.errors.push({
       row: 0,
-      message: `Maksimal ${MAX_IMPORT_ROWS} baris per import (diterima ${rows.length})`,
+      message: `File terlalu besar — maksimal ${MAX_IMPORT_ROWS} baris per impor (file berisi ${rows.length} baris)`,
     })
     result.skipped = rows.length
     return result
@@ -114,7 +114,7 @@ export async function bulkImportEmployees(
 
     const parsed = createEmployeeSchema.safeParse(normalized)
     if (!parsed.success) {
-      const msg = parsed.error.issues[0]?.message ?? 'Data tidak valid'
+      const msg = parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap'
       result.errors.push({ row: index + 1, message: msg })
       result.skipped++
       continue
@@ -128,7 +128,7 @@ export async function bulkImportEmployees(
 
     // Skip duplikat KTP (sudah di DB atau duplikat dalam file ini)
     if (existingKtp.has(noKtp) || seenInBatch.has(noKtp)) {
-      result.errors.push({ row: index + 1, message: `No KTP ${noKtp} sudah terdaftar` })
+      result.errors.push({ row: index + 1, message: `No KTP ${noKtp} sudah terdaftar — baris dilewati` })
       result.skipped++
       continue
     }
@@ -163,7 +163,7 @@ export async function bulkImportEmployees(
       result.created++
     } catch (error) {
       logger.error('bulkImport row failed', { row: index + 1, error: String(error) })
-      result.errors.push({ row: index + 1, message: 'Gagal menyimpan ke database' })
+      result.errors.push({ row: index + 1, message: 'Kami belum bisa menyimpan baris ini — coba impor ulang' })
       result.skipped++
     }
   }

@@ -1,8 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import * as XLSX from 'xlsx'
-import { MicrosoftExcelLogoIcon, CircleNotch, Download, FileText, Sliders, X } from '@phosphor-icons/react'
+import {
+  MicrosoftExcelLogoIcon,
+  CircleNotch,
+  Download,
+  FileText,
+  Funnel,
+  X,
+  MagnifyingGlass,
+} from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { getAllEmployeesForExport } from '@/app/actions/employee'
@@ -12,16 +20,11 @@ import { toast } from 'sonner'
 
 type Row = Record<string, string>
 
-/**
- * Safely format a date-like value. The `tglLahir` field is stored as a plain
- * string in the DB (e.g. "2000-01-15" or "15.01.2000"), NOT a Date object.
- * Contract dates *are* real Date objects from Prisma.
- */
 function safeDateFormat(value: unknown, fmt = 'dd.MM.yyyy'): string {
   if (!value) return '-'
   try {
     const d = value instanceof Date ? value : new Date(String(value))
-    if (isNaN(d.getTime())) return String(value) // fallback — return raw
+    if (isNaN(d.getTime())) return String(value)
     return format(d, fmt)
   } catch {
     return String(value)
@@ -51,14 +54,36 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
   }))
 }
 
-function applyFilters(rows: Row[], cabang: string, status: string, posisi: string): Row[] {
-  return rows.filter(r =>
-    (!cabang || r['CABANG'] === cabang) &&
-    (!status || r['Status'] === status) &&
-    (!posisi || r['Posisi'] === posisi)
+function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, search: string): Row[] {
+  return rows.filter(r => {
+    const matchCabang = !cabang || r['CABANG'] === cabang
+    const matchStatus = !status || r['Status'] === status
+    const matchPosisi = !posisi || r['Posisi'] === posisi
+    const matchSearch = !search || r['Nama Lengkap'].toLowerCase().includes(search.toLowerCase())
+      || r['No KTP'].includes(search) || r['NIK']?.includes(search)
+    return matchCabang && matchStatus && matchPosisi && matchSearch
+  })
+}
+
+// ─── Status Badge ──────────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  const isActive = status === 'AKTIF'
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+      isActive
+        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+    )}>
+      <span className={cn('w-1.5 h-1.5 rounded-full', isActive ? 'bg-emerald-500' : 'bg-amber-500')} />
+      {status}
+    </span>
   )
 }
 
+
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 export function ExportExcelButton({ variant = 'default' }: { variant?: 'default' | 'sidebar' }) {
   const [loading, setLoading] = useState(false)
   const [allRows, setAllRows] = useState<Row[]>([])
@@ -66,8 +91,14 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const [filterCabang, setFilterCabang] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterPosisi, setFilterPosisi] = useState('')
+  const [search, setSearch] = useState('')
 
-  const filtered = applyFilters(allRows, filterCabang, filterStatus, filterPosisi)
+  const filtered = useMemo(
+    () => applyFilters(allRows, filterCabang, filterStatus, filterPosisi, search),
+    [allRows, filterCabang, filterStatus, filterPosisi, search]
+  )
+
+
 
   const load = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -77,40 +108,36 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     try {
       const raw = await getAllEmployeesForExport()
       if (raw.length === 0) {
-        toast.info('Tidak ada data karyawan untuk di-export')
+        toast.info('Belum ada data karyawan untuk diekspor')
         return
       }
       setAllRows(toRows(raw))
       setFilterCabang('')
       setFilterStatus('')
       setFilterPosisi('')
+      setSearch('')
       setOpen(true)
     } catch {
-      toast.error('Gagal mengambil data karyawan')
+      toast.error('Kami belum bisa mengambil data — coba muat ulang halaman')
     } finally {
       setLoading(false)
     }
   }
 
-  const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi('') }
+  const hasFilter = filterCabang || filterStatus || filterPosisi || search
+  const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi(''); setSearch('') }
 
   const downloadExcel = () => {
     if (filtered.length === 0) {
-      toast.warning('Tidak ada data untuk di-export')
+      toast.warning('Tidak ada data yang cocok dengan filter — ubah filter atau reset')
       return
     }
     const ws = XLSX.utils.json_to_sheet(filtered)
-
-    // Auto-fit column widths
     const colWidths = Object.keys(filtered[0]).map(key => {
-      const maxLen = Math.max(
-        key.length,
-        ...filtered.map(r => (r[key] ?? '').length)
-      )
+      const maxLen = Math.max(key.length, ...filtered.map(r => (r[key] ?? '').length))
       return { wch: Math.min(maxLen + 2, 40) }
     })
     ws['!cols'] = colWidths
-
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Report')
     const fileName = `HRIS_Astra_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`
@@ -121,13 +148,10 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
   const downloadPDF = () => {
     if (filtered.length === 0) {
-      toast.warning('Tidak ada data untuk di-export')
+      toast.warning('Tidak ada data yang cocok dengan filter — ubah filter atau reset')
       return
     }
-
-    // Kolom yang paling penting untuk PDF (tidak semua, karena lebar terbatas)
     const pdfCols = ['BA', 'CABANG', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
-
     const html = `<html><head><title>HRIS Report</title><style>
       @page{size:landscape;margin:10mm}
       body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
@@ -145,15 +169,9 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     </tbody></table>
     <p class="footer">Dicetak oleh sistem TMS v2.1 — ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
     </body></html>`
-
     const w = window.open('', '_blank')
-    if (w) {
-      w.document.write(html)
-      w.document.close()
-      w.print()
-    } else {
-      toast.error('Pop-up diblokir browser. Izinkan pop-up untuk mencetak PDF.')
-    }
+    if (w) { w.document.write(html); w.document.close(); w.print() }
+    else { toast.error('Browser memblokir jendela cetak — izinkan pop-up lalu coba lagi') }
     setOpen(false)
   }
 
@@ -162,7 +180,11 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
-  const selectCls = "h-8 pl-2 pr-7 text-xs border border-border rounded-md bg-card text-foreground/70 outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer"
+  // Preview columns — hide some less important columns in preview for cleanliness
+  const previewCols = ['Nama Lengkap', 'Status', 'CABANG', 'Posisi', 'NIK', 'No KTP', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+  const visibleHeaders = headers.filter(h => previewCols.includes(h))
+
+  const selectCls = "h-8 pl-2.5 pr-7 text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 appearance-none cursor-pointer transition-all"
 
   return (
     <>
@@ -170,7 +192,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 w-full px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-60"
         >
           {loading
             ? <CircleNotch size={16} className="animate-spin text-muted-foreground/70" />
@@ -181,34 +203,59 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold text-foreground/80 bg-card border border-border rounded-lg hover:bg-muted/50 transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 h-8 px-4 text-sm font-semibold text-foreground/80 bg-card border border-border rounded-lg hover:bg-muted/50 transition-colors disabled:opacity-60"
         >
-          {loading ? <CircleNotch size={15} className="animate-spin" /> : <Download size={15} />}
+          {loading ? <CircleNotch size={16} className="animate-spin" /> : <Download size={16} />}
           Export
         </button>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
-            <DialogTitle className="text-lg font-bold text-foreground">Export Data Karyawan</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-              Filter data sebelum download. {allRows.length} total karyawan tersedia.
-            </DialogDescription>
+        <DialogContent className="max-w-[95vw] lg:max-w-6xl w-full max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden rounded-2xl">
+          {/* Header */}
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50 bg-gradient-to-r from-emerald-500/5 via-transparent to-blue-500/5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10">
+                    <MicrosoftExcelLogoIcon size={20} className="text-emerald-600" />
+                  </div>
+                  Export Data Karyawan
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-1.5 ml-10">
+                  Preview dan filter data sebelum mengunduh. Semua {allRows.length} karyawan tersedia.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          {/* Funnel row */}
-          <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border/60 bg-muted/50 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              <Sliders size={13} /> Filter:
+
+
+          {/* Filters */}
+          <div className="flex items-center gap-2 px-6 py-2 border-b border-border/50 bg-card flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0">
+              <Funnel size={12} /> Filter:
             </div>
 
-            <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} className={selectCls}>
+            {/* Search */}
+            <div className="relative">
+              <MagnifyingGlass size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                type="text"
+                placeholder="Cari nama / KTP…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                aria-label="Cari data ekspor"
+                className="h-8 pl-8 pr-3 text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all w-44"
+              />
+            </div>
+
+            <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} aria-label="Filter cabang" className={selectCls}>
               <option value="">Semua Cabang</option>
               {cabangOpts.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
 
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={selectCls}>
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} aria-label="Filter status" className={selectCls}>
               <option value="">Semua Status</option>
               {statusOpts.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -218,78 +265,111 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
               {posisiOpts.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
 
-            {(filterCabang || filterStatus || filterPosisi) && (
-              <button onClick={reset} className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-foreground/80 transition-colors">
+            {hasFilter && (
+              <button onClick={reset} className="flex items-center gap-1 h-8 px-4 text-xs font-medium text-red-500 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors">
                 <X size={12} /> Reset
               </button>
             )}
 
-            <span className="ml-auto text-xs font-semibold text-muted-foreground">
-              {filtered.length} / {allRows.length} data
+            <span className="ml-auto text-xs text-muted-foreground tabular-nums shrink-0">
+              <span className="font-bold text-foreground">{filtered.length}</span> / {allRows.length}
             </span>
           </div>
 
           {/* Table preview */}
-          <div className="flex-1 overflow-auto bg-muted/50 mx-0">
-            <table className="w-full border-collapse text-[10px]">
-              <thead className="sticky top-0 z-10">
-                <tr className="bg-slate-800">
-                  {headers.map(h => (
-                    <th key={h} className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wider text-white whitespace-nowrap border-r border-slate-700 last:border-0">
-                      {h}
+          <div className="flex-1 overflow-auto min-h-0">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4 text-muted-foreground">
+                <div className="w-16 h-16 rounded-2xl bg-muted/80 flex items-center justify-center">
+                  <MagnifyingGlass size={28} className="text-muted-foreground/40" />
+                </div>
+                <p className="text-sm font-semibold">Tidak ada data ditemukan</p>
+                <p className="text-xs text-muted-foreground/70">Coba ubah filter atau hapus pencarian</p>
+                {hasFilter && (
+                  <button onClick={reset} className="mt-1 text-xs font-medium text-primary hover:underline">Reset semua filter</button>
+                )}
+              </div>
+            ) : (
+              <table className="w-full border-collapse text-[11px]">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-slate-800 dark:bg-slate-900">
+                    <th className="px-3 py-2 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 w-10">
+                      #
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.slice(0, 200).map((row, i) => (
-                  <tr key={i} className={cn('border-b border-border/60', i % 2 === 0 ? 'bg-card' : 'bg-muted/80')}>
-                    {headers.map(h => (
-                      <td key={h} className="px-2 py-1 whitespace-nowrap text-foreground/70">{row[h]}</td>
+                    {visibleHeaders.map(h => (
+                      <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                        {h}
+                      </th>
                     ))}
                   </tr>
-                ))}
-                {filtered.length > 200 && (
-                  <tr>
-                    <td colSpan={headers.length} className="py-3 text-center text-xs font-semibold text-muted-foreground bg-accent/50">
-                      … dan {filtered.length - 200} baris lainnya (preview dibatasi 200 baris)
-                    </td>
-                  </tr>
-                )}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={headers.length} className="py-12 text-center text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">
-                      Tidak ada data
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.slice(0, 200).map((row, i) => (
+                    <tr
+                      key={i}
+                      className={cn(
+                        'border-b border-border/40 transition-colors hover:bg-primary/5',
+                        i % 2 === 0 ? 'bg-card' : 'bg-muted/40'
+                      )}
+                    >
+                      <td className="px-3 py-1.5 text-center text-[10px] font-mono text-muted-foreground/50 tabular-nums">
+                        {i + 1}
+                      </td>
+                      {visibleHeaders.map(h => (
+                        <td key={h} className={cn(
+                          'px-3 py-1.5 whitespace-nowrap',
+                          h === 'Nama Lengkap' ? 'font-semibold text-foreground' : 'text-foreground/70',
+                          h === 'No KTP' ? 'font-mono text-[10px]' : '',
+                        )}>
+                          {h === 'Status' ? <StatusBadge status={row[h]} /> : row[h]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {filtered.length > 200 && (
+                    <tr>
+                      <td colSpan={visibleHeaders.length + 1} className="py-4 text-center text-xs font-medium text-muted-foreground bg-muted/50 border-t border-border/60">
+                        Preview menampilkan 200 dari <span className="font-bold">{filtered.length}</span> baris. Semua data akan diunduh.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
 
-          {/* Footer actions */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-3 border-t border-border/60 bg-card">
-            <span className="text-xs font-semibold text-muted-foreground/70">
-              {filtered.length} data siap di-export
-            </span>
+          {/* Footer */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-4 border-t border-border/50 bg-card">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-foreground">
+                {filtered.length} data siap di-export
+              </span>
+              {hasFilter && (
+                <span className="text-[10px] text-muted-foreground/70">
+                  Filter aktif: {[filterCabang && `Cabang: ${filterCabang}`, filterStatus && `Status: ${filterStatus}`, filterPosisi && `Posisi: ${filterPosisi}`, search && `Cari: "${search}"`].filter(Boolean).join(' · ')}
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Tutup</Button>
+              <Button variant="outline" size="sm" onClick={() => setOpen(false)} className="rounded-lg">
+                Tutup
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={downloadPDF}
                 disabled={filtered.length === 0}
-                className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50"
+                className="gap-1.5 rounded-lg text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950 disabled:opacity-50"
               >
-                <FileText size={13} /> Cetak PDF
+                <FileText size={16} /> Cetak PDF
               </Button>
               <Button
                 size="sm"
                 onClick={downloadExcel}
                 disabled={filtered.length === 0}
-                className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+                className="gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 disabled:opacity-50"
               >
-                <MicrosoftExcelLogoIcon size={13} /> Excel (.xlsx)
+                <MicrosoftExcelLogoIcon size={16} /> Excel (.xlsx)
               </Button>
             </div>
           </div>

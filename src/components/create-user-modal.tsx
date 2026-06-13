@@ -28,10 +28,10 @@ export function CreateUserModal() {
         toast.success('Akun pengguna berhasil dibuat')
         setOpen(false)
       } else {
-        toast.error('Gagal membuat akun')
+        toast.error(result.error)
       }
     } catch {
-      toast.error('Terjadi kesalahan. Coba lagi.')
+      toast.error('Koneksi terputus — coba kirim ulang')
     } finally {
       setLoading(false)
     }
@@ -40,8 +40,8 @@ export function CreateUserModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center gap-2 h-9 px-4 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
-          <Plus size={15} />
+        <button className="flex items-center gap-2 h-8 px-4 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
+          <Plus size={16} />
           Tambah Akun
         </button>
       </DialogTrigger>
@@ -92,31 +92,31 @@ export function CreateUserModal() {
               Role Akses
             </Label>
             <Select name="role" defaultValue="VIEWER">
-              <SelectTrigger id="role" className="h-9 text-sm bg-card">
+              <SelectTrigger id="role" className="h-8 text-sm bg-card">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ADMIN">
                   <span className="flex items-center gap-2">
-                    <ShieldCheck size={13} className="text-amber-600" />
+                    <ShieldCheck size={12} className="text-amber-600" />
                     Admin — Akses penuh + manajemen user
                   </span>
                 </SelectItem>
                 <SelectItem value="HR_MANAGER">
                   <span className="flex items-center gap-2">
-                    <ShieldCheck size={13} className="text-primary" />
+                    <ShieldCheck size={12} className="text-primary" />
                     HR Manager — CRUD karyawan + kontrak
                   </span>
                 </SelectItem>
                 <SelectItem value="HR_STAFF">
                   <span className="flex items-center gap-2">
-                    <Shield size={13} className="text-green-600" />
+                    <Shield size={12} className="text-green-600" />
                     HR Staff — Tambah & edit karyawan
                   </span>
                 </SelectItem>
                 <SelectItem value="VIEWER">
                   <span className="flex items-center gap-2">
-                    <Shield size={13} className="text-muted-foreground" />
+                    <Shield size={12} className="text-muted-foreground" />
                     Pemirsa — Lihat saja
                   </span>
                 </SelectItem>
@@ -131,7 +131,7 @@ export function CreateUserModal() {
               className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <><CircleNotch size={14} className="animate-spin" /> Menyimpan...</>
+                <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
               ) : (
                 'Simpan Akun'
               )}

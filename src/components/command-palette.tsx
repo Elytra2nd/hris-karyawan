@@ -188,7 +188,7 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
                       setOpen(false)
                     }}
                     className={cn(
-                      'w-full px-4 py-3 flex items-center gap-3 text-left transition-colors border-b border-border last:border-0',
+                      'w-full px-4 py-2 flex items-center gap-4 text-left transition-colors border-b border-border last:border-0',
                       selectedIndex === index ? 'bg-accent' : 'hover:bg-muted'
                     )}
                   >
@@ -214,7 +214,7 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
             </div>
 
             {/* Footer */}
-            <div className="border-t border-border px-4 py-3 bg-muted/50">
+            <div className="border-t border-border px-4 py-2 bg-muted/50">
               <p className="text-[11px] text-muted-foreground text-center">
                 Tekan <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border border-border inline-block">Esc</kbd> untuk menutup
               </p>

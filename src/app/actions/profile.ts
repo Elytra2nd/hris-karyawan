@@ -36,15 +36,15 @@ export async function changeOwnPassword(formData: FormData): Promise<ActionResul
     if (!parsed.success) {
       const fields: Record<string, string> = {}
       parsed.error.issues.forEach(e => { fields[e.path[0] as string] = e.message })
-      return fail(parsed.error.issues[0]?.message ?? 'Data tidak valid', 'VALIDATION', fields)
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap', 'VALIDATION', fields)
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.id } })
-    if (!user) return fail('Akun tidak ditemukan', 'NOT_FOUND')
+    if (!user) return fail('Sesi Anda sudah kedaluwarsa — silakan login ulang', 'NOT_FOUND')
 
     const isValid = await bcrypt.compare(parsed.data.currentPassword, user.password)
     if (!isValid) {
-      return fail('Password saat ini tidak tepat', 'VALIDATION', { currentPassword: 'Password saat ini tidak tepat' })
+      return fail('Password saat ini tidak sesuai', 'VALIDATION', { currentPassword: 'Password saat ini tidak sesuai' })
     }
 
     const hashed = await bcrypt.hash(parsed.data.newPassword, 10)
@@ -55,7 +55,7 @@ export async function changeOwnPassword(formData: FormData): Promise<ActionResul
     return ok(undefined, 'Password berhasil diubah')
   } catch (error: unknown) {
     logger.error('changeOwnPassword failed', { error: String(error) })
-    return fail('Gagal mengubah password', 'SERVER_ERROR')
+    return fail('Kami belum bisa mengubah password — coba simpan ulang', 'SERVER_ERROR')
   }
 }
 
@@ -73,11 +73,11 @@ export async function adminResetPassword(
 
     const validated = pwSchema.safeParse(newPassword)
     if (!validated.success) {
-      return fail(validated.error.issues[0]?.message ?? 'Password tidak valid', 'VALIDATION')
+      return fail(validated.error.issues[0]?.message ?? 'Password belum memenuhi persyaratan', 'VALIDATION')
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    if (!user) return fail('Pengguna tidak ditemukan', 'NOT_FOUND')
+    if (!user) return fail('Pengguna tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
 
     const hashed = await bcrypt.hash(newPassword, 10)
     await prisma.user.update({ where: { id: userId }, data: { password: hashed } })
@@ -91,8 +91,8 @@ export async function adminResetPassword(
     return ok(undefined, `Password ${user.username} berhasil direset`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Unauthorized', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
     logger.error('adminResetPassword failed', { userId, error: String(error) })
-    return fail('Gagal mereset password', 'SERVER_ERROR')
+    return fail('Kami belum bisa mereset password — coba ulangi', 'SERVER_ERROR')
   }
 }

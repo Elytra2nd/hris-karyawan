@@ -21,7 +21,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="h-9 w-9 rounded-lg bg-muted animate-pulse" />
+      <div className="h-8 w-8 rounded-lg bg-muted animate-pulse" />
     )
   }
 
@@ -34,7 +34,8 @@ export function ThemeToggle() {
           variant="ghost"
           size="sm"
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="h-9 w-9 p-0"
+          aria-label={isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
+          className="h-8 w-8 p-0"
         >
           {isDark ? (
             <Sun size={16} className="text-yellow-500" />

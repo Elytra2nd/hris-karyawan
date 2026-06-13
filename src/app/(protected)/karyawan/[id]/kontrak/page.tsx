@@ -38,7 +38,7 @@ export default async function TambahKontrakPage({
       {/* ─── Breadcrumb ─── */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
         <Link href="/" className="flex items-center gap-1 hover:text-primary transition-colors">
-          <House size={13} />
+          <House size={12} />
           Dashboard
         </Link>
         <CaretLeft size={12} className="rotate-180 opacity-40" />
@@ -67,7 +67,7 @@ export default async function TambahKontrakPage({
 
         {/* Kontrak berjalan saat ini */}
         {latestContract && (
-          <div className={`rounded-lg border px-4 py-3.5 flex items-start gap-3 ${
+          <div className={`rounded-lg border px-4 py-3.5 flex items-start gap-4 ${
             daysToExpiry !== null && daysToExpiry <= 30
               ? 'bg-amber-50 border-amber-200'
               : 'bg-muted/50 border-border'
@@ -100,8 +100,8 @@ export default async function TambahKontrakPage({
         </div>
 
         {/* Aturan kontrak */}
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
-          <Warning size={15} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
+          <Warning size={16} className="text-amber-600 shrink-0 mt-0.5" />
           <div className="text-sm text-amber-800">
             <p className="font-semibold">Aturan Durasi Kontrak</p>
             <ul className="mt-1.5 space-y-1 text-amber-700">

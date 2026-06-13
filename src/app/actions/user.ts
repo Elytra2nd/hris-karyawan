@@ -35,7 +35,7 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
         const field = e.path[0] as string
         if (!fields[field]) fields[field] = e.message
       })
-      return fail(parsed.error.issues[0]?.message ?? 'Data tidak valid', 'VALIDATION', fields)
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap', 'VALIDATION', fields)
     }
 
     const { username, password, role } = parsed.data
@@ -43,7 +43,7 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
     // Cek username sudah ada
     const existing = await prisma.user.findUnique({ where: { username } })
     if (existing) {
-      return fail('Username sudah digunakan', 'DUPLICATE', { username: 'Username sudah digunakan' })
+      return fail('Username ini sudah dipakai — gunakan username lain', 'DUPLICATE', { username: 'Username ini sudah dipakai' })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -61,9 +61,9 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
     return ok({ id: user.id }, `Akun ${username} berhasil dibuat`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail(e.message ?? 'Akses ditolak', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
     logger.error('createUser failed', { error: String(error) })
-    return fail('Gagal membuat akun', 'SERVER_ERROR')
+    return fail('Kami belum bisa membuat akun — coba kirim ulang', 'SERVER_ERROR')
   }
 }
 
@@ -73,12 +73,12 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     const session = await requireAdmin()
 
     if (session.id === id) {
-      return fail('Tidak dapat menghapus akun sendiri', 'VALIDATION')
+      return fail('Akun yang sedang login tidak bisa dihapus sendiri', 'VALIDATION')
     }
 
     const user = await prisma.user.findUnique({ where: { id } })
     if (!user) {
-      return fail('Pengguna tidak ditemukan', 'NOT_FOUND')
+      return fail('Pengguna tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
     }
 
     await prisma.user.delete({ where: { id } })
@@ -86,8 +86,8 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     revalidatePath('/admin/users')
     return ok({ id }, `Akun ${user.username} berhasil dihapus`)
   } catch (error: any) {
-    if (error.code === 'UNAUTHORIZED') return fail(error.message, 'UNAUTHORIZED')
+    if (error.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteUser failed', { error: String(error) })
-    return fail('Gagal menghapus akun', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus akun — coba ulangi', 'SERVER_ERROR')
   }
 }

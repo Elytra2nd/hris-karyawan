@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { IconContext } from '@phosphor-icons/react'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -29,6 +30,7 @@ export default function LayoutWrapper({
   const isLoginPage = pathname === '/login'
 
   return (
+    <IconContext.Provider value={{ weight: 'light' }}>
     <TooltipProvider>
       {isLoginPage ? (
         <main className="min-h-screen w-full">
@@ -36,6 +38,13 @@ export default function LayoutWrapper({
         </main>
       ) : (
         <SidebarProvider role={role} username={username}>
+          {/* WCAG 2.4.1 — Skip navigation */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:text-sm focus:font-semibold focus:shadow-lg"
+          >
+            Langsung ke konten utama
+          </a>
           <AppSidebar />
 
           <SidebarInset className="flex flex-col min-h-svh bg-background overflow-x-hidden">
@@ -50,13 +59,13 @@ export default function LayoutWrapper({
                   Buka Menu
                 </TooltipContent>
               </Tooltip>
-              <Separator orientation="vertical" className="h-4 mx-1" />
+              <Separator orientation="vertical" className="h-4 mx-2" />
               <span className="text-xs text-muted-foreground hidden sm:block flex-1">
                 Trainee Monitoring System
               </span>
 
               {/* ─── Right-side header actions ─── */}
-              <div className="ml-auto flex items-center gap-1">
+              <div className="ml-auto flex items-center gap-2">
                 <ThemeToggle />
                 <NotificationBell />
               </div>
@@ -66,7 +75,7 @@ export default function LayoutWrapper({
             <BreadcrumbTrail />
 
             {/* ─── Page Content ─── */}
-            <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
+            <main id="main-content" className="flex-1 p-4 md:p-8 w-full max-w-[1400px] mx-auto">
               {children}
             </main>
           </SidebarInset>
@@ -78,5 +87,6 @@ export default function LayoutWrapper({
         canManageHR={['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')}
       />
     </TooltipProvider>
+    </IconContext.Provider>
   )
 }

@@ -36,7 +36,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
       }
     } catch {
       setUploadState('error');
-      toast.error('Gagal menghubungkan ke server');
+      toast.error('Koneksi terputus — coba unggah ulang');
       setTimeout(() => setUploadState('idle'), 3000);
     } finally {
       setLoading(false);
@@ -65,12 +65,12 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
         )}
         {uploadState === 'success' && !loading && (
           <div className="absolute inset-0 bg-green-500/70 flex items-center justify-center">
-            <CheckCircle className="w-8 h-8 text-white" weight="fill" />
+            <CheckCircle className="w-8 h-8 text-white" />
           </div>
         )}
         {uploadState === 'error' && !loading && (
           <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center">
-            <Warning className="w-8 h-8 text-white" weight="fill" />
+            <Warning className="w-8 h-8 text-white" />
           </div>
         )}
       </div>
@@ -79,19 +79,19 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
       {uploadState === 'uploading' && (
         <div className="flex items-center gap-1.5 text-xs text-primary font-semibold">
           <CircleNotch size={12} className="animate-spin" />
-          Sedang mengupload foto...
+          Sedang mengunggah foto...
         </div>
       )}
       {uploadState === 'success' && (
         <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
-          <CheckCircle size={12} weight="fill" />
+          <CheckCircle size={12} />
           Foto berhasil diperbarui
         </div>
       )}
       {uploadState === 'error' && (
         <div className="flex items-center gap-1.5 text-xs text-red-600 font-semibold">
-          <Warning size={12} weight="fill" />
-          Gagal upload — coba lagi
+          <Warning size={12} />
+          Gagal mengunggah — coba pilih foto lagi
         </div>
       )}
 

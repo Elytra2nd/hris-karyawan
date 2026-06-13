@@ -34,7 +34,7 @@ export function validationFail(
   const first = Object.values(fields)[0]
   return {
     success: false,
-    error: first ?? 'Data tidak valid',
+    error: first ?? 'Ada isian yang belum lengkap',
     code: 'VALIDATION',
     fields,
   }

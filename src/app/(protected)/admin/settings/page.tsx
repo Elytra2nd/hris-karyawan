@@ -24,9 +24,9 @@ export default async function SettingsPage() {
 
         {/* ─── Profil Akun ─── */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
-              <User size={14} className="text-primary" />
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
+              <User size={16} className="text-primary" />
             </div>
             <h2 className="text-base font-semibold text-foreground">Profil Akun</h2>
           </div>
@@ -37,12 +37,12 @@ export default async function SettingsPage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">{session.username}</p>
-                <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   session.role === 'ADMIN'
                     ? 'bg-amber-100 text-amber-700'
                     : 'bg-muted text-foreground/70'
                 }`}>
-                  <Shield size={10} className="inline-block mr-1 -mt-0.5" />
+                  <Shield size={12} className="inline-block mr-1 -mt-0.5" />
                   {session.role}
                 </span>
               </div>
@@ -65,9 +65,9 @@ export default async function SettingsPage() {
 
         {/* ─── Ganti Password ─── */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-            <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
-              <Key size={14} className="text-primary" />
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
+              <Key size={16} className="text-primary" />
             </div>
             <h2 className="text-base font-semibold text-foreground">Ganti Password</h2>
           </div>
@@ -79,30 +79,30 @@ export default async function SettingsPage() {
 
       {/* ─── Info Sistem ─── */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center">
-            <GearSix size={14} className="text-primary" />
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+          <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
+            <GearSix size={16} className="text-primary" />
           </div>
           <h2 className="text-base font-semibold text-foreground">Informasi Sistem</h2>
         </div>
         <div className="p-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-muted/50 border border-border/60">
+            <div className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-muted/50 border border-border/60">
               <p className="text-xs text-muted-foreground font-medium">Aplikasi</p>
               <p className="text-sm font-bold text-foreground">Trainee Monitoring System</p>
             </div>
-            <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-muted/50 border border-border/60">
+            <div className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-muted/50 border border-border/60">
               <p className="text-xs text-muted-foreground font-medium">Versi</p>
               <p className="text-sm font-bold text-foreground">v2.1.0</p>
             </div>
-            <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-muted/50 border border-border/60">
+            <div className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-muted/50 border border-border/60">
               <p className="text-xs text-muted-foreground font-medium">Platform</p>
               <p className="text-sm font-bold text-foreground">Next.js + Prisma</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 rounded-md bg-accent border border-primary/20 px-4 py-3 mt-4">
-            <Info size={15} className="text-primary shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-md bg-accent border border-primary/20 px-4 py-2 mt-4">
+            <Info size={16} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-foreground/80">
               Sistem ini dikelola oleh tim IT Astra Motor Kalimantan Barat.
               Hubungi administrator jika memerlukan bantuan teknis.

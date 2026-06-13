@@ -18,8 +18,8 @@ function RoleBadge({ role }: { role: string }) {
   }
   const { label, cls } = map[role] ?? { label: role, cls: 'bg-muted text-foreground/70' }
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      <Shield size={11} />
+    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold ${cls}`}>
+      <Shield size={12} />
       {label}
     </span>
   )
@@ -47,7 +47,7 @@ export default async function UserManagementPage({
     <div className="space-y-6">
 
       {/* ─── Header ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Manajemen Pengguna</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -59,40 +59,40 @@ export default async function UserManagementPage({
 
       {/* ─── Stat Cards (clickable drill-down) ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link href="/admin/users" className="bg-primary rounded-lg p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+        <Link href="/admin/users" className="bg-primary rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-10 w-10 rounded-full bg-card/20 flex items-center justify-center shrink-0">
             <Users className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white leading-none">{allUsers.length}</p>
+            <p className="text-2xl font-bold text-white leading-snug">{allUsers.length}</p>
             <p className="text-xs text-blue-100 mt-1">Total Pengguna</p>
           </div>
         </Link>
 
-        <Link href="/admin/users?role=ADMIN" className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+        <Link href="/admin/users?role=ADMIN" className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-foreground leading-none">{adminCount}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug">{adminCount}</p>
             <p className="text-xs text-muted-foreground mt-1">Administrator</p>
           </div>
         </Link>
 
-        <Link href="/admin/users?role=VIEWER" className="bg-card border border-border rounded-lg p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+        <Link href="/admin/users?role=VIEWER" className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-10 w-10 rounded-full bg-muted/50 flex items-center justify-center shrink-0">
             <Shield className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-foreground leading-none">{viewerCount}</p>
+            <p className="text-2xl font-bold text-foreground leading-snug">{viewerCount}</p>
             <p className="text-xs text-muted-foreground mt-1">Pemirsa</p>
           </div>
         </Link>
       </div>
 
       {/* ─── Info Banner ─── */}
-      <div className="flex items-start gap-2.5 rounded-md bg-accent border border-primary/20 px-4 py-3">
-        <Info size={15} className="text-primary shrink-0 mt-0.5" />
+      <div className="flex items-start gap-2 rounded-md bg-accent border border-primary/20 px-4 py-2">
+        <Info size={16} className="text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-foreground/80">
           <strong>Admin</strong> punya akses penuh.{' '}
           <strong>HR Manager</strong> bisa CRUD karyawan.{' '}
@@ -110,10 +110,10 @@ export default async function UserManagementPage({
           <table className="w-full min-w-[540px]">
             <thead>
               <tr className="border-b border-border bg-accent/60">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Role</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dibuat</th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-16">Aksi</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
+                <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Role</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dibuat</th>
+                <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-16">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -129,8 +129,8 @@ export default async function UserManagementPage({
                 users.map((user, i) => (
                   <tr key={user.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
+                      <div className="flex items-center gap-4">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
                           user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
                           user.role === 'HR_MANAGER' ? 'bg-accent border-primary/20 text-primary' :
                           user.role === 'HR_STAFF'   ? 'bg-green-50 border-green-200 text-green-700' :
@@ -167,7 +167,7 @@ export default async function UserManagementPage({
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3 border-t border-border/60 bg-muted/50">
+        <div className="px-5 py-2 border-t border-border/60 bg-muted/50">
           <p className="text-xs text-muted-foreground">
             {users.length} dari {allUsers.length} pengguna · {adminCount} admin · {hrCount} HR · {viewerCount} pemirsa
           </p>
@@ -183,8 +183,8 @@ export default async function UserManagementPage({
         ) : (
           <div className="divide-y divide-border/60">
             {users.map((user) => (
-              <div key={user.id} className="px-4 py-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
+              <div key={user.id} className="px-4 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
                   <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
                     user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
                     user.role === 'HR_MANAGER' ? 'bg-accent border-primary/20 text-primary' :
@@ -213,7 +213,7 @@ export default async function UserManagementPage({
             ))}
           </div>
         )}
-        <div className="px-4 py-3 border-t border-border/60 bg-muted/50">
+        <div className="px-4 py-2 border-t border-border/60 bg-muted/50">
           <p className="text-xs text-muted-foreground">
             {users.length} dari {allUsers.length} pengguna
           </p>

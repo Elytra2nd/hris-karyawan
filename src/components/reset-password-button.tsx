@@ -30,7 +30,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Gagal mereset password')
+      toast.error('Koneksi terputus — coba ulangi')
     } finally {
       setPending(false)
     }
@@ -40,10 +40,10 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent transition-colors"
+        className="flex items-center gap-2 h-8 px-4 text-[11px] font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent transition-colors"
         title="Reset password"
       >
-        <Key size={11} /> Reset PW
+        <Key size={12} /> Reset PW
       </button>
 
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setPw(''); setShow(false) } }}>
@@ -74,7 +74,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
                   onClick={() => setShow(v => !v)}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80"
                 >
-                  {show ? <EyeSlash size={13} /> : <Eye size={13} />}
+                  {show ? <EyeSlash size={12} /> : <Eye size={12} />}
                 </button>
               </div>
               <p className="text-[11px] text-muted-foreground/70">Min. 8 karakter, huruf kapital, dan angka</p>
@@ -83,10 +83,10 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Batal</Button>
-            <Button size="sm" onClick={handleReset} disabled={pending || pw.length < 8} className="gap-1.5">
+            <Button size="sm" onClick={handleReset} disabled={pending || pw.length < 8} className="gap-2">
               {pending
-                ? <><CircleNotch size={13} className="animate-spin" /> Menyimpan...</>
-                : <><Key size={13} /> Reset</>}
+                ? <><CircleNotch size={12} className="animate-spin" /> Menyimpan...</>
+                : <><Key size={12} /> Reset</>}
             </Button>
           </div>
         </DialogContent>
