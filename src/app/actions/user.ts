@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth-guard'
 import { createUserSchema, formDataToObject } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
 import { logger } from '@/lib/logger'
+import { createAuditLog } from '@/lib/audit'
 
 // ─── Get Users ────────────────────────────────────────────────────────────────
 export async function getUsers() {
@@ -24,7 +25,7 @@ export async function getUsers() {
 // ─── Create User ──────────────────────────────────────────────────────────────
 export async function createUser(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    await requireAdmin()
+    const session = await requireAdmin()
 
     const raw = formDataToObject(formData)
     const parsed = createUserSchema.safeParse(raw)
@@ -58,6 +59,7 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
     })
 
     revalidatePath('/admin/users')
+    await createAuditLog(session.id, session.username, 'CREATE', 'user', user.id, { username, role })
     return ok({ id: user.id }, `Akun ${username} berhasil dibuat`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
@@ -84,6 +86,7 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     await prisma.user.delete({ where: { id } })
 
     revalidatePath('/admin/users')
+    await createAuditLog(session.id, session.username, 'DELETE', 'user', id, { username: user.username, role: user.role })
     return ok({ id }, `Akun ${user.username} berhasil dihapus`)
   } catch (error: any) {
     if (error.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')

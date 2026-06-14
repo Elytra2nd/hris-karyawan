@@ -52,7 +52,7 @@ export function AuditFilters({ q, actionFilter }: { q: string; actionFilter: str
         value={actionFilter}
         onChange={e => push({ action: e.target.value })}
         aria-label="Filter jenis aksi"
-        className="h-9 px-4 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
+        className="h-8 px-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
       >
         {ACTION_OPTIONS.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>
