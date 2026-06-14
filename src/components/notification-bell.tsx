@@ -73,7 +73,6 @@ export function NotificationBell() {
             render={
               <button
                 type="button"
-                aria-label="Notifikasi kontrak"
                 className={cn(
                   'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
                   'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',

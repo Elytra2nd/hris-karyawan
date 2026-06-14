@@ -1,5 +1,5 @@
 import { getEmployees } from '@/app/actions/employee';
-import { uploadEmployeeDocument } from '@/app/actions/upload';
+import { uploadEmployeePhoto } from '@/app/actions/upload';
 import { verifySession } from '@/lib/dal';
 import { describe, it, expect, vi } from 'vitest';
 
@@ -25,10 +25,10 @@ describe('Security & Hacking Defense Test', () => {
     const formData = new FormData();
     formData.append('file', maliciousFile, 'virus.php.pdf'); // Mencoba bypass format
 
-    const result = await uploadEmployeeDocument('emp_123', formData, 'ktpPath');
+    const result = await uploadEmployeePhoto(formData, 'emp_123');
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Format file tidak didukung');
+    expect(result.message).toContain('Format foto tidak didukung');
   });
 
   it('harus menolak akses ke dokumen jika user tidak memiliki session (Broken Access Control)', async () => {
@@ -37,7 +37,7 @@ describe('Security & Hacking Defense Test', () => {
 
     const formData = new FormData();
     try {
-      await uploadEmployeeDocument('emp_123', formData, 'ktpPath');
+      await uploadEmployeePhoto(formData, 'emp_123');
     } catch (e: any) {
       expect(e.message).toBe('Unauthorized');
     }
