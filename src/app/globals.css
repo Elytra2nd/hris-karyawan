@@ -294,143 +294,371 @@
   .hover\:bg-green-50:hover { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 35%, var(--card)); }
 }
 
-/* ─── Print Styles ─── */
+/* ─── Print Styles — Professional Format ─── */
 @media print {
-  /* Hide navigation & interactive elements */
+  /* ═══ 1. Page Setup ═══ */
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 18mm 12mm;
+  }
+
+  /* ═══ 2. Reset — Clean white canvas ═══ */
+  *,
+  *::before,
+  *::after {
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    background: white !important;
+    color: #111827 !important;
+    font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ═══ 3. Hide non-printable UI ═══ */
   header,
   nav,
+  footer,
+  aside,
   .breadcrumb,
   [data-slot="breadcrumb"],
-  .sidebar,
   [data-slot="sidebar"],
+  [data-sidebar],
+  .sidebar,
   .notification-bell,
-  button[title*="Edit"],
-  button[title*="Kelola"],
-  button[title*="Tambah"],
-  button[title*="Hapus"],
-  .print-hidden {
-    display: none;
+  .print-hidden,
+
+  /* Buttons & interactive */
+  button,
+  [role="button"],
+  a[href="/karyawan"],
+  a[href*="/edit"],
+
+  /* Specific UI components */
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal],
+  .toaster,
+  [data-sonner-toaster],
+
+  /* Search, filters, pagination */
+  input[type="search"],
+  input[type="text"],
+  select,
+  .pagination,
+
+  /* Action bar */
+  .employee-detail-actions {
+    display: none !important;
   }
 
-  /* Print-friendly page setup */
-  body {
-    background-color: white;
-    color: black;
-    margin: 0;
-    padding: 0;
+  /* ═══ 4. Layout — Full width ═══ */
+  main,
+  [role="main"],
+  main > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  main {
-    width: 100%;
-    padding: 0;
-    max-width: 100%;
+  /* Remove all shadows */
+  [class*="shadow"] {
+    box-shadow: none !important;
   }
 
-  /* Card styles for print */
-  .card-standard,
-  [class*="border"][class*="bg-white"] {
-    border-color: #d1d5db;
+  /* ═══ 5. Company Header (print-only) ═══ */
+  body::before {
+    content: "PT ASTRA INTERNATIONAL Tbk — TSM";
+    display: block;
+    text-align: center;
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: 0.5pt;
+    color: #1e3a5f;
+    padding-bottom: 8pt;
+    margin-bottom: 12pt;
+    border-bottom: 2.5pt solid #1e40af;
+  }
+
+  /* ═══ 6. Typography ═══ */
+  h1 {
+    font-size: 16pt !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    margin: 0 0 4pt !important;
+    page-break-after: avoid;
+  }
+
+  h2 {
+    font-size: 12pt !important;
+    font-weight: 700 !important;
+    color: #1e3a5f !important;
+    margin: 10pt 0 4pt !important;
+    padding-bottom: 3pt;
+    border-bottom: 1pt solid #d1d5db;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 10.5pt !important;
+    font-weight: 700 !important;
+    color: #374151 !important;
+    margin: 8pt 0 3pt !important;
+    page-break-after: avoid;
+  }
+
+  p, span, div {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* ═══ 7. Cards — Clean bordered sections ═══ */
+  .bg-card,
+  [class*="bg-card"],
+  .card-standard {
+    background: white !important;
+    border: 1pt solid #d1d5db !important;
+    border-radius: 4pt !important;
+    margin-bottom: 10pt !important;
     page-break-inside: avoid;
-    box-shadow: none;
   }
 
-  /* Table styles for print */
+  /* ═══ 8. Profile Card — Compact print layout ═══ */
+  /* Avatar — smaller on print */
+  .h-20.w-20 {
+    height: 56pt !important;
+    width: 56pt !important;
+    border-radius: 6pt !important;
+    border: 1pt solid #d1d5db !important;
+  }
+
+  /* ═══ 9. Data Grid — Structured info display ═══ */
+  .grid {
+    page-break-inside: avoid;
+  }
+
+  /* Info items — clean label: value format */
+  .text-xs.font-semibold.text-muted-foreground,
+  .form-label {
+    font-size: 7.5pt !important;
+    font-weight: 700 !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5pt !important;
+  }
+
+  .text-sm.font-medium,
+  .text-sm.font-semibold {
+    font-size: 10pt !important;
+    color: #111827 !important;
+  }
+
+  .font-mono {
+    font-family: 'Consolas', 'Monaco', monospace !important;
+    font-size: 9pt !important;
+  }
+
+  /* ═══ 10. Tables — Professional bordered style ═══ */
   table {
-    width: 100%;
-    border-collapse: collapse;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 9pt !important;
     page-break-inside: avoid;
+    margin: 4pt 0 !important;
   }
 
   thead {
-    background-color: #f3f4f6;
-    color: black;
     page-break-after: avoid;
+  }
+
+  thead tr {
+    background-color: #eff6ff !important;
+  }
+
+  th {
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    color: #1e3a5f !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3pt !important;
+    border: 1pt solid #d1d5db !important;
+    padding: 5pt 8pt !important;
+    text-align: left !important;
+    background-color: #eff6ff !important;
+  }
+
+  td {
+    border: 1pt solid #e5e7eb !important;
+    padding: 4pt 8pt !important;
+    font-size: 9pt !important;
+    color: #374151 !important;
+    vertical-align: top !important;
   }
 
   tbody tr {
     page-break-inside: avoid;
   }
 
-  th, td {
-    border: 1px solid #d1d5db;
-    padding: 0.5rem;
-    font-size: 0.875rem;
+  tbody tr:nth-child(even) {
+    background-color: #f9fafb !important;
   }
 
-  th {
-    font-weight: bold;
-    background-color: #f3f4f6;
+  /* ═══ 11. Status Chips — Print-friendly ═══ */
+  .chip-aktif,
+  .chip-warning,
+  .chip-expired,
+  .chip-nonaktif,
+  .chip-trainee,
+  [class*="chip-"] {
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    padding: 1pt 6pt !important;
+    border-radius: 2pt !important;
+    border: 1pt solid #9ca3af !important;
+    background: transparent !important;
+    color: #374151 !important;
   }
 
-  /* Badges for print */
-  [class*="chip"],
-  [class*="badge"] {
-    border: 1px solid #9ca3af;
+  .chip-aktif {
+    border-color: #059669 !important;
+    color: #065f46 !important;
   }
 
-  /* Links for print */
+  .chip-expired {
+    border-color: #dc2626 !important;
+    color: #991b1b !important;
+  }
+
+  .chip-warning {
+    border-color: #d97706 !important;
+    color: #92400e !important;
+  }
+
+  .chip-nonaktif {
+    border-color: #6b7280 !important;
+    color: #374151 !important;
+  }
+
+  /* ═══ 12. Background Overrides ═══ */
+  /* Keep accent bg-* transparent for clean print */
+  [class*="bg-accent"],
+  [class*="bg-muted"],
+  [class*="bg-primary/10"],
+  [class*="bg-emerald"],
+  [class*="bg-red-"],
+  [class*="bg-amber-"],
+  [class*="bg-green-"],
+  [class*="bg-blue-"],
+  [class*="bg-orange-"] {
+    background-color: transparent !important;
+  }
+
+  /* Keep small icon containers visible */
+  .h-9.w-9,
+  .h-8.w-8,
+  .h-10.w-10 {
+    background-color: #f3f4f6 !important;
+    border: 0.5pt solid #e5e7eb !important;
+  }
+
+  /* ═══ 13. Links ═══ */
   a {
-    color: black;
-    text-decoration: underline;
+    color: #111827 !important;
+    text-decoration: none !important;
   }
 
-  a[href]:after {
-    content: "";
-  }
-
-  /* Spacing for print */
-  .space-y-5 > * + * {
+  /* ═══ 14. Images ═══ */
+  img {
+    max-width: 100% !important;
     page-break-inside: avoid;
   }
 
-  /* Section headers */
-  h1, h2, h3 {
-    color: black;
-    font-weight: bold;
-    page-break-after: avoid;
+  /* ═══ 15. Section Separators ═══ */
+  [class*="border-t"],
+  [class*="border-b"] {
+    border-color: #e5e7eb !important;
+  }
+
+  .divide-y > * + * {
+    border-top-color: #e5e7eb !important;
+  }
+
+  /* ═══ 16. Spacing ═══ */
+  .space-y-5 > * + *,
+  .space-y-6 > * + * {
+    margin-top: 10pt !important;
     page-break-inside: avoid;
   }
 
-  h1 {
-    font-size: 1.875rem;
-    margin-bottom: 1rem;
+  .gap-6, .gap-5, .gap-4 {
+    gap: 8pt !important;
   }
 
-  h2 {
-    font-size: 1.25rem;
-    margin-bottom: 0.75rem;
+  .p-6, .p-5 {
+    padding: 10pt !important;
   }
 
-  h3 {
-    font-size: 1.125rem;
-    margin-bottom: 0.5rem;
+  .px-6, .px-5, .px-4 {
+    padding-left: 10pt !important;
+    padding-right: 10pt !important;
   }
 
-  /* Page breaks */
+  .py-4, .py-3\.5 {
+    padding-top: 5pt !important;
+    padding-bottom: 5pt !important;
+  }
+
+  /* ═══ 17. Page Break Controls ═══ */
   .page-break {
     page-break-before: always;
   }
 
-  /* Images */
-  img {
-    max-width: 100%;
+  .page-break-avoid {
     page-break-inside: avoid;
   }
 
-  /* Remove background colors */
-  [class*="bg-"] {
-    background-color: transparent;
+  /* Contract list → keep together */
+  section,
+  [class*="contract"],
+  [class*="timeline"] {
+    page-break-inside: avoid;
   }
 
-  [class*="bg-primary"],
-  [class*="bg-emerald"],
-  [class*="bg-red"],
-  [class*="bg-amber"] {
-    color: black;
+  /* ═══ 18. Footer — Printed timestamp ═══ */
+  body::after {
+    content: "Dicetak pada: " attr(data-print-date) " — Dokumen ini dihasilkan oleh sistem HRIS TMS";
+    display: block;
+    text-align: center;
+    font-size: 7pt;
+    color: #9ca3af;
+    margin-top: 16pt;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #e5e7eb;
   }
 
-  /* Shadows off */
-  [class*="shadow"] {
-    box-shadow: none;
+  /* ═══ 19. Mobile-only elements — hide ═══ */
+  .sm\:hidden,
+  .md\:hidden {
+    display: none !important;
+  }
+
+  .hidden.sm\:block,
+  .hidden.md\:block {
+    display: block !important;
+  }
+
+  /* ═══ 20. Dark mode reset ═══ */
+  .dark,
+  .dark * {
+    background-color: white !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
   }
 }
