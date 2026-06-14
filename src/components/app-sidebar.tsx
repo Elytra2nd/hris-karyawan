@@ -30,6 +30,11 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
@@ -221,17 +226,37 @@ export function AppSidebar() {
             <TooltipContent side="top">Profil & Ganti Password</TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <SignOut size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Keluar</TooltipContent>
-          </Tooltip>
+          <AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <SignOut size={16} />
+                  </button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">Keluar</TooltipContent>
+            </Tooltip>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Keluar dari Sistem?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Anda akan keluar dari akun <strong>{username}</strong>. Sesi aktif akan dihentikan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Ya, Keluar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <p className="mt-3 text-[10px] text-muted-foreground/70 text-center">
