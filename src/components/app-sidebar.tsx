@@ -12,6 +12,7 @@ import {
   Shield,
   ClipboardText,
   Buildings,
+  MapPin,
   SignOut,
   UserGear,
   CaretDown,
@@ -162,6 +163,12 @@ export function AppSidebar() {
                       icon={<Buildings size={16} />}
                       label="Departemen"
                       active={isActive('/admin/departments')}
+                    />
+                    <NavItem
+                      href="/admin/branches"
+                      icon={<MapPin size={16} />}
+                      label="Cabang"
+                      active={isActive('/admin/branches')}
                     />
                   </>
                 )}

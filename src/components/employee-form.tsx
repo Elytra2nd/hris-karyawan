@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
-import { createEmployeeSchema, CABANG_OPTIONS as CABANG_REF } from '@/lib/validation'
+import { createEmployeeSchema } from '@/lib/validation'
 import { useRouter } from 'next/navigation'
 
 const POSISI_OPTIONS = [
@@ -22,16 +22,17 @@ const POSISI_OPTIONS = [
   { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
 ]
 
-const CABANG_DROPDOWN = CABANG_REF.map(c => ({ value: c.code, label: `${c.code} — ${c.label}` }))
-
+interface Branch { code: string; label: string }
 interface Department { id: string; name: string; code: string }
 
 export function EmployeeForm({
   action,
   departments = [],
+  branches = [],
 }: {
   action: (formData: FormData) => Promise<any>
   departments?: Department[]
+  branches?: Branch[]
 }) {
   const router = useRouter()
   const [posisi, setPosisi] = useState('')
@@ -105,7 +106,7 @@ export function EmployeeForm({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-8">
+    <form action={handleSubmit} noValidate className="space-y-8">
 
       {/* ─── A. Data Operasional ─── */}
       <section className="space-y-4">
@@ -126,7 +127,7 @@ export function EmployeeForm({
               id="cabang"
               name="cabang"
               required
-              options={CABANG_DROPDOWN}
+              options={branches.map(b => ({ value: b.code, label: `${b.code} — ${b.label}` }))}
               placeholder="Pilih cabang..."
             />
             <FieldError message={errors.cabang} />
@@ -145,7 +146,7 @@ export function EmployeeForm({
               name="departmentId"
               options={[
                 { value: '', label: 'Tidak ditugaskan' },
-                ...departments.map(d => ({ value: d.id, label: d.name, hint: d.code })),
+                ...departments.map(d => ({ value: d.id, label: `${d.name} — ${d.code}` })),
               ]}
               placeholder="Pilih departemen..."
             />
@@ -314,7 +315,7 @@ export function EmployeeForm({
       <button
         type="submit"
         disabled={isPending}
-        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
           <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>

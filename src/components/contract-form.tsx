@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
+import { FieldError } from '@/components/ui/field-error'
 import { id as localeID } from 'date-fns/locale'
 import { CircleNotch, Info, CalendarCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { createContractSchema } from '@/lib/validation'
 
 const POSISI_OPTIONS = [
   { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
@@ -33,6 +35,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const [tglMulai, setTglMulai] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [tglSelesai, setTglSelesai] = useState('')
   const [isPending, setIsPending] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (posisi && tglMulai) {
@@ -43,6 +46,28 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   }, [posisi, tglMulai])
 
   const handleSubmit = async (formData: FormData) => {
+    // Client-side Zod validation
+    const raw: Record<string, string | null> = {}
+    formData.forEach((v, k) => {
+      const s = v.toString().trim()
+      raw[k] = s === '' ? null : s
+    })
+
+    const parsed = createContractSchema.safeParse(raw)
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach(e => {
+        const field = e.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = e.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      const firstField = parsed.error.issues[0]?.path[0]
+      if (firstField) document.getElementById(String(firstField))?.focus()
+      return
+    }
+
+    setErrors({})
     setIsPending(true)
     try {
       const result = await action(employeeId, formData)
@@ -63,7 +88,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form action={handleSubmit} noValidate className="space-y-6">
 
       {/* Posisi */}
       <div className="space-y-2">
@@ -75,7 +100,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           name="posisi"
           required
           value={posisi}
-          onValueChange={setPosisi}
+          onValueChange={(v) => { setPosisi(v); setErrors(prev => { const n = { ...prev }; delete n.posisi; return n }) }}
           options={POSISI_OPTIONS.map(p => ({
             value: p.value,
             label: p.label,
@@ -83,6 +108,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           }))}
           placeholder="Pilih jabatan..."
         />
+        <FieldError id="posisi-error" message={errors.posisi} />
       </div>
 
       {/* Tanggal */}
@@ -96,9 +122,10 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
             name="traineeSejak"
             required
             value={tglMulai}
-            onValueChange={setTglMulai}
+            onValueChange={(v) => { setTglMulai(v); setErrors(prev => { const n = { ...prev }; delete n.traineeSejak; return n }) }}
             placeholder="Pilih tanggal mulai"
           />
+          <FieldError id="traineeSejak-error" message={errors.traineeSejak} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
@@ -140,7 +167,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
       <button
         type="submit"
         disabled={isPending || !posisi || !tglMulai}
-        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
           <><CircleNotch size={16} className="animate-spin" /> Menerbitkan...</>
@@ -151,3 +178,4 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     </form>
   )
 }
+

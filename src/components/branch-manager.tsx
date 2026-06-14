@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Buildings, Plus, Trash, CircleNotch, Users, MagnifyingGlass, Pencil, Check, X } from '@phosphor-icons/react'
+import { MapPin, Plus, Trash, CircleNotch, Users, MagnifyingGlass, Pencil, Check, X } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -19,47 +19,46 @@ import {
 } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { departmentSchema } from '@/lib/validation'
-import type { createDepartment, deleteDepartment, updateDepartment, getDepartments } from '@/app/actions/department'
+import { branchSchema } from '@/lib/validation'
+import type { createBranch, deleteBranch, updateBranch, getBranches } from '@/app/actions/branch'
 
-type Department = Awaited<ReturnType<typeof getDepartments>>[0]
+type Branch = Awaited<ReturnType<typeof getBranches>>[0]
 
 interface Props {
-  departments: Department[]
-  createAction: typeof createDepartment
-  deleteAction: typeof deleteDepartment
-  updateAction: typeof updateDepartment
+  branches: Branch[]
+  createAction: typeof createBranch
+  deleteAction: typeof deleteBranch
+  updateAction: typeof updateBranch
 }
 
-export function DepartmentManager({ departments: initial, createAction, deleteAction, updateAction }: Props) {
+export function BranchManager({ branches: initial, createAction, deleteAction, updateAction }: Props) {
   const router = useRouter()
-  const [depts, setDepts] = useState(initial)
+  const [branches, setBranches] = useState(initial)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
+  const [editLabel, setEditLabel] = useState('')
   const [editCode, setEditCode] = useState('')
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
   const [createErrors, setCreateErrors] = useState<Record<string, string>>({})
 
-  const filteredDepts = useMemo(
-    () => !search ? depts : depts.filter(d =>
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.code.toLowerCase().includes(search.toLowerCase())
+  const filtered = useMemo(
+    () => !search ? branches : branches.filter(b =>
+      b.label.toLowerCase().includes(search.toLowerCase()) ||
+      b.code.toLowerCase().includes(search.toLowerCase())
     ),
-    [depts, search]
+    [branches, search]
   )
 
   const handleCreate = async (formData: FormData) => {
-    // Client-side Zod validation
     const raw = {
-      name: formData.get('name')?.toString().trim() ?? '',
       code: formData.get('code')?.toString().trim().toUpperCase() ?? '',
+      label: formData.get('label')?.toString().trim().toUpperCase() ?? '',
     }
 
-    const parsed = departmentSchema.safeParse(raw)
+    const parsed = branchSchema.safeParse(raw)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -69,7 +68,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       setCreateErrors(fieldErrors)
       toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
-      if (firstField) document.getElementById(`dept-${String(firstField)}`)?.focus()
+      if (firstField) document.getElementById(`branch-${String(firstField)}`)?.focus()
       return
     }
 
@@ -78,35 +77,34 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     try {
       const result = await createAction(formData)
       if (result.success) {
-        toast.success(result.message ?? 'Departemen dibuat')
+        toast.success(result.message ?? 'Cabang dibuat')
         setShowForm(false)
         setCreateErrors({})
         router.refresh()
       } else {
         toast.error(result.error)
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error('Koneksi terputus — coba kirim ulang')
     } finally {
       setCreating(false)
     }
   }
 
-  const startEdit = (dept: Department) => {
-    setEditing(dept.id)
-    setEditName(dept.name)
-    setEditCode(dept.code)
+  const startEdit = (branch: Branch) => {
+    setEditing(branch.id)
+    setEditLabel(branch.label)
+    setEditCode(branch.code)
   }
 
   const cancelEdit = () => {
     setEditing(null)
-    setEditName('')
+    setEditLabel('')
     setEditCode('')
   }
 
   const handleSaveEdit = async (id: string) => {
-    // Validate edit fields
-    const parsed = departmentSchema.safeParse({ name: editName.trim(), code: editCode.trim().toUpperCase() })
+    const parsed = branchSchema.safeParse({ code: editCode.trim().toUpperCase(), label: editLabel.trim().toUpperCase() })
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? 'Ada isian yang belum sesuai')
       return
@@ -115,34 +113,34 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     setSaving(true)
     try {
       const fd = new FormData()
-      fd.set('name', editName)
       fd.set('code', editCode)
+      fd.set('label', editLabel)
       const result = await updateAction(id, fd)
       if (result.success) {
-        toast.success(result.message ?? 'Departemen diperbarui')
-        setDepts(prev => prev.map(d => d.id === id ? { ...d, name: editName, code: editCode.toUpperCase() } : d))
+        toast.success(result.message ?? 'Cabang diperbarui')
+        setBranches(prev => prev.map(b => b.id === id ? { ...b, label: editLabel.toUpperCase(), code: editCode.toUpperCase() } : b))
         cancelEdit()
       } else {
         toast.error(result.error)
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error('Koneksi terputus — coba simpan ulang')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string, label: string) => {
     setDeleting(id)
     try {
       const result = await deleteAction(id)
       if (result.success) {
-        toast.success(result.message ?? `${name} dihapus`)
-        setDepts(prev => prev.filter(d => d.id !== id))
+        toast.success(result.message ?? `${label} dihapus`)
+        setBranches(prev => prev.filter(b => b.id !== id))
       } else {
         toast.error(result.error)
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error('Koneksi terputus — coba ulangi')
     } finally {
       setDeleting(null)
@@ -152,13 +150,13 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      {/* ─── Department List ─── */}
+      {/* ─── Branch List ─── */}
       <div className="lg:col-span-2 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="px-4 sm:px-5 py-2 sm:py-4 border-b border-border/60 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-base font-semibold text-foreground">
-              Departemen
-              <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
+              Cabang
+              <span className="ml-2 text-xs font-normal text-muted-foreground">({branches.length})</span>
             </h2>
             <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-2 shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700">
               <Plus size={12} />
@@ -171,18 +169,18 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Cari nama atau kode..."
-              aria-label="Cari departemen"
+              placeholder="Cari kode atau nama cabang..."
+              aria-label="Cari cabang"
               className="w-full h-8 pl-8 pr-3 text-base sm:text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
           </div>
         </div>
 
-        {depts.length === 0 ? (
+        {branches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-4 text-muted-foreground">
-            <Buildings size={36} className="opacity-20" />
-            <p className="text-sm font-bold uppercase tracking-wider">Belum ada departemen</p>
-            <p className="text-xs">Klik &quot;Tambah&quot; untuk membuat departemen pertama</p>
+            <MapPin size={36} className="opacity-20" />
+            <p className="text-sm font-bold uppercase tracking-wider">Belum ada cabang</p>
+            <p className="text-xs">Klik &quot;Tambah&quot; untuk membuat cabang pertama</p>
           </div>
         ) : (
           <>
@@ -191,64 +189,64 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
           <table className="w-full min-w-[400px]">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="th-standard text-left">Departemen</th>
                 <th className="th-standard text-left">Kode</th>
+                <th className="th-standard text-left">Nama Cabang</th>
                 <th className="th-standard text-center">Karyawan</th>
                 <th className="th-standard text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {filteredDepts.length === 0 && search && (
+              {filtered.length === 0 && search && (
                 <tr>
                   <td colSpan={4} className="px-5 py-8 text-center text-sm text-muted-foreground">
-                    Tidak ada departemen untuk &ldquo;{search}&rdquo;
+                    Tidak ada cabang untuk &ldquo;{search}&rdquo;
                   </td>
                 </tr>
               )}
-              {filteredDepts.map(dept => (
-                <tr key={dept.id} className="hover:bg-muted/50 transition-colors">
+              {filtered.map(branch => (
+                <tr key={branch.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5">
-                    {editing === dept.id ? (
-                      <input
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        className="w-full h-8 px-2 text-base sm:text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        autoFocus
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Buildings size={16} className="text-primary" />
-                        </div>
-                        <span className="text-sm font-semibold text-foreground">{dept.name}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {editing === dept.id ? (
+                    {editing === branch.id ? (
                       <input
                         value={editCode}
                         onChange={e => setEditCode(e.target.value.toUpperCase())}
-                        className="w-20 h-8 px-2 text-base sm:text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        className="w-24 h-8 px-2 text-base sm:text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        autoFocus
                       />
                     ) : (
                       <span className="font-mono text-xs font-bold bg-muted text-foreground/80 px-2 py-1 rounded">
-                        {dept.code}
+                        {branch.code}
                       </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {editing === branch.id ? (
+                      <input
+                        value={editLabel}
+                        onChange={e => setEditLabel(e.target.value)}
+                        className="w-full h-8 px-2 text-base sm:text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                          <MapPin size={16} className="text-orange-600" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">{branch.label}</span>
+                      </div>
                     )}
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <div className="flex items-center justify-center gap-1 text-sm text-foreground/70">
                       <Users size={12} className="text-muted-foreground/70" />
-                      {dept._count.employees}
+                      {branch._count.employees}
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-center gap-1">
-                      {editing === dept.id ? (
+                      {editing === branch.id ? (
                         <>
                           <button
-                            onClick={() => handleSaveEdit(dept.id)}
+                            onClick={() => handleSaveEdit(branch.id)}
                             disabled={saving}
                             className="h-8 w-8 rounded-md flex items-center justify-center text-green-600 hover:bg-green-50 transition-colors"
                             title="Simpan"
@@ -270,48 +268,48 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                onClick={() => startEdit(dept)}
+                                onClick={() => startEdit(branch)}
                                 className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
                               >
                                 <Pencil size={12} />
                               </button>
                             </TooltipTrigger>
-                            <TooltipContent>Edit departemen</TooltipContent>
+                            <TooltipContent>Edit cabang</TooltipContent>
                           </Tooltip>
                           <AlertDialog>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <AlertDialogTrigger asChild>
                                   <button
-                                    disabled={deleting === dept.id || dept._count.employees > 0}
+                                    disabled={deleting === branch.id || branch._count.employees > 0}
                                     className={cn(
                                       'h-8 w-8 rounded-md flex items-center justify-center transition-colors',
-                                      dept._count.employees > 0
+                                      branch._count.employees > 0
                                         ? 'text-muted-foreground/50 cursor-not-allowed'
                                         : 'text-muted-foreground/70 hover:text-red-600 hover:bg-red-50'
                                     )}
                                   >
-                                    {deleting === dept.id
+                                    {deleting === branch.id
                                       ? <CircleNotch size={12} className="animate-spin" />
                                       : <Trash size={12} />}
                                   </button>
                                 </AlertDialogTrigger>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {dept._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus departemen'}
+                                {branch._count.employees > 0 ? 'Masih ada karyawan' : 'Hapus cabang'}
                               </TooltipContent>
                             </Tooltip>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
+                                <AlertDialogTitle>Hapus Cabang?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Departemen <strong>{dept.name}</strong> akan dihapus permanen. Aksi ini tidak bisa dibatalkan.
+                                  Cabang <strong>{branch.label}</strong> ({branch.code}) akan dihapus permanen. Aksi ini tidak bisa dibatalkan.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Batal</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(dept.id, dept.name)}
+                                  onClick={() => handleDelete(branch.id, branch.label)}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
                                   Hapus
@@ -331,31 +329,31 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
 
             {/* Mobile Card View */}
             <div className="sm:hidden divide-y divide-border/60">
-              {filteredDepts.length === 0 && search && (
+              {filtered.length === 0 && search && (
                 <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  Tidak ada departemen untuk &ldquo;{search}&rdquo;
+                  Tidak ada cabang untuk &ldquo;{search}&rdquo;
                 </div>
               )}
-              {filteredDepts.map(dept => (
-                <div key={dept.id} className="px-4 py-3.5">
-                  {editing === dept.id ? (
+              {filtered.map(branch => (
+                <div key={branch.id} className="px-4 py-3.5">
+                  {editing === branch.id ? (
                     <div className="space-y-2">
-                      <input
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        className="w-full h-8 px-2 text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        autoFocus
-                        placeholder="Nama departemen"
-                      />
                       <input
                         value={editCode}
                         onChange={e => setEditCode(e.target.value.toUpperCase())}
                         className="w-24 h-8 px-2 text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        autoFocus
                         placeholder="KODE"
+                      />
+                      <input
+                        value={editLabel}
+                        onChange={e => setEditLabel(e.target.value)}
+                        className="w-full h-8 px-2 text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        placeholder="Nama cabang"
                       />
                       <div className="flex gap-2 pt-1">
                         <button
-                          onClick={() => handleSaveEdit(dept.id)}
+                          onClick={() => handleSaveEdit(branch.id)}
                           disabled={saving}
                           className="h-8 px-4 rounded-md text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
                         >
@@ -372,49 +370,49 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                   ) : (
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Buildings size={16} className="text-primary" />
+                        <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                          <MapPin size={16} className="text-orange-600" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{dept.name}</p>
+                          <p className="text-sm font-semibold text-foreground truncate">{branch.label}</p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="font-mono text-[11px] font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded">{dept.code}</span>
+                            <span className="font-mono text-[11px] font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded">{branch.code}</span>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Users size={12} /> {dept._count.employees}
+                              <Users size={12} /> {branch._count.employees}
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => startEdit(dept)}
+                          onClick={() => startEdit(branch)}
                           className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-primary hover:bg-accent transition-colors"
                         >
                           <Pencil size={16} />
                         </button>
-                        {dept._count.employees === 0 && (
+                        {branch._count.employees === 0 && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button
-                                disabled={deleting === dept.id}
+                                disabled={deleting === branch.id}
                                 className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                               >
-                                {deleting === dept.id
+                                {deleting === branch.id
                                   ? <CircleNotch size={16} className="animate-spin" />
                                   : <Trash size={16} />}
                               </button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Hapus Departemen?</AlertDialogTitle>
+                                <AlertDialogTitle>Hapus Cabang?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Departemen <strong>{dept.name}</strong> akan dihapus permanen.
+                                  Cabang <strong>{branch.label}</strong> ({branch.code}) akan dihapus permanen.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Batal</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(dept.id, dept.name)}
+                                  onClick={() => handleDelete(branch.id, branch.label)}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
                                   Hapus
@@ -436,41 +434,41 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       {/* ─── Create Form ─── */}
       <div className={cn('bg-card border border-border rounded-lg shadow-sm overflow-hidden transition-opacity', !showForm && 'opacity-50')}>
         <div className="px-5 py-4 border-b border-border/60">
-          <h2 className="text-base font-semibold text-foreground">Tambah Departemen</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Buat departemen baru untuk organisasi</p>
+          <h2 className="text-base font-semibold text-foreground">Tambah Cabang</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Buat cabang baru untuk organisasi</p>
         </div>
         <form action={handleCreate} noValidate className="p-5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="dept-name" className="form-label">Nama Departemen <span className="text-red-500">*</span></Label>
+            <Label htmlFor="branch-code" className="form-label">Kode Cabang <span className="text-red-500">*</span></Label>
             <Input
-              id="dept-name"
-              name="name"
-              nativeInput
-              required
-              placeholder="contoh: Penjualan & Distribusi"
-              disabled={!showForm}
-              aria-invalid={!!createErrors.name}
-              aria-describedby={createErrors.name ? 'dept-name-error' : undefined}
-              className={createErrors.name ? 'border-destructive' : ''}
-            />
-            <FieldError id="dept-name-error" message={createErrors.name} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dept-code" className="form-label">Kode <span className="text-red-500">*</span></Label>
-            <Input
-              id="dept-code"
+              id="branch-code"
               name="code"
               nativeInput
               required
-              placeholder="contoh: SALES"
+              placeholder="contoh: H731"
               disabled={!showForm}
               aria-invalid={!!createErrors.code}
-              aria-describedby={createErrors.code ? 'dept-code-error' : 'dept-code-hint'}
+              aria-describedby={createErrors.code ? 'branch-code-error' : 'branch-code-hint'}
               className={`uppercase font-mono ${createErrors.code ? 'border-destructive' : ''}`}
               onChange={e => e.target.value = e.target.value.toUpperCase()}
             />
-            <FieldError id="dept-code-error" message={createErrors.code} />
-            {!createErrors.code && <p id="dept-code-hint" className="text-[11px] text-muted-foreground/70">Huruf kapital, angka, dan strip saja</p>}
+            <FieldError id="branch-code-error" message={createErrors.code} />
+            {!createErrors.code && <p id="branch-code-hint" className="text-[11px] text-muted-foreground/70">Huruf kapital, angka, dan strip saja</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="branch-label" className="form-label">Nama Cabang <span className="text-red-500">*</span></Label>
+            <Input
+              id="branch-label"
+              name="label"
+              nativeInput
+              required
+              placeholder="contoh: MEMPAWAH"
+              disabled={!showForm}
+              aria-invalid={!!createErrors.label}
+              aria-describedby={createErrors.label ? 'branch-label-error' : undefined}
+              className={createErrors.label ? 'border-destructive' : ''}
+            />
+            <FieldError id="branch-label-error" message={createErrors.label} />
           </div>
           <Button
             type="submit"
@@ -479,7 +477,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
           >
             {creating
               ? <><CircleNotch size={12} className="animate-spin" /> Menyimpan...</>
-              : <><Plus size={12} /> Buat Departemen</>}
+              : <><Plus size={12} /> Buat Cabang</>}
           </Button>
         </form>
       </div>

@@ -11,23 +11,51 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { FieldError } from '@/components/ui/field-error'
 import { Plus, CircleNotch, ShieldCheck, Shield } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { createUserSchema, formDataToObject } from '@/lib/validation'
 
 export function CreateUserModal() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setLoading(true)
     const formData = new FormData(event.currentTarget)
+    const raw = formDataToObject(formData)
+
+    // Client-side Zod validation
+    const parsed = createUserSchema.safeParse(raw)
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach(e => {
+        const field = e.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = e.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      const firstField = parsed.error.issues[0]?.path[0]
+      if (firstField) document.getElementById(String(firstField))?.focus()
+      return
+    }
+
+    setErrors({})
+    setLoading(true)
     try {
       const result = await createUser(formData)
       if (result.success) {
         toast.success('Akun pengguna berhasil dibuat')
         setOpen(false)
+        setErrors({})
       } else {
+        // Surface server-side field errors if available
+        if (result.fields) {
+          setErrors(result.fields)
+          const firstField = Object.keys(result.fields)[0]
+          if (firstField) document.getElementById(firstField)?.focus()
+        }
         toast.error(result.error)
       }
     } catch {
@@ -38,7 +66,7 @@ export function CreateUserModal() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setErrors({}) }}>
       <DialogTrigger asChild>
         <button className="flex items-center gap-2 h-8 px-4 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
           <Plus size={16} />
@@ -54,7 +82,7 @@ export function CreateUserModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label htmlFor="username" className="form-label">
               Username <span className="text-red-500">*</span>
@@ -64,9 +92,13 @@ export function CreateUserModal() {
               name="username"
               placeholder="Masukkan username..."
               required
-              className="h-9 text-sm"
+              nativeInput
+              aria-invalid={!!errors.username}
+              aria-describedby={errors.username ? 'username-error' : undefined}
+              className={`h-9 text-sm ${errors.username ? 'border-destructive' : ''}`}
               autoComplete="off"
             />
+            <FieldError id="username-error" message={errors.username} />
           </div>
 
           <div className="space-y-2">
@@ -78,13 +110,19 @@ export function CreateUserModal() {
               name="password"
               type="password"
               required
+              nativeInput
               placeholder="Min. 8 karakter"
-              className="h-9 text-sm"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : 'password-hint'}
+              className={`h-9 text-sm ${errors.password ? 'border-destructive' : ''}`}
               autoComplete="new-password"
             />
-            <p className="text-[11px] text-muted-foreground/70">
-              Min. 8 karakter, mengandung huruf kapital dan angka
-            </p>
+            <FieldError id="password-error" message={errors.password} />
+            {!errors.password && (
+              <p id="password-hint" className="text-[11px] text-muted-foreground/70">
+                Min. 8 karakter, mengandung huruf kapital dan angka
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -128,7 +166,7 @@ export function CreateUserModal() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
@@ -142,3 +180,4 @@ export function CreateUserModal() {
     </Dialog>
   )
 }
+

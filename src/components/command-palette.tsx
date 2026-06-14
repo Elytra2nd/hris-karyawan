@@ -11,6 +11,7 @@ import {
   GearSix,
   ClipboardText,
   Buildings,
+  MapPin,
   MagnifyingGlassMinusIcon,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
@@ -66,6 +67,13 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
         description: 'Kelola departemen organisasi',
         icon: <Buildings size={16} />,
         action: () => router.push('/admin/departments'),
+      },
+      {
+        id: 'branches',
+        title: 'Cabang',
+        description: 'Kelola cabang organisasi',
+        icon: <MapPin size={16} />,
+        action: () => router.push('/admin/branches'),
       },
       {
         id: 'audit-log',

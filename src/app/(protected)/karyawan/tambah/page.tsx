@@ -1,6 +1,7 @@
 import { verifySession } from '@/lib/dal'
 import { createEmployee } from '@/app/actions/employee'
 import { getDepartments } from '@/app/actions/department'
+import { getBranches } from '@/app/actions/branch'
 import { CaretLeft } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -11,7 +12,10 @@ export default async function TambahKaryawanPage() {
   const session = await verifySession()
   if (!hasPermission(session.role, 'employee_create')) redirect('/karyawan')
 
-  const departments = await getDepartments()
+  const [departments, branches] = await Promise.all([
+    getDepartments(),
+    getBranches(),
+  ])
 
   return (
     <div className="space-y-5">
@@ -34,7 +38,7 @@ export default async function TambahKaryawanPage() {
 
       {/* Form container — di-tengahin */}
       <div className="max-w-2xl mx-auto bg-card border border-border rounded-lg shadow-sm p-6">
-        <EmployeeForm action={createEmployee} departments={departments} />
+        <EmployeeForm action={createEmployee} departments={departments} branches={branches} />
       </div>
     </div>
   )

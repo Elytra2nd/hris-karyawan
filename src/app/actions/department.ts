@@ -6,12 +6,9 @@ import { requireAdmin } from '@/lib/auth-guard'
 import { createAuditLog } from '@/lib/audit'
 import { ok, fail, type ActionResult } from '@/lib/result'
 import { logger } from '@/lib/logger'
-import { z } from 'zod'
+import { departmentSchema } from '@/lib/validation'
 
-const departmentSchema = z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter').max(100),
-  code: z.string().min(1, 'Kode wajib diisi').max(20).regex(/^[A-Z0-9_-]+$/, 'Kode hanya huruf kapital, angka, dan strip'),
-})
+
 
 export async function getDepartments() {
   try {

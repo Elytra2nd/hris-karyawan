@@ -26,9 +26,15 @@ const LABEL_MAP: Record<string, string> = {
   admin: 'Administrasi',
   users: 'Manajemen Pengguna',
   departments: 'Departemen',
+  branches: 'Cabang',
   'audit-log': 'Log Aktivitas',
   settings: 'Pengaturan',
   profile: 'Profil',
+}
+
+// Detect CUID-style IDs (e.g. cmnlk0inx000ubcqeszepskkc)
+function looksLikeDynamicId(segment: string): boolean {
+  return /^[a-z0-9]{20,}$/i.test(segment)
 }
 
 function getBreadcrumbs(pathname: string): BreadcrumbLabel[] {
@@ -44,24 +50,21 @@ function getBreadcrumbs(pathname: string): BreadcrumbLabel[] {
 
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i]
-    const isDynamic = segment.startsWith('[') && segment.endsWith(']')
+    const isDynamic = looksLikeDynamicId(segment)
 
     if (isDynamic) {
       // For dynamic segments, show generic label based on parent
+      currentPath += `/${segment}`
       const parentSegment = segments[i - 1]
 
       if (parentSegment === 'karyawan') {
         const isLastSegment = i === segments.length - 1
 
         if (isLastSegment) {
-          // Last segment is the ID - show "Detail Karyawan"
           breadcrumbs.push({ label: 'Detail Karyawan' })
         } else {
-          // Not last - this is a parent, so make it linkable
-          const idPath = currentPath + `/[id]`
-          breadcrumbs.push({ label: 'Detail Karyawan', href: idPath })
+          breadcrumbs.push({ label: 'Detail Karyawan', href: currentPath })
         }
-        currentPath += '/[id]'
       }
     } else {
       // Regular segment

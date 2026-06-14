@@ -8,19 +8,9 @@ import { logger } from '@/lib/logger'
 import { createAuditLog } from '@/lib/audit'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { changePasswordSchema } from '@/lib/validation'
 
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Password saat ini wajib diisi'),
-  newPassword: z
-    .string()
-    .min(8, 'Password baru minimal 8 karakter')
-    .regex(/[A-Z]/, 'Password harus mengandung minimal 1 huruf kapital')
-    .regex(/[0-9]/, 'Password harus mengandung minimal 1 angka'),
-  confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
-}).refine(d => d.newPassword === d.confirmPassword, {
-  message: 'Konfirmasi password tidak cocok',
-  path: ['confirmPassword'],
-})
+
 
 export async function changeOwnPassword(formData: FormData): Promise<ActionResult<void>> {
   try {

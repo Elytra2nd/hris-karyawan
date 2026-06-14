@@ -7,6 +7,17 @@ datasource db {
   provider = "mysql"
 }
 
+model Branch {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  label     String
+  createdAt DateTime   @default(now())
+  employees Employee[]
+
+  @@index([code])
+  @@map("branch")
+}
+
 model Department {
   id        String     @id @default(cuid())
   name      String     @unique
@@ -56,6 +67,7 @@ model Employee {
   ktpPath      String?
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  branch       Branch?     @relation(fields: [cabang], references: [code], onDelete: Restrict)
   contracts    Contract[]
 
   @@index([status])

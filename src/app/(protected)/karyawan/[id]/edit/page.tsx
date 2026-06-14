@@ -2,6 +2,7 @@ import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { updateEmployee } from '@/app/actions/employee'
 import { getDepartments } from '@/app/actions/department'
+import { getBranches } from '@/app/actions/branch'
 import { EditKaryawanForm } from '@/components/edit-karyawan-form'
 import { hasPermission } from '@/lib/auth-guard'
 import { notFound, redirect } from 'next/navigation'
@@ -17,9 +18,10 @@ export default async function EditKaryawanPage({
   if (!hasPermission(session.role, 'employee_update')) redirect('/karyawan')
 
   const { id } = await params
-  const [employee, departments] = await Promise.all([
+  const [employee, departments, branches] = await Promise.all([
     prisma.employee.findUnique({ where: { id }, include: { department: true } }),
     getDepartments(),
+    getBranches(),
   ])
   if (!employee) notFound()
 
@@ -42,7 +44,7 @@ export default async function EditKaryawanPage({
         </p>
       </div>
 
-      <EditKaryawanForm employee={employee} updateAction={updateEmployeeWithId} departments={departments} />
+      <EditKaryawanForm employee={employee} updateAction={updateEmployeeWithId} departments={departments} branches={branches} />
     </div>
   )
 }

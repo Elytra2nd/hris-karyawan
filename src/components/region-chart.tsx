@@ -26,14 +26,14 @@ export function RegionChart({ data, title = "Sebaran Cabang" }: { data: any[], t
             <YAxis 
               dataKey="name" 
               type="category" 
-              fontsize={8} 
+              fontSize={8} 
               width={80} 
               axisLine={false} 
               tickLine={false}
               className="font-semibold text-slate-600" 
             />
             <Tooltip cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="total" radius={[0, 4, 4, 0]} barsize={16}>
+            <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={16}>
               {chartData.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}

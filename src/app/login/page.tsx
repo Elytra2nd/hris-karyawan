@@ -2,7 +2,7 @@ import LoginForm from '@/components/login-form'
 
 export default function LoginPage() {
   return (
-    <div className="min-h-svh grid lg:grid-cols-2">
+    <main className="min-h-svh grid lg:grid-cols-2">
 
       {/* ─── Panel Kiri: Branding (hidden di mobile) ─── */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-primary relative overflow-hidden">
@@ -24,9 +24,9 @@ export default function LoginPage() {
 
         {/* Greeting */}
         <div className="relative z-10 space-y-4">
-          <h1 className="text-5xl font-bold text-white leading-snug">
+          <p aria-hidden="true" className="text-5xl font-bold text-white leading-snug">
             Selamat<br />Datang!
-          </h1>
+          </p>
           <p className="text-blue-100 text-base leading-relaxed max-w-xs">
             Trainee Monitoring System — pantau dan kelola data trainee Astra Motor Kalimantan Barat secara efisien.
           </p>
@@ -58,6 +58,6 @@ export default function LoginPage() {
         <LoginForm />
       </div>
 
-    </div>
+    </main>
   )
 }

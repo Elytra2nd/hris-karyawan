@@ -1,16 +1,14 @@
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { differenceInMonths, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
   User, MapPin, Phone, CreditCard, Clock,
-  CalendarBlank, Pencil, PlusCircle, Buildings, SealCheckIcon,
+  CalendarBlank, Buildings, SealCheckIcon,
   CheckCircle, XCircle, Warning, FileImage, FileText,
   Fingerprint, Hash,
 } from '@phosphor-icons/react/ssr'
-import { BackButton } from '@/components/back-button'
 import { ContractList } from '@/components/contract-list'
 import { ActivityTimeline } from '@/components/activity-timeline'
 import { EmployeeDetailActions } from '@/components/employee-detail-actions'
@@ -59,10 +57,8 @@ export default async function DetailKaryawanPage({
   return (
     <div className="space-y-5">
 
-      {/* ─── Breadcrumb & Actions ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <BackButton fallbackHref="/karyawan" label="Kembali ke Data Karyawan" />
-
+      {/* ─── Actions ─── */}
+      <div className="flex items-center justify-end">
         <EmployeeDetailActions id={id} isAdmin={isAdmin} />
       </div>
 
@@ -233,6 +229,11 @@ export default async function DetailKaryawanPage({
             <InfoItem label="BA Cabang" value={employee.baCabang} />
             <InfoItem label="Kode Cabang" value={employee.cabang} mono />
             <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '—'} />
+            <InfoItem
+              label="Departemen"
+              value={employee.department ? `${employee.department.name} (${employee.department.code})` : 'Belum ditugaskan'}
+              valueClassName={!employee.department ? 'text-muted-foreground italic' : undefined}
+            />
             <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
             <InfoItem
               label="Dibuat"
