@@ -43,88 +43,90 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Profil Akun</h1>
         <p className="text-sm text-muted-foreground mt-1">Kelola informasi dan keamanan akun Anda</p>
       </div>
 
-      {/* ─── Account Info Card ─── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="p-6 flex items-center gap-4 border-b border-border/60">
-          <div className="h-14 w-14 rounded-full bg-primary flex items-center justify-center text-white font-black text-xl shrink-0">
-            {session.username.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-lg font-bold text-foreground">{session.username}</p>
-            <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${roleInfo.color}`}>
-              <Shield size={10} weight="bold" />
-              {roleInfo.label}
-            </span>
-          </div>
-        </div>
-
-        <div className="divide-y divide-border/60">
-          {/* Role Description */}
-          <div className="px-6 py-3.5 flex items-start gap-3">
-            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
-              <IdentificationBadge size={14} className="text-primary" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* ─── Account Info Card (Left) ─── */}
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="p-6 flex items-center gap-4 border-b border-border/60">
+            <div className="h-14 w-14 rounded-full bg-primary flex items-center justify-center text-white font-black text-xl shrink-0">
+              {session.username.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hak Akses</p>
-              <p className="text-sm text-foreground mt-0.5">{roleInfo.description}</p>
+              <p className="text-lg font-bold text-foreground">{session.username}</p>
+              <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${roleInfo.color}`}>
+                <Shield size={10} weight="bold" />
+                {roleInfo.label}
+              </span>
             </div>
           </div>
 
-          {/* Created At */}
-          {user?.createdAt && (
+          <div className="divide-y divide-border/60">
+            {/* Role Description */}
             <div className="px-6 py-3.5 flex items-start gap-3">
               <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
-                <Calendar size={14} className="text-primary" />
+                <IdentificationBadge size={14} className="text-primary" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Akun Dibuat</p>
-                <p className="text-sm text-foreground mt-0.5">
-                  {format(user.createdAt, 'dd MMMM yyyy, HH:mm', { locale: localeID })} WIB
-                </p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hak Akses</p>
+                <p className="text-sm text-foreground mt-0.5">{roleInfo.description}</p>
               </div>
             </div>
-          )}
 
-          {/* Session Info */}
-          <div className="px-6 py-3.5 flex items-start gap-3">
-            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
-              <Clock size={14} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Durasi Sesi</p>
-              <p className="text-sm text-foreground mt-0.5">Otomatis keluar setelah 8 jam tidak aktif</p>
-            </div>
-          </div>
+            {/* Created At */}
+            {user?.createdAt && (
+              <div className="px-6 py-3.5 flex items-start gap-3">
+                <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
+                  <Calendar size={14} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Akun Dibuat</p>
+                  <p className="text-sm text-foreground mt-0.5">
+                    {format(user.createdAt, 'dd MMMM yyyy, HH:mm', { locale: localeID })} WIB
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {/* User ID */}
-          <div className="px-6 py-3.5 flex items-start gap-3">
-            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
-              <User size={14} className="text-primary" />
+            {/* Session Info */}
+            <div className="px-6 py-3.5 flex items-start gap-3">
+              <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
+                <Clock size={14} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Durasi Sesi</p>
+                <p className="text-sm text-foreground mt-0.5">Otomatis keluar setelah 8 jam tidak aktif</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ID Pengguna</p>
-              <p className="text-sm text-foreground/60 font-mono mt-0.5 break-all">{session.id}</p>
+
+            {/* User ID */}
+            <div className="px-6 py-3.5 flex items-start gap-3">
+              <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0 mt-0.5">
+                <User size={14} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ID Pengguna</p>
+                <p className="text-sm text-foreground/60 font-mono mt-0.5 break-all">{session.id}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ─── Change Password Card ─── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
-          <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
-            <Key size={16} className="text-primary" />
+        {/* ─── Change Password Card (Right) ─── */}
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
+            <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
+              <Key size={16} className="text-primary" />
+            </div>
+            <h2 className="text-base font-semibold text-foreground">Ganti Password</h2>
           </div>
-          <h2 className="text-base font-semibold text-foreground">Ganti Password</h2>
-        </div>
-        <div className="p-5">
-          <ChangePasswordForm />
+          <div className="p-5">
+            <ChangePasswordForm />
+          </div>
         </div>
       </div>
     </div>
