@@ -171,11 +171,11 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
                   nativeInput
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-2">
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
                 <span>Gunakan</span>
-                <kbd className="px-2 py-0.5 bg-muted rounded text-[10px] font-mono">↑↓</kbd>
+                <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">↑↓</kbd>
                 <span>untuk navigasi,</span>
-                <kbd className="px-2 py-0.5 bg-muted rounded text-[10px] font-mono">Enter</kbd>
+                <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Enter</kbd>
                 <span>untuk pilih</span>
               </p>
             </div>
@@ -223,8 +223,8 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
 
             {/* Footer */}
             <div className="border-t border-border px-4 py-2 bg-muted/50">
-              <p className="text-[11px] text-muted-foreground text-center">
-                Tekan <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border border-border inline-block">Esc</kbd> untuk menutup
+              <p className="text-xs text-muted-foreground text-center">
+                Tekan <kbd className="px-1.5 py-0.5 bg-card rounded text-xs font-mono border border-border inline-block">Esc</kbd> untuk menutup
               </p>
             </div>
           </div>

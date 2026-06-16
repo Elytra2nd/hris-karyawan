@@ -53,6 +53,18 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     }
   }
 
+  const blurField = (name: keyof typeof updateEmployeeSchema.shape, value: string) => {
+    const shape = updateEmployeeSchema.shape
+    if (!(name in shape)) return
+    const result = (shape[name] as { safeParse: (v: unknown) => { success: boolean; error?: { issues: { message: string }[] } } })
+      .safeParse(value === '' ? null : value)
+    if (!result.success) {
+      setErrors(prev => ({ ...prev, [name]: result.error?.issues[0]?.message ?? 'Tidak valid' }))
+    } else {
+      setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
+    }
+  }
+
   const handleSubmit = async (formData: FormData) => {
     const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
@@ -119,14 +131,14 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                   <Label htmlFor="ba" className="form-label">
                     BA (Branch Code) <span className="text-red-500">*</span>
                   </Label>
-                  <Input id="ba" name="ba" defaultValue={employee.ba} required nativeInput size="sm" aria-invalid={!!errors.ba} aria-describedby={errors.ba ? 'ba-error' : undefined} className={errors.ba ? 'border-destructive' : ''} />
+                  <Input id="ba" name="ba" defaultValue={employee.ba} required nativeInput size="sm" aria-invalid={!!errors.ba} aria-describedby={errors.ba ? 'ba-error' : undefined} className={errors.ba ? 'border-destructive' : ''} onBlur={(e) => blurField('ba', e.target.value)} />
                   <FieldError id="ba-error" message={errors.ba} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="baCabang" className="form-label">
                     BA Cabang <span className="text-red-500">*</span>
                   </Label>
-                  <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required nativeInput size="sm" aria-invalid={!!errors.baCabang} aria-describedby={errors.baCabang ? 'baCabang-error' : undefined} className={errors.baCabang ? 'border-destructive' : ''} />
+                  <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required nativeInput size="sm" aria-invalid={!!errors.baCabang} aria-describedby={errors.baCabang ? 'baCabang-error' : undefined} className={errors.baCabang ? 'border-destructive' : ''} onBlur={(e) => blurField('baCabang', e.target.value)} />
                   <FieldError id="baCabang-error" message={errors.baCabang} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
@@ -165,6 +177,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required nativeInput size="sm" aria-invalid={!!errors.namaLengkap}
                     aria-describedby={errors.namaLengkap ? 'namaLengkap-error' : undefined}
                     className={`uppercase ${errors.namaLengkap ? 'border-destructive' : ''}`}
+                    onBlur={(e) => blurField('namaLengkap', e.target.value)}
                   />
                   <FieldError id="namaLengkap-error" message={errors.namaLengkap} />
                 </div>
@@ -191,6 +204,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required nativeInput size="sm" aria-invalid={!!errors.noKtp}
                     aria-describedby={errors.noKtp ? 'noKtp-error' : undefined}
                     className={`font-mono ${errors.noKtp ? 'border-destructive' : ''}`}
+                    onBlur={(e) => blurField('noKtp', e.target.value)}
                   />
                   <FieldError id="noKtp-error" message={errors.noKtp} />
                 </div>
@@ -217,6 +231,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required nativeInput size="sm" aria-invalid={!!errors.namaIbu}
                     aria-describedby={errors.namaIbu ? 'namaIbu-error' : undefined}
                     className={errors.namaIbu ? 'border-destructive' : ''}
+                    onBlur={(e) => blurField('namaIbu', e.target.value)}
                   />
                   <FieldError id="namaIbu-error" message={errors.namaIbu} />
                 </div>
@@ -230,6 +245,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required nativeInput size="sm" aria-invalid={!!errors.noHp}
                     aria-describedby={errors.noHp ? 'noHp-error' : undefined}
                     className={errors.noHp ? 'border-destructive' : ''}
+                    onBlur={(e) => blurField('noHp', e.target.value)}
                   />
                   <FieldError id="noHp-error" message={errors.noHp} />
                 </div>
@@ -241,6 +257,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     nativeInput size="sm" aria-invalid={!!errors.noJamsostek}
                     aria-describedby={errors.noJamsostek ? 'noJamsostek-error' : undefined}
                     className={`font-mono ${errors.noJamsostek ? 'border-destructive' : ''}`}
+                    onBlur={(e) => blurField('noJamsostek', e.target.value)}
                   />
                   <FieldError id="noJamsostek-error" message={errors.noJamsostek} />
                 </div>
@@ -285,7 +302,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="departmentId" className="form-label">
                       Departemen
-                      <span className="ml-1.5 text-[10px] text-muted-foreground font-normal">(opsional)</span>
+                      <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opsional)</span>
                     </Label>
                     <div className="max-w-xs">
                       <SelectCombobox

@@ -93,7 +93,7 @@ export function AppSidebar() {
           <div className="h-4 w-px bg-sidebar-border" />
           <div>
             <p className="text-sm font-bold text-foreground leading-snug">TMS</p>
-            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">
+            <p className="text-xs text-muted-foreground leading-snug mt-0.5">
               Kalimantan Barat
             </p>
           </div>
@@ -209,7 +209,7 @@ export function AppSidebar() {
             <p className="text-sm font-semibold text-foreground truncate leading-snug">
               {username || 'Pengguna'}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
               {{ ADMIN: 'Administrator', HR_MANAGER: 'HR Manager', HR_STAFF: 'HR Staff', VIEWER: 'Pemirsa' }[role ?? ''] ?? role}
             </p>
           </div>
@@ -259,7 +259,7 @@ export function AppSidebar() {
           </AlertDialog>
         </div>
 
-        <p className="mt-3 text-[10px] text-muted-foreground/70 text-center">
+        <p className="mt-3 text-xs text-muted-foreground/70 text-center">
           Trainee Monitoring System · v2.1
         </p>
       </SidebarFooter>

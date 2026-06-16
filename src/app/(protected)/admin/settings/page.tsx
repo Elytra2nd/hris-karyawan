@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   if (session.role !== 'ADMIN') redirect('/karyawan')
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
 
       {/* Header */}
       <div>
@@ -37,7 +37,7 @@ export default async function SettingsPage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">{session.username}</p>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                   session.role === 'ADMIN'
                     ? 'bg-amber-100 text-amber-700'
                     : 'bg-muted text-foreground/70'

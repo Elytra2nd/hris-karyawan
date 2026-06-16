@@ -22,7 +22,7 @@ export function EmployeeDetailActions({ id, isAdmin }: EmployeeDetailActionsProp
             </button>
           </Link>
           <Link href={`/karyawan/${id}/kontrak`}>
-            <button className="flex items-center gap-2 h-8 px-4 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
+            <button className="flex items-center gap-2 h-8 px-4 text-sm font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 transition-colors shadow-sm">
               <PlusCircle size={16} />
               Kelola Kontrak
             </button>

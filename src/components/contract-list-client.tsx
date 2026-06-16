@@ -9,7 +9,7 @@ import type { Employee, ContractListItem } from '@/types';
 
 const PDFButton = dynamic(() => import('@/components/pdf-button'), {
   ssr: false,
-  loading: () => <span className="text-[10px] animate-pulse">Loading...</span>
+  loading: () => <span className="text-xs animate-pulse">Loading...</span>
 });
 
 export function ContractListClient({ employee, contracts }: { employee: Employee; contracts: ContractListItem[] }) {
@@ -25,11 +25,11 @@ export function ContractListClient({ employee, contracts }: { employee: Employee
           <table className="w-full text-sm text-left font-sans">
             <thead className="bg-muted/50 border-b border-border/60">
               <tr>
-                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-[10px] tracking-tighter italic">Jabatan</th>
-                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-[10px] tracking-tighter italic text-center">Aksi</th>
-                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-[10px] tracking-tighter italic">Mulai</th>
-                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-[10px] tracking-tighter italic">Selesai</th>
-                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-[10px] tracking-tighter text-center">Status</th>
+                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-xs tracking-tighter italic">Jabatan</th>
+                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-xs tracking-tighter italic text-center">Aksi</th>
+                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-xs tracking-tighter italic">Mulai</th>
+                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-xs tracking-tighter italic">Selesai</th>
+                <th className="px-6 py-2 font-bold text-foreground/80 uppercase text-xs tracking-tighter text-center">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -46,9 +46,9 @@ export function ContractListClient({ employee, contracts }: { employee: Employee
                     <td className="px-6 py-4 text-foreground/70 font-medium">{format(new Date(contract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}</td>
                     <td className="px-6 py-4 text-center">
                       {index === 0 && !isExpired ? (
-                        <Badge className="bg-emerald-500 uppercase text-[10px] font-black">Running</Badge>
+                        <Badge className="bg-emerald-500 uppercase text-xs font-black">Running</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-muted-foreground/70 uppercase text-[10px] font-bold">Closed</Badge>
+                        <Badge variant="outline" className="text-muted-foreground/70 uppercase text-xs font-bold">Closed</Badge>
                       )}
                     </td>
                   </tr>

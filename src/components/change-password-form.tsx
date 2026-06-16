@@ -104,7 +104,7 @@ export function ChangePasswordForm() {
       <PasswordInput id="confirmPassword" name="confirmPassword" label="Konfirmasi Password Baru" error={errors.confirmPassword} />
 
       {!errors.newPassword && (
-        <p className="text-[11px] text-muted-foreground/70">
+        <p className="text-xs text-muted-foreground/70">
           Password harus min. 8 karakter, mengandung huruf kapital dan angka.
         </p>
       )}

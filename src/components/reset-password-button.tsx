@@ -58,7 +58,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 h-8 px-4 text-[11px] font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
+        className="flex items-center gap-2 h-8 px-4 text-xs font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
         title="Reset password"
       >
         <Key size={12} /> Reset PW
@@ -103,7 +103,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
               </div>
               <FieldError id="reset-pw-error" message={error} />
               {!error && (
-                <p id="reset-pw-hint" className="text-[11px] text-muted-foreground/70">
+                <p id="reset-pw-hint" className="text-xs text-muted-foreground/70">
                   Min. 8 karakter, huruf kapital, dan angka
                 </p>
               )}

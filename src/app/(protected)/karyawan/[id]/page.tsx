@@ -1,7 +1,7 @@
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import { differenceInMonths, differenceInDays, format } from 'date-fns'
+import { differenceInMonths, differenceInDays, format, isValid } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
   User, MapPin, Phone, CreditCard, Clock,
@@ -115,7 +115,7 @@ export default async function DetailKaryawanPage({
               <Clock size={17} className="text-primary" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">
+              <p className="text-xs font-semibold text-primary uppercase tracking-widest">
                 Masa Kerja Akumulasi
               </p>
               <p className="text-base font-bold text-foreground mt-0.5">
@@ -144,7 +144,7 @@ export default async function DetailKaryawanPage({
             </div>
             <div>
               <p className={cn(
-                'text-[10px] font-semibold uppercase tracking-widest',
+                'text-xs font-semibold uppercase tracking-widest',
                 isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
               )}>
                 Sisa Kontrak
@@ -200,7 +200,7 @@ export default async function DetailKaryawanPage({
             <InfoItem
               label="Tanggal Lahir"
               value={
-                employee.tglLahir
+                employee.tglLahir && isValid(new Date(employee.tglLahir))
                   ? format(new Date(employee.tglLahir), 'dd MMMM yyyy', { locale: localeID })
                   : '—'
               }
@@ -313,7 +313,7 @@ function InfoItem({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">
+      <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">
         {label}
       </p>
       <p className={cn(
@@ -351,7 +351,7 @@ function DocCard({
       )}>
         {icon}
       </div>
-      <p className="text-[11px] font-semibold text-foreground/70 leading-snug">{label}</p>
+      <p className="text-xs font-semibold text-foreground/70 leading-snug">{label}</p>
       {customValue ? (
         <p className="text-xs text-foreground/80 font-mono">{customValue}</p>
       ) : available ? (
@@ -360,17 +360,17 @@ function DocCard({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] font-semibold text-green-700 flex items-center gap-1 hover:underline"
+            className="text-xs font-semibold text-green-700 flex items-center gap-1 hover:underline"
           >
             <CheckCircle size={12} /> Tersedia
           </a>
         ) : (
-          <span className="text-[11px] font-semibold text-green-700 flex items-center gap-1">
+          <span className="text-xs font-semibold text-green-700 flex items-center gap-1">
             <CheckCircle size={12} /> Tersedia
           </span>
         )
       ) : (
-        <span className="text-[11px] font-semibold text-muted-foreground/70 flex items-center gap-1">
+        <span className="text-xs font-semibold text-muted-foreground/70 flex items-center gap-1">
           <XCircle size={12} /> Belum ada
         </span>
       )}

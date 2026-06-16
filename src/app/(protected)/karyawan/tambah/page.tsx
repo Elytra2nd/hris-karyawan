@@ -18,7 +18,7 @@ export default async function TambahKaryawanPage() {
   ])
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-2xl mx-auto space-y-5">
       {/* Breadcrumb */}
       <Link
         href="/karyawan"
@@ -36,8 +36,8 @@ export default async function TambahKaryawanPage() {
         </p>
       </div>
 
-      {/* Form container — di-tengahin */}
-      <div className="max-w-2xl mx-auto bg-card border border-border rounded-lg shadow-sm p-6">
+      {/* Form container */}
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
         <EmployeeForm action={createEmployee} departments={departments} branches={branches} />
       </div>
     </div>

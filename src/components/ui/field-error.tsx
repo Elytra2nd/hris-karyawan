@@ -14,7 +14,7 @@ export function FieldError({ message, className, id }: FieldErrorProps) {
     <p
       id={id}
       role="alert"
-      className={cn('flex items-start gap-1 text-[11px] text-red-600 font-medium mt-0.5', className)}
+      className={cn('flex items-start gap-1 text-xs text-red-600 font-medium mt-0.5', className)}
     >
       <WarningCircle size={11} className="shrink-0 mt-px" />
       <span>{message}</span>

@@ -58,7 +58,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="text-lg font-bold text-foreground">{session.username}</p>
-              <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${roleInfo.color}`}>
+              <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${roleInfo.color}`}>
                 <Shield size={10} weight="bold" />
                 {roleInfo.label}
               </span>

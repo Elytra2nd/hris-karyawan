@@ -54,7 +54,7 @@ export function StatCards({ user, type }: StatCardsProps) {
               <Link href="/karyawan/tambah" className="w-full">
                 <Button
                   size="sm"
-                  className="h-8 w-full px-4 gap-2 text-xs font-semibold shadow-sm transition-all active:scale-95 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                  className="h-8 w-full px-4 gap-2 text-xs font-semibold shadow-sm transition-all active:scale-95 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <UserPlus className="h-4 w-4" />
                   <span>Tambah Karyawan</span>

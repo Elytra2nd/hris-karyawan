@@ -82,20 +82,12 @@ const CABANG_DATA = [
 ]
 
 const POSISI = [
-  'SALESMAN', 'SALESMAN', 'SALESMAN',        // Higher weight for salesman
+  'SALES EXECUTIVE', 'SALES EXECUTIVE', 'SALES EXECUTIVE',  // Higher weight
+  'SALESGIRL', 'SALESGIRL',
   'COUNTER SALES', 'COUNTER SALES',
-  'ADMIN', 'ADMIN',
-  'MEKANIK', 'MEKANIK', 'MEKANIK',
-  'KEPALA MEKANIK',
-  'DRIVER',
-  'SECURITY',
-  'OFFICE BOY',
-  'KASIR',
-  'PARTS COUNTER',
-  'SERVICE ADVISOR',
-  'SUPERVISOR',
-  'STAFF GUDANG',
-  'STAFF IT',
+  'MECHANIC', 'MECHANIC', 'MECHANIC',
+  'TEAM LEADER',
+  'ADMINISTRATOR',
 ]
 
 const STATUS = ['AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'TIDAK AKTIF'] // 87.5% aktif
@@ -147,16 +139,14 @@ async function main() {
 
   // Map posisi → department code
   const posisiToDept: Record<string, string> = {
-    'SALESMAN': 'SM', 'COUNTER SALES': 'SM', 'SUPERVISOR': 'SM',
-    'MEKANIK': 'SA', 'KEPALA MEKANIK': 'SA', 'SERVICE ADVISOR': 'SA',
-    'PARTS COUNTER': 'PS', 'STAFF GUDANG': 'PS',
-    'KASIR': 'FA', 'ADMIN': 'FA',
-    'STAFF IT': 'IT',
-    'DRIVER': 'HR', 'SECURITY': 'HR', 'OFFICE BOY': 'HR',
+    'SALES EXECUTIVE': 'SM', 'SALESGIRL': 'SM', 'COUNTER SALES': 'SM',
+    'MECHANIC': 'SA',
+    'TEAM LEADER': 'SM',
+    'ADMINISTRATOR': 'FA',
   }
 
   // 3. Employees + Contracts
-  const TOTAL = 1000
+  const TOTAL = 500
   console.log(`\n👷 Membuat ${TOTAL} karyawan dengan kontrak...`)
 
   for (let i = 1; i <= TOTAL; i++) {

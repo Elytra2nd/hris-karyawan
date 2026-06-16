@@ -41,7 +41,7 @@ export function ContractList({
           <ClockCounterClockwise size={32} className="text-muted-foreground/50" />
           <p className="text-sm font-semibold text-muted-foreground">Belum ada riwayat kontrak</p>
           <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama karyawan ini</p>
-          <Button asChild size="sm" className="mt-1 gap-2 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700">
+          <Button asChild size="sm" className="mt-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
             <Link href={`/karyawan/${employee.id}/kontrak`}>
               <Plus size={12} />
               Buat Kontrak Pertama
@@ -134,7 +134,7 @@ export function ContractList({
                         {canCreateContract && (
                           <Link
                             href={`/karyawan/${employee.id}/kontrak`}
-                            className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                            className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                           >
                             <ArrowBendUpRight size={12} />
                             Perpanjang

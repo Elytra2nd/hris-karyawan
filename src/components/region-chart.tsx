@@ -21,7 +21,7 @@ export function RegionChart({ data, title = "Sebaran Cabang" }: { data: RegionCh
   return (
     <Card className="border-none shadow-sm bg-white h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">
           {title}
         </CardTitle>
       </CardHeader>
