@@ -7,23 +7,36 @@ vi.mock('@/lib/dal', () => ({
   verifySession: vi.fn(),
 }));
 
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    employee: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+    $transaction: vi.fn().mockImplementation((queries: Promise<unknown>[]) =>
+      Promise.all(queries)
+    ),
+  },
+}));
+
 describe('Security & Hacking Defense Test', () => {
-  
   it('harus kebal terhadap SQL Injection pada kolom Search', async () => {
-    // String berbahaya untuk mencoba drop table
     const maliciousInput = "'; DROP TABLE Employee; --";
-    
-    // Pastikan tidak ada error dan tidak ada data yang terhapus (Prisma otomatis menanganinya)
     const result = await getEmployees({ search: maliciousInput });
-    expect(Array.isArray(result)).toBe(true);
+    expect(Array.isArray(result.employees)).toBe(true);
   });
 
   it('harus menolak upload file berbahaya (Double Extension / Script)', async () => {
-    (verifySession as any).mockResolvedValue({ role: 'ADMIN' });
-    
+    (verifySession as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'u1',
+      role: 'ADMIN',
+      username: 'admin',
+    });
+
     const maliciousFile = new Blob(['<script>alert("Hacked")</script>'], { type: 'text/html' });
     const formData = new FormData();
-    formData.append('file', maliciousFile, 'virus.php.pdf'); // Mencoba bypass format
+    formData.append('file', maliciousFile, 'virus.php.pdf');
 
     const result = await uploadEmployeePhoto(formData, 'emp_123');
 
@@ -32,14 +45,12 @@ describe('Security & Hacking Defense Test', () => {
   });
 
   it('harus menolak akses ke dokumen jika user tidak memiliki session (Broken Access Control)', async () => {
-    // Simulasi verifySession melempar error (user tidak login)
-    (verifySession as any).mockRejectedValue(new Error('Unauthorized'));
+    (verifySession as ReturnType<typeof vi.fn>).mockRejectedValue(
+      Object.assign(new Error('Unauthorized'), { code: 'UNAUTHORIZED' })
+    );
 
     const formData = new FormData();
-    try {
-      await uploadEmployeePhoto(formData, 'emp_123');
-    } catch (e: any) {
-      expect(e.message).toBe('Unauthorized');
-    }
+    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    expect(result.success).toBe(false);
   });
 });

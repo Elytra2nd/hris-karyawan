@@ -44,7 +44,7 @@ export type AppRole = (typeof ROLE_VALID)[number]
 export const createEmployeeSchema = z.object({
   ba: z.string().min(1, 'Kode BA wajib diisi').max(20),
   baCabang: z.string().min(1, 'BA Cabang wajib diisi').max(100),
-  cabang: z.string().min(1, 'Cabang wajib dipilih'),
+  cabang: z.enum(CABANG_VALID, { message: 'Cabang tidak valid' }),
   namaLengkap: z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang'),
   nik: z.string().max(20).optional().nullable(),
   noKtp: z.string()
@@ -114,6 +114,7 @@ export const changePasswordSchema = z.object({
   newPassword: z
     .string()
     .min(8, 'Password baru minimal 8 karakter')
+    .max(72, 'Password maksimal 72 karakter')
     .regex(/[A-Z]/, 'Password harus mengandung minimal 1 huruf kapital')
     .regex(/[0-9]/, 'Password harus mengandung minimal 1 angka'),
   confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),

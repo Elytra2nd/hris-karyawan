@@ -30,7 +30,7 @@ export function EmployeeForm({
   departments = [],
   branches = [],
 }: {
-  action: (formData: FormData) => Promise<any>
+  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
   departments?: Department[]
   branches?: Branch[]
 }) {

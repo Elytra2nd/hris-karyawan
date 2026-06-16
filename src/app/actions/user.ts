@@ -12,7 +12,7 @@ import { createAuditLog } from '@/lib/audit'
 // ─── Get Users ────────────────────────────────────────────────────────────────
 export async function getUsers() {
   try {
-    const session = await requireAdmin()
+    await requireAdmin()
     return await prisma.user.findMany({
       select: { id: true, username: true, role: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
@@ -88,8 +88,9 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     revalidatePath('/admin/users')
     await createAuditLog(session.id, session.username, 'DELETE', 'user', id, { username: user.username, role: user.role })
     return ok({ id }, `Akun ${user.username} berhasil dihapus`)
-  } catch (error: any) {
-    if (error.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+  } catch (error: unknown) {
+    const e = error as { code?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteUser failed', { error: String(error) })
     return fail('Kami belum bisa menghapus akun — coba ulangi', 'SERVER_ERROR')
   }

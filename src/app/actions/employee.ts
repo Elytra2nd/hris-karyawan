@@ -257,7 +257,6 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
       department: emp.departmentId ? deptMap.get(emp.departmentId) ?? null : null,
     })) as unknown as EmployeeExportItem[]
   } catch (error) {
-    console.error('getAllEmployeesForExport failed:', error)
     logger.error('getAllEmployeesForExport failed', { error: String(error) })
     return []
   }

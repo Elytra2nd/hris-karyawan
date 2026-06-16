@@ -22,7 +22,7 @@ interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (formData: FormData) => Promise<any>
+  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
   departments?: Department[]
   branches?: Branch[]
 }
