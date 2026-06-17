@@ -69,7 +69,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
         {loading && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1">
             <CircleNotch className="w-7 h-7 animate-spin text-white" />
-            <span className="text-[10px] text-white font-semibold">Mengunggah...</span>
+            <span className="text-xs text-white font-semibold">Mengunggah...</span>
           </div>
         )}
         {uploadState === 'success' && !loading && (

@@ -82,7 +82,7 @@ export function NotificationBell() {
               >
                 <Bell size={16} />
                 {hasUrgent && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-black text-white">
                     {unseenCount > 9 ? '9+' : unseenCount}
                   </span>
                 )}
@@ -96,7 +96,7 @@ export function NotificationBell() {
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-foreground">Notifikasi Kontrak</span>
             {unseenCount > 0 && (
-              <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
                 {unseenCount} baru
               </span>
             )}
@@ -105,7 +105,7 @@ export function NotificationBell() {
             {allItems.length > 0 && unseenCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="flex items-center gap-1 text-[11px] text-primary/70 hover:text-primary transition-colors"
+                className="flex items-center gap-1 text-xs text-primary/70 hover:text-primary transition-colors"
                 title="Tandai semua dibaca"
               >
                 <CheckCircle size={12} />
@@ -114,7 +114,7 @@ export function NotificationBell() {
             )}
             <button
               onClick={fetch}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground/80 transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-foreground/80 transition-colors"
               disabled={loading}
             >
               <ArrowsClockwise size={12} className={loading ? 'animate-spin' : ''} />
@@ -162,7 +162,7 @@ export function NotificationBell() {
                     {crit.length > 0 && (
                       <>
                         <div className="px-4 py-1.5 bg-red-50">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
+                          <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
                             <Warning size={12} /> Kritis (≤ 14 hari)
                           </span>
                         </div>
@@ -172,7 +172,7 @@ export function NotificationBell() {
                     {warn.length > 0 && (
                       <>
                         <div className="px-4 py-1.5 bg-amber-50">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                          <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
                             <Clock size={12} /> Perlu Perhatian (15–30 hari)
                           </span>
                         </div>
@@ -182,7 +182,7 @@ export function NotificationBell() {
                     {appr.length > 0 && (
                       <>
                         <div className="px-4 py-1.5 bg-muted/50">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                             <Clock size={12} /> Mendekati (31–60 hari)
                           </span>
                         </div>
@@ -239,15 +239,15 @@ function NotifRow({
       onClick={onClick}
       className="flex items-start gap-4 px-4 py-2 hover:bg-muted/50 transition-colors"
     >
-      <span className={cn('mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black', color)}>
+      <span className={cn('mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-xs font-black', color)}>
         {item.daysLeft}h
       </span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{item.namaLengkap}</p>
-        <p className="text-[11px] text-muted-foreground truncate">
+        <p className="text-xs text-muted-foreground truncate">
           {item.posisi} · {item.cabang}
         </p>
-        <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+        <p className="text-xs text-muted-foreground/70 mt-0.5">
           {format(new Date(item.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
         </p>
       </div>

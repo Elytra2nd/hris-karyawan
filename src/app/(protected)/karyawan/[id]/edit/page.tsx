@@ -28,7 +28,7 @@ export default async function EditKaryawanPage({
   const updateEmployeeWithId = updateEmployee.bind(null, id)
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       <Link
         href={`/karyawan/${id}`}
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"

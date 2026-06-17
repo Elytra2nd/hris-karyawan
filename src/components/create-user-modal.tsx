@@ -68,7 +68,7 @@ export function CreateUserModal() {
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setErrors({}) }}>
       <DialogTrigger asChild>
-        <button className="flex items-center gap-2 h-8 px-4 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
+        <button className="flex items-center gap-2 h-8 px-4 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
           <Plus size={16} />
           Tambah Akun
         </button>
@@ -119,7 +119,7 @@ export function CreateUserModal() {
             />
             <FieldError id="password-error" message={errors.password} />
             {!errors.password && (
-              <p id="password-hint" className="text-[11px] text-muted-foreground/70">
+              <p id="password-hint" className="text-xs text-muted-foreground/70">
                 Min. 8 karakter, mengandung huruf kapital dan angka
               </p>
             )}

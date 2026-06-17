@@ -75,7 +75,8 @@ Permission matrix lengkap: `src/lib/auth-guard.ts` (PERMISSIONS object)
 - Import `cn()` dari `@/lib/utils`
 
 ## Important Notes
-- Database: `.env` → `DATABASE_URL` (jangan ubah)
-- Prisma: `npx prisma generate` setelah schema berubah, `npx prisma db push` untuk sync
+- Database: `.env` → variabel `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (lihat `src/lib/prisma.ts`). Bukan `DATABASE_URL`.
+- Prisma: `postinstall` otomatis jalankan `prisma generate`. Jalankan manual kalau schema berubah tanpa `npm install`. `npx prisma db push` untuk sync schema ke DB.
+- Lint: `npm run lint` = `eslint src`. Test: `npm test`. Typecheck: `npx tsc --noEmit`.
 - Zod v4: `parsed.error.issues` (bukan `.errors`), enum: `{ message: 'text' }` bukan `{ errorMap: ... }`
 - Proxy: `withAuth` dari `next-auth/middleware` dipakai di `proxy.ts`

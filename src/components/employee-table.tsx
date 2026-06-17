@@ -114,7 +114,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                       <div className="flex flex-col">
                         <span className="font-semibold text-foreground">{emp.namaLengkap}</span>
                         {isExpiringSoon && (
-                          <span className="flex items-center gap-1 text-[10px] text-amber-600 font-bold uppercase">
+                          <span className="flex items-center gap-1 text-xs text-amber-600 font-bold uppercase">
                             <WarningCircle className="w-3 h-3" /> Warning: Segera Selesai
                           </span>
                         )}

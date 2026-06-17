@@ -360,7 +360,7 @@ export function ImportExcelButton() {
                 <Upload size={16} className="text-primary shrink-0" />
                 <div>
                   <p className="font-semibold">Import File Excel</p>
-                  <p className="text-[11px] text-muted-foreground">Upload data karyawan (.xlsx)</p>
+                  <p className="text-xs text-muted-foreground">Upload data karyawan (.xlsx)</p>
                 </div>
               </button>
               <div className="mx-3 my-1 border-t border-border/60" />
@@ -371,7 +371,7 @@ export function ImportExcelButton() {
                 <Download size={16} className="text-green-600 shrink-0" />
                 <div>
                   <p className="font-semibold">Download Template</p>
-                  <p className="text-[11px] text-muted-foreground">File contoh format import</p>
+                  <p className="text-xs text-muted-foreground">File contoh format import</p>
                 </div>
               </button>
             </div>
@@ -417,14 +417,14 @@ export function ImportExcelButton() {
             <table className="w-full border-collapse text-xs">
               <thead className="sticky top-0 z-10 bg-slate-800">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white w-10">#</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white w-20">Status</th>
+                  <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white w-10">#</th>
+                  <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white w-20">Status</th>
                   {displayCols.map(c => (
-                    <th key={c} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                    <th key={c} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white whitespace-nowrap">
                       {c}
                     </th>
                   ))}
-                  <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white">Keterangan</th>
+                  <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white">Keterangan</th>
                 </tr>
               </thead>
               <tbody>
@@ -447,7 +447,7 @@ export function ImportExcelButton() {
                         {row.raw[c] || <span className="text-muted-foreground/50">—</span>}
                       </td>
                     ))}
-                    <td className="px-3 py-2 text-red-600 text-[11px]">{row.error || ''}</td>
+                    <td className="px-3 py-2 text-red-600 text-xs">{row.error || ''}</td>
                   </tr>
                 ))}
               </tbody>

@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { addMonths, parse, isValid, format } from 'date-fns'
-import { requireAdmin } from "@/lib/auth-guard"
+import { requirePermission } from "@/lib/auth-guard"
 import { createAuditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { createEmployeeSchema } from '@/lib/validation'
@@ -80,7 +80,7 @@ function normalizeRow(raw: Record<string, string>): Record<string, string | null
 export async function bulkImportEmployees(
   rows: ImportRow[]
 ): Promise<ImportResult> {
-  const session = await requireAdmin()
+  const session = await requirePermission('import_data')
 
   const result: ImportResult = { created: 0, skipped: 0, errors: [] }
 

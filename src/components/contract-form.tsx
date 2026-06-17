@@ -130,7 +130,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         <div className="space-y-2">
           <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
             Akhir Kontrak
-            <span className="text-[10px] font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
+            <span className="text-xs font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
               Otomatis
             </span>
           </Label>

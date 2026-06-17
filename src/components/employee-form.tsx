@@ -30,7 +30,7 @@ export function EmployeeForm({
   departments = [],
   branches = [],
 }: {
-  action: (formData: FormData) => Promise<any>
+  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
   departments?: Department[]
   branches?: Branch[]
 }) {
@@ -139,7 +139,7 @@ export function EmployeeForm({
           <div className="space-y-2">
             <Label htmlFor="departmentId" className="form-label">
               Departemen
-              <span className="ml-1.5 text-[10px] text-muted-foreground font-normal">(opsional)</span>
+              <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opsional)</span>
             </Label>
             <SelectCombobox
               id="departmentId"
@@ -274,7 +274,7 @@ export function EmployeeForm({
           <div className="space-y-2">
             <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
               Akhir Kontrak
-              <span className="text-[10px] font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
+              <span className="text-xs font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
                 Otomatis
               </span>
             </Label>

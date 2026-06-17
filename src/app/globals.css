@@ -177,23 +177,23 @@
 @layer utilities {
   /* Kontrak aktif / karyawan aktif — mint pastel */
   .chip-aktif {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100;
   }
   /* Kontrak mendekati habis (≤30 hari) — peach pastel */
   .chip-warning {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100;
   }
   /* Kontrak habis / expired — pink pastel */
   .chip-expired {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100;
   }
   /* Karyawan tidak aktif / resign */
   .chip-nonaktif {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-600 border border-rose-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100;
   }
   /* Trainee / kontrak — cyan pastel */
   .chip-trainee {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100;
   }
   /* Admin */
   .chip-admin {
@@ -206,7 +206,7 @@
 
   /* ─── Table header standar ─── */
   .th-standard {
-    @apply px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-blue-50/60;
+    @apply px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-primary/5;
   }
 
   /* ─── Card standar ─── */
@@ -216,7 +216,7 @@
 
   /* ─── Form label standar ─── */
   .form-label {
-    @apply text-xs font-semibold text-gray-600 uppercase tracking-wider;
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider;
   }
 
   /* ─── Global focus ring (WCAG a11y) ─── */
@@ -252,10 +252,12 @@
   .chip-viewer { background-color: oklch(0.3 0 0); color: oklch(0.8 0 0); }
 
   /* Light-only status backgrounds (e.g. bg-red-50, bg-amber-50, bg-green-50) → dim in dark */
-  .bg-red-50 { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 25%, var(--card)); }
-  .bg-amber-50 { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 25%, var(--card)); }
+  .bg-red-50, .bg-red-50\/40 { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 25%, var(--card)); }
+  .bg-amber-50, .bg-amber-50\/30 { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 25%, var(--card)); }
   .bg-green-50, .bg-green-50\/50 { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 25%, var(--card)); }
   .bg-emerald-50 { background-color: color-mix(in oklab, oklch(0.6 0.18 160) 25%, var(--card)); }
+  .bg-rose-50, .bg-rose-50\/40 { background-color: color-mix(in oklab, oklch(0.55 0.22 10) 25%, var(--card)); }
+  .bg-orange-50 { background-color: color-mix(in oklab, oklch(0.65 0.18 50) 25%, var(--card)); }
 
   /* Border variants for status panels */
   .border-red-200 { border-color: color-mix(in oklab, oklch(0.6 0.25 25) 40%, transparent); }
@@ -292,6 +294,8 @@
   .hover\:bg-red-50:hover { background-color: color-mix(in oklab, oklch(0.5 0.25 25) 35%, var(--card)); }
   .hover\:bg-amber-50:hover { background-color: color-mix(in oklab, oklch(0.7 0.18 70) 35%, var(--card)); }
   .hover\:bg-green-50:hover { background-color: color-mix(in oklab, oklch(0.6 0.18 145) 35%, var(--card)); }
+  .hover\:bg-rose-50:hover { background-color: color-mix(in oklab, oklch(0.55 0.22 10) 35%, var(--card)); }
+  .hover\:bg-orange-50:hover { background-color: color-mix(in oklab, oklch(0.65 0.18 50) 35%, var(--card)); }
 }
 
 /* ─── Print Styles — Professional Format ─── */

@@ -158,7 +158,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
               Cabang
               <span className="ml-2 text-xs font-normal text-muted-foreground">({branches.length})</span>
             </h2>
-            <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-2 shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700">
+            <Button size="sm" onClick={() => setShowForm(v => !v)} className="gap-2 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus size={12} />
               <span className="hidden sm:inline">Tambah</span>
               <span className="sm:hidden">+</span>
@@ -376,7 +376,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-foreground truncate">{branch.label}</p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="font-mono text-[11px] font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded">{branch.code}</span>
+                            <span className="font-mono text-xs font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded">{branch.code}</span>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Users size={12} /> {branch._count.employees}
                             </span>
@@ -453,7 +453,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
               onChange={e => e.target.value = e.target.value.toUpperCase()}
             />
             <FieldError id="branch-code-error" message={createErrors.code} />
-            {!createErrors.code && <p id="branch-code-hint" className="text-[11px] text-muted-foreground/70">Huruf kapital, angka, dan strip saja</p>}
+            {!createErrors.code && <p id="branch-code-hint" className="text-xs text-muted-foreground/70">Huruf kapital, angka, dan strip saja</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="branch-label" className="form-label">Nama Cabang <span className="text-red-500">*</span></Label>

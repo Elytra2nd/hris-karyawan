@@ -70,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
   const isActive = status === 'AKTIF'
   return (
     <span className={cn(
-      'inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+      'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
       isActive
         ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
         : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
@@ -290,14 +290,14 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                 )}
               </div>
             ) : (
-              <table className="w-full border-collapse text-[11px]">
+              <table className="w-full border-collapse text-xs">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-slate-800 dark:bg-slate-900">
-                    <th className="px-3 py-2 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 w-10">
+                    <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-widest text-slate-400 w-10">
                       #
                     </th>
                     {visibleHeaders.map(h => (
-                      <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                      <th key={h} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -312,14 +312,14 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                         i % 2 === 0 ? 'bg-card' : 'bg-muted/40'
                       )}
                     >
-                      <td className="px-3 py-1.5 text-center text-[10px] font-mono text-muted-foreground/50 tabular-nums">
+                      <td className="px-3 py-1.5 text-center text-xs font-mono text-muted-foreground/50 tabular-nums">
                         {i + 1}
                       </td>
                       {visibleHeaders.map(h => (
                         <td key={h} className={cn(
                           'px-3 py-1.5 whitespace-nowrap',
                           h === 'Nama Lengkap' ? 'font-semibold text-foreground' : 'text-foreground/70',
-                          h === 'No KTP' ? 'font-mono text-[10px]' : '',
+                          h === 'No KTP' ? 'font-mono text-xs' : '',
                         )}>
                           {h === 'Status' ? <StatusBadge status={row[h]} /> : row[h]}
                         </td>
@@ -345,7 +345,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                 {filtered.length} data siap di-export
               </span>
               {hasFilter && (
-                <span className="text-[10px] text-muted-foreground/70">
+                <span className="text-xs text-muted-foreground/70">
                   Filter aktif: {[filterCabang && `Cabang: ${filterCabang}`, filterStatus && `Status: ${filterStatus}`, filterPosisi && `Posisi: ${filterPosisi}`, search && `Cari: "${search}"`].filter(Boolean).join(' · ')}
                 </span>
               )}

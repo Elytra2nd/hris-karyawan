@@ -88,7 +88,7 @@ export default async function DashboardPage() {
         </div>
         {user?.role === 'ADMIN' && (
           <Link href="/karyawan/tambah">
-            <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition-colors shadow-sm dark:bg-emerald-600 dark:hover:bg-emerald-700">
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
               <PlusCircle size={16} />
               Tambah Karyawan
             </button>

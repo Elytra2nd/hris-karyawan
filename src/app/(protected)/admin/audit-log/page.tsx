@@ -148,7 +148,7 @@ export default async function AuditLogPage({
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                      <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-primary shrink-0">
                         {log.userName?.[0]?.toUpperCase() ?? '?'}
                       </div>
                       <span className="text-sm font-semibold text-foreground">{log.userName}</span>
@@ -159,7 +159,7 @@ export default async function AuditLogPage({
                   </td>
                   <td className="px-5 py-3.5">
                     <p className="text-sm font-medium text-foreground/80 capitalize">{log.entity}</p>
-                    <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
                       {log.entityId.substring(0, 10)}…
                     </p>
                   </td>
@@ -198,7 +198,7 @@ export default async function AuditLogPage({
               <div key={log.id} className="px-4 py-3.5">
                 <div className="flex items-start justify-between gap-4 mb-1.5">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                    <div className="h-6 w-6 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-primary shrink-0">
                       {log.userName?.[0]?.toUpperCase() ?? '?'}
                     </div>
                     <span className="text-sm font-semibold text-foreground truncate">{log.userName}</span>
@@ -209,7 +209,7 @@ export default async function AuditLogPage({
                   <span className="capitalize font-medium text-foreground/70">{log.entity}</span>
                   {log.details && <span className="ml-2 break-all">{log.details}</span>}
                 </p>
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock size={12} />
                   {format(new Date(log.createdAt), 'dd MMM yyyy, HH:mm', { locale: localeID })}
                 </p>
