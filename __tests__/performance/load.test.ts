@@ -12,10 +12,15 @@ import { prisma } from '@/lib/prisma';
 // Mocking Prisma dengan Latency 10ms
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn().mockImplementation(async (promises) => Promise.all(promises)),
     employee: {
       findMany: vi.fn().mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         return Array.from({ length: 5 }, (_, i) => ({ id: `${i}`, namaLengkap: 'Karyawan' }));
+      }),
+      count: vi.fn().mockImplementation(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        return 5;
       }),
     },
   },

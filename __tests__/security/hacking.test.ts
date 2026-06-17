@@ -3,8 +3,22 @@ import { uploadEmployeePhoto } from '@/app/actions/upload';
 import { verifySession } from '@/lib/dal';
 import { describe, it, expect, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 vi.mock('@/lib/dal', () => ({
   verifySession: vi.fn(),
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    $transaction: vi.fn().mockImplementation(async (promises) => Promise.all(promises)),
+    employee: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      findUnique: vi.fn().mockResolvedValue({ id: 'emp_123', image: null }),
+      update: vi.fn().mockResolvedValue({ id: 'emp_123' }),
+    },
+  },
 }));
 
 describe('Security & Hacking Defense Test', () => {
@@ -15,7 +29,7 @@ describe('Security & Hacking Defense Test', () => {
     
     // Pastikan tidak ada error dan tidak ada data yang terhapus (Prisma otomatis menanganinya)
     const result = await getEmployees({ search: maliciousInput });
-    expect(Array.isArray(result)).toBe(true);
+    expect(Array.isArray(result.employees)).toBe(true);
   });
 
   it('harus menolak upload file berbahaya (Double Extension / Script)', async () => {

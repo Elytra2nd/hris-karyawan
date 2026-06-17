@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, CircleNotch, CloudArrowUpIcon, CheckCircle, Warning } from '@phosphor-icons/react';
 import { uploadEmployeePhoto } from '@/app/actions/upload';
 import { toast } from 'sonner';
@@ -9,6 +9,15 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(currentImage);
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+
+  // Bersihkan memory object URL dari browser saat preview berubah atau component unmount
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
