@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { addMonths } from 'date-fns'
+import { addMonths, differenceInDays, startOfDay } from 'date-fns'
 import { createAuditLog } from '@/lib/audit'
 import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import {
@@ -285,6 +285,7 @@ export async function getEmployees({
   status = '',
   contractFilter = '',
   posisi = '',
+  departmentId = '',
   page = 1,
   perPage = PER_PAGE,
 }: {
@@ -293,6 +294,7 @@ export async function getEmployees({
   status?: string
   contractFilter?: string
   posisi?: string
+  departmentId?: string
   page?: number
   perPage?: number
 } = {}) {
@@ -304,6 +306,7 @@ export async function getEmployees({
         cabang ? { cabang } : {},
         status ? { status } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
+        departmentId ? { departmentId } : {},
         buildContractWhere(contractFilter, today),
       ],
     }
@@ -311,7 +314,7 @@ export async function getEmployees({
     const [employees, total] = await prisma.$transaction([
       prisma.employee.findMany({
         where,
-        include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
+        include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
         orderBy: { namaLengkap: 'asc' },
         take: perPage,
         skip: (page - 1) * perPage,
@@ -349,8 +352,7 @@ export async function getEmployeeStats({
   cabang?: string
 } = {}) {
   try {
-    const today = new Date()
-    const in30 = addDays(today, 30)
+    const today = startOfDay(new Date())
 
     const baseWhere = {
       AND: [
@@ -359,20 +361,149 @@ export async function getEmployeeStats({
       ],
     }
 
-    const [total, aktif, segera] = await prisma.$transaction([
+    // Get total and status-based counts
+    const [total, statusAktif] = await prisma.$transaction([
       prisma.employee.count({ where: baseWhere }),
       prisma.employee.count({ where: { ...baseWhere, status: 'AKTIF' } }),
-      prisma.employee.count({
-        where: {
-          ...baseWhere,
-          contracts: { some: { traineeSelesai: { gte: today, lte: in30 } } },
-        },
+    ])
+
+    // Get latest contracts for AKTIF employees matching filters
+    const latestContracts = await prisma.contract.findMany({
+      where: { employee: { ...baseWhere, status: 'AKTIF' } },
+      orderBy: { traineeSelesai: 'desc' },
+      distinct: ['employeeId'],
+      select: { traineeSelesai: true },
+    })
+
+    // Derive real counts from contract data
+    let contractValid = 0
+    let contractExpired = 0
+    let segera = 0 // ≤ 30 hari
+
+    latestContracts.forEach(c => {
+      const days = differenceInDays(new Date(c.traineeSelesai), today)
+      if (days < 0) {
+        contractExpired++
+      } else {
+        contractValid++
+        if (days <= 30) segera++
+      }
+    })
+
+    return {
+      total,
+      aktif: contractValid,
+      nonAktif: total - statusAktif,
+      segera,
+      expired: contractExpired,
+    }
+  } catch (error) {
+    logger.error('getEmployeeStats failed', { error: String(error) })
+    return { total: 0, aktif: 0, nonAktif: 0, segera: 0, expired: 0 }
+  }
+}
+
+// ─── Read: Dashboard KPI — derived from actual contract data ─────────────────
+export async function getDashboardKPI() {
+  try {
+    const today = startOfDay(new Date())
+
+    const [totalAll, totalAktif, totalNonAktif, latestContracts] = await Promise.all([
+      prisma.employee.count(),
+      prisma.employee.count({ where: { status: 'AKTIF' } }),
+      prisma.employee.count({ where: { status: 'NON-AKTIF' } }),
+      prisma.contract.findMany({
+        where: { employee: { status: 'AKTIF' } },
+        orderBy: { traineeSelesai: 'desc' },
+        distinct: ['employeeId'],
+        select: { traineeSelesai: true, employeeId: true },
       }),
     ])
 
-    return { total, aktif, nonAktif: total - aktif, segera }
+    let contractValid = 0
+    let contractExpired = 0
+    let expiring14 = 0
+    let expiring30 = 0
+    let expiring90 = 0
+    let safe = 0
+
+    latestContracts.forEach(c => {
+      const days = differenceInDays(new Date(c.traineeSelesai), today)
+      if (days < 0) {
+        contractExpired++
+      } else {
+        contractValid++
+        if (days <= 14) expiring14++
+        if (days <= 30) expiring30++
+        if (days <= 90) expiring90++
+        if (days > 90) safe++
+      }
+    })
+
+    // Karyawan AKTIF tanpa kontrak sama sekali
+    const noContract = totalAktif - latestContracts.length
+
+    // Persentase kontrak valid dari total karyawan aktif
+    const validPercent = totalAktif > 0 ? Math.round((contractValid / totalAktif) * 100) : 0
+
+    return {
+      totalAll,
+      totalAktif,
+      totalNonAktif,
+      contractValid,
+      contractExpired,
+      noContract,
+      expiring14,
+      expiring30,
+      expiring90,
+      safe,
+      // Warning gap (31-90 hari)
+      warningRange: expiring90 - expiring30,
+      validPercent,
+    }
   } catch (error) {
-    logger.error('getEmployeeStats failed', { error: String(error) })
-    return { total: 0, aktif: 0, nonAktif: 0, segera: 0 }
+    logger.error('getDashboardKPI failed', { error: String(error) })
+    return {
+      totalAll: 0, totalAktif: 0, totalNonAktif: 0,
+      contractValid: 0, contractExpired: 0, noContract: 0,
+      expiring14: 0, expiring30: 0, expiring90: 0, safe: 0,
+      warningRange: 0, validPercent: 0,
+    }
+  }
+}
+
+// ─── Read: Statistik per departemen untuk dashboard ──────────────────────────
+export async function getDepartmentStats() {
+  try {
+    const result = await prisma.employee.groupBy({
+      by: ['departmentId'],
+      where: { status: 'AKTIF' },
+      _count: { departmentId: true },
+      orderBy: { _count: { departmentId: 'desc' } },
+    })
+
+    // Fetch department names
+    const deptIds = result
+      .map(r => r.departmentId)
+      .filter((id): id is string => id !== null)
+
+    const departments = deptIds.length > 0
+      ? await prisma.department.findMany({
+          where: { id: { in: deptIds } },
+          select: { id: true, name: true, code: true },
+        })
+      : []
+
+    const deptMap = new Map(departments.map(d => [d.id, d]))
+
+    return result.map(r => ({
+      departmentId: r.departmentId,
+      name: r.departmentId ? deptMap.get(r.departmentId)?.name ?? 'Unknown' : 'Belum Ditugaskan',
+      code: r.departmentId ? deptMap.get(r.departmentId)?.code ?? '-' : '-',
+      count: r._count.departmentId,
+    }))
+  } catch (error) {
+    logger.error('getDepartmentStats failed', { error: String(error) })
+    return []
   }
 }

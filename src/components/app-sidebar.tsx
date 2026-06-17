@@ -16,6 +16,7 @@ import {
   SignOut,
   UserGear,
   CaretDown,
+  FileText,
 } from '@phosphor-icons/react'
 import {
   Sidebar,
@@ -141,6 +142,12 @@ export function AppSidebar() {
                   active={isActive('/karyawan/tambah')}
                 />
               )}
+              <NavItem
+                href="/kontrak"
+                icon={<FileText size={16} />}
+                label="Manajemen Kontrak"
+                active={isActive('/kontrak')}
+              />
             </nav>
           )}
         </div>

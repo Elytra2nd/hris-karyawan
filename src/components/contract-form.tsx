@@ -9,7 +9,7 @@ import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
 import { id as localeID } from 'date-fns/locale'
-import { CircleNotch, Info, CalendarCheck } from '@phosphor-icons/react'
+import { CircleNotch, Info, CalendarCheck, FileText } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { createContractSchema } from '@/lib/validation'
 
@@ -36,6 +36,19 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const [tglSelesai, setTglSelesai] = useState('')
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // On-blur per-field validation (sama seperti edit-karyawan-form)
+  const blurField = (name: keyof typeof createContractSchema.shape, value: string) => {
+    const shape = createContractSchema.shape
+    if (!(name in shape)) return
+    const result = (shape[name] as { safeParse: (v: unknown) => { success: boolean; error?: { issues: { message: string }[] } } })
+      .safeParse(value === '' ? null : value)
+    if (!result.success) {
+      setErrors(prev => ({ ...prev, [name]: result.error?.issues[0]?.message ?? 'Tidak valid' }))
+    } else {
+      setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
+    }
+  }
 
   useEffect(() => {
     if (posisi && tglMulai) {
@@ -75,12 +88,26 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
         router.push(`/karyawan/${employeeId}`)
       } else {
-        toast.error(result.error)
+        // Map server-side per-field errors to UI
+        if (result.fields && Object.keys(result.fields).length > 0) {
+          setErrors(result.fields)
+          const firstField = Object.keys(result.fields)[0]
+          if (firstField) document.getElementById(firstField)?.focus()
+        }
+
+        // Contextual toast based on error code
+        const errorMessages: Record<string, string> = {
+          UNAUTHORIZED: 'Anda tidak memiliki izin — hubungi Admin untuk akses',
+          VALIDATION: result.error ?? 'Ada isian yang perlu diperbaiki — periksa kolom yang ditandai',
+          NOT_FOUND: 'Data karyawan tidak ditemukan — mungkin sudah dihapus',
+          DUPLICATE: result.error ?? 'Data duplikat terdeteksi',
+          SERVER_ERROR: result.error ?? 'Terjadi gangguan server — coba beberapa saat lagi',
+        }
+        toast.error(errorMessages[result.code] ?? result.error ?? 'Terjadi kesalahan')
         setIsPending(false)
       }
     } catch (err: unknown) {
-      const msg = 'Koneksi terputus — coba kirim ulang'
-      toast.error(msg)
+      toast.error('Koneksi terputus — periksa internet Anda lalu coba kirim ulang')
       setIsPending(false)
     }
   }
@@ -99,8 +126,15 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           id="posisi"
           name="posisi"
           required
+          aria-required="true"
+          aria-invalid={!!errors.posisi}
+          aria-describedby={errors.posisi ? 'posisi-error' : undefined}
           value={posisi}
-          onValueChange={(v) => { setPosisi(v); setErrors(prev => { const n = { ...prev }; delete n.posisi; return n }) }}
+          onValueChange={(v) => {
+            setPosisi(v)
+            setErrors(prev => { const n = { ...prev }; delete n.posisi; return n })
+            blurField('posisi', v)
+          }}
           options={POSISI_OPTIONS.map(p => ({
             value: p.value,
             label: p.label,
@@ -112,65 +146,82 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
       </div>
 
       {/* Tanggal */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="traineeSejak" className="form-label">
-            Mulai Kontrak <span className="text-red-500">*</span>
+          <Label htmlFor="traineeSejak" className="form-label h-5 flex items-center">
+            Mulai Kontrak <span className="text-red-500 ml-0.5">*</span>
           </Label>
           <DatePicker
             id="traineeSejak"
             name="traineeSejak"
             required
+            aria-required="true"
+            aria-invalid={!!errors.traineeSejak}
+            aria-describedby={errors.traineeSejak ? 'traineeSejak-error' : undefined}
             value={tglMulai}
-            onValueChange={(v) => { setTglMulai(v); setErrors(prev => { const n = { ...prev }; delete n.traineeSejak; return n }) }}
+            onValueChange={(v) => {
+              setTglMulai(v)
+              setErrors(prev => { const n = { ...prev }; delete n.traineeSejak; return n })
+            }}
             placeholder="Pilih tanggal mulai"
           />
           <FieldError id="traineeSejak-error" message={errors.traineeSejak} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
+          <Label htmlFor="traineeSelesai" className="form-label h-5 flex items-center gap-1.5">
             Akhir Kontrak
-            <span className="text-xs font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
+            <span className="text-[10px] leading-none font-normal text-primary bg-accent px-1.5 py-px rounded">
               Otomatis
             </span>
           </Label>
-          <div className="h-8 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-4 text-sm font-semibold text-primary">
+          <div
+            role="status"
+            aria-live="polite"
+            aria-label={tglSelesai ? `Akhir kontrak: ${format(new Date(tglSelesai), 'EEEE, dd MMMM yyyy', { locale: localeID })}` : 'Akhir kontrak belum dihitung'}
+            className="h-10 w-full inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-3 text-sm font-semibold text-primary"
+          >
             <span className="truncate">
               {tglSelesai
                 ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
                 : 'Pilih posisi & tanggal'}
             </span>
-            <CalendarCheck size={16} className="opacity-70 shrink-0" />
+            <CalendarCheck size={16} className="opacity-70 shrink-0" aria-hidden="true" />
           </div>
         </div>
       </div>
 
       {/* Info tip */}
-      {posisi ? (
-        <div className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-2">
-          <Info size={16} className="text-primary shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-700">
-            Jabatan <strong>{selectedOpt?.label}</strong> mendapat kontrak{' '}
-            <strong>{selectedOpt?.months} bulan</strong> dari tanggal mulai.
-          </p>
-        </div>
-      ) : (
-        <div className="flex items-start gap-2 rounded-md bg-muted/50 border border-border px-4 py-2">
-          <CalendarCheck size={16} className="text-muted-foreground/70 shrink-0 mt-0.5" />
-          <p className="text-sm text-muted-foreground">
-            Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
-          </p>
-        </div>
-      )}
+      <div aria-live="polite" aria-atomic="true">
+        {posisi ? (
+          <div role="note" className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-3">
+            <Info size={16} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-blue-700">
+              Jabatan <strong>{selectedOpt?.label}</strong> mendapat kontrak{' '}
+              <strong>{selectedOpt?.months} bulan</strong> dari tanggal mulai.
+            </p>
+          </div>
+        ) : (
+          <div role="note" className="flex items-start gap-2 rounded-md bg-muted/50 border border-border px-4 py-3">
+            <CalendarCheck size={16} className="text-muted-foreground/70 shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">
+              Pilih jabatan untuk menghitung tanggal akhir kontrak secara otomatis.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Submit */}
       <button
         type="submit"
         disabled={isPending || !posisi || !tglMulai}
-        className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        aria-busy={isPending}
+        aria-disabled={isPending || !posisi || !tglMulai}
+        className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
       >
         {isPending ? (
-          <><CircleNotch size={16} className="animate-spin" /> Menerbitkan...</>
+          <><CircleNotch size={16} className="animate-spin" aria-hidden="true" />
+            <span role="status">Menerbitkan...</span>
+          </>
         ) : (
           'Terbitkan Kontrak Baru'
         )}
@@ -178,4 +229,3 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     </form>
   )
 }
-

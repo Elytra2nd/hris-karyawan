@@ -22,8 +22,8 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
 
   if (!isClient) {
     return (
-      <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground/70 font-bold text-xs uppercase cursor-not-allowed">
-        <FileArrowDownIcon className="w-3.5 h-3.5" />
+      <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground/70 font-bold text-xs uppercase cursor-not-allowed" aria-busy="true" aria-label="Memuat tombol cetak kontrak">
+        <FileArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
         Loading...
       </Button>
     );
@@ -40,8 +40,10 @@ export default function PDFButton({ employee, contract }: PDFButtonProps) {
           size="sm" 
           className="h-8 gap-2 text-primary hover:text-primary/80 hover:bg-accent font-bold text-xs uppercase"
           disabled={loading}
+          aria-busy={loading}
+          aria-label={loading ? 'Menyiapkan dokumen PDF' : `Cetak kontrak ${contract.posisi}`}
         >
-          <FileArrowDownIcon className="w-3.5 h-3.5" />
+          <FileArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
           {loading ? 'Menyiapkan...' : 'Cetak'}
         </Button>
       )}

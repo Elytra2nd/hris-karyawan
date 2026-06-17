@@ -78,15 +78,15 @@ export function ContractList({
 
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full min-w-[600px]">
+        <table className="w-full min-w-[600px]" aria-label="Riwayat kontrak karyawan">
           <thead>
             <tr className="border-b border-border bg-accent/60">
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-6">No</th>
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jabatan / Posisi</th>
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Periode</th>
-              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Durasi</th>
-              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Status</th>
-              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dokumen</th>
+              <th scope="col" className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-6">No</th>
+              <th scope="col" className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jabatan / Posisi</th>
+              <th scope="col" className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Periode</th>
+              <th scope="col" className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Durasi</th>
+              <th scope="col" className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Status</th>
+              <th scope="col" className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dokumen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -119,7 +119,10 @@ export function ContractList({
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       {isActive && (
-                        <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+                        <>
+                          <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
+                          <span className="sr-only">Kontrak aktif:</span>
+                        </>
                       )}
                       <span className={cn(
                         'text-sm font-semibold',
@@ -135,8 +138,9 @@ export function ContractList({
                           <Link
                             href={`/karyawan/${employee.id}/kontrak`}
                             className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                            aria-label={`Perpanjang kontrak ${contract.posisi}`}
                           >
-                            <ArrowBendUpRight size={12} />
+                            <ArrowBendUpRight size={12} aria-hidden="true" />
                             Perpanjang
                           </Link>
                         )}
@@ -161,11 +165,17 @@ export function ContractList({
                         isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-green-600'
                       )}>
                         {isKritis ? (
-                          <><Warning size={12} /> {daysLeft} hari tersisa</>
+                          <><Warning size={12} aria-hidden="true" />
+                            <span role="status" aria-live="polite">{daysLeft} hari tersisa</span>
+                          </>
                         ) : isMendekat ? (
-                          <><Clock size={12} /> {daysLeft} hari tersisa</>
+                          <><Clock size={12} aria-hidden="true" />
+                            <span role="status" aria-live="polite">{daysLeft} hari tersisa</span>
+                          </>
                         ) : (
-                          <><CheckCircle size={12} /> {daysLeft} hari tersisa</>
+                          <><CheckCircle size={12} aria-hidden="true" />
+                            <span>{daysLeft} hari tersisa</span>
+                          </>
                         )}
                       </div>
                     )}
@@ -174,7 +184,7 @@ export function ContractList({
                   {/* Durasi */}
                   <td className="px-5 py-4 text-center">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground/70 bg-muted px-2 py-1 rounded-full">
-                      <Clock size={12} />
+                      <Clock size={12} aria-hidden="true" />
                       {durationMonths} bln
                     </span>
                   </td>
@@ -220,7 +230,7 @@ export function ContractList({
               )}
             >
               {/* Timeline dot */}
-              <div className="flex flex-col items-center gap-1 shrink-0 mt-1">
+              <div className="flex flex-col items-center gap-1 shrink-0 mt-1" aria-hidden="true">
                 <div className={cn(
                   'h-3 w-3 rounded-full border-2',
                   isActive && !isExpired

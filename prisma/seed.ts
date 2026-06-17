@@ -3,11 +3,11 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import bcrypt from 'bcryptjs';
 
 const adapter = new PrismaMariaDb({
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: '',
-  database: 'hris_karyawan',
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'hris_karyawan',
 });
 
 const prisma = new PrismaClient({ adapter });
@@ -17,7 +17,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('admin123', 10);
   await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
     create: {
       username: 'admin',
       password: hashedPassword,
@@ -27,12 +30,25 @@ async function main() {
 
   console.log('✅ Akun Admin siap!');
 
+  // 1.5 Setup Branches
+  console.log('🏛️ Membuat data cabang...');
+  const cabangDummies = ['PONTIANAK', 'JAKARTA', 'MEDAN', 'SURABAYA', 'MAKASSAR', 'BALIKPAPAN'];
+  for (const c of cabangDummies) {
+    await prisma.branch.upsert({
+      where: { code: c },
+      update: {},
+      create: {
+        code: c,
+        label: `Cabang ${c}`,
+      },
+    });
+  }
+
   // 2. Daftar Variasi Data untuk Looping
   const namaDummies = [
     'Budi', 'Siti', 'Andi', 'Dewi', 'Eko', 'Rina', 'Fajar', 'Maya', 'Gani', 'Lia',
     'Heri', 'Sari', 'Iwan', 'Dina', 'Joko', 'Yanti', 'Kiki', 'Nana', 'Lutfi', 'Ani'
   ];
-  const cabangDummies = ['PONTIANAK', 'JAKARTA', 'MEDAN', 'SURABAYA', 'MAKASSAR', 'BALIKPAPAN'];
   const posisiDummies = ['SALESMAN', 'ADMIN', 'STAFF IT', 'DRIVER', 'ACCOUNTING', 'SECURITY'];
   const regionMap: Record<string, string> = {
     'PONTIANAK': 'KALIMANTAN', 'BALIKPAPAN': 'KALIMANTAN',

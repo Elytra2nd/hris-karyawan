@@ -26,6 +26,9 @@ const COL_MAP: Record<string, string> = {
   'FORM CONSENT': 'formConsent',
   'POSISI': 'posisi',
   'TRAINEE SEJAK': 'traineeSejak',
+  'DEPARTEMEN': 'departmentCode',
+  'KODE DEPT': 'departmentCode',
+  'KODE DEPARTEMEN': 'departmentCode',
 }
 
 export interface ImportRow {
@@ -109,6 +112,13 @@ export async function bulkImportEmployees(
   // Lacak KTP duplikat di dalam file yang sama juga.
   const seenInBatch = new Set<string>()
 
+  // Pre-fetch semua departemen untuk resolve kode → ID
+  const allDepartments = await prisma.department.findMany({
+    select: { id: true, code: true, name: true },
+  })
+  const deptByCode = new Map(allDepartments.map(d => [d.code.toUpperCase(), d.id]))
+  const deptByName = new Map(allDepartments.map(d => [d.name.toUpperCase(), d.id]))
+
   for (const { index, raw } of rows) {
     const normalized = normalizeRow(raw)
 
@@ -140,6 +150,13 @@ export async function bulkImportEmployees(
       : addMonths(traineeSejak, 6)
 
     try {
+      // Resolve departmentCode (bisa berupa kode atau nama departemen)
+      const deptCode = normalized.departmentCode?.toString().toUpperCase() ?? ''
+      let departmentId: string | null = null
+      if (deptCode) {
+        departmentId = deptByCode.get(deptCode) ?? deptByName.get(deptCode) ?? null
+      }
+
       const emp = await prisma.employee.create({
         data: {
           ba, baCabang, cabang, namaLengkap,
@@ -147,6 +164,7 @@ export async function bulkImportEmployees(
           nik: nik ?? null,
           noJamsostek: noJamsostek ?? null,
           noKtp, tglLahir, namaIbu, noHp, formConsent,
+          departmentId,
           contracts: { create: { posisi, traineeSejak, traineeSelesai } },
         },
       })

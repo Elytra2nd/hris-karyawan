@@ -74,10 +74,10 @@ export const updateEmployeeSchema = createEmployeeSchema
 
 // ─── Contract Schema ──────────────────────────────────────────────────────────
 export const createContractSchema = z.object({
-  posisi: z.enum(POSISI_VALID, { message: 'Jabatan tidak valid' }),
+  posisi: z.enum(POSISI_VALID, { message: 'Pilih salah satu jabatan yang tersedia' }),
   traineeSejak: z.string()
-    .min(1, 'Tanggal mulai wajib diisi')
-    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid'),
+    .min(1, 'Tanggal mulai kontrak wajib diisi')
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih'),
 })
 
 // ─── User Schema ──────────────────────────────────────────────────────────────
