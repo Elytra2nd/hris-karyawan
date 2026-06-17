@@ -67,7 +67,7 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
           ))}
         </Pie>
         <Tooltip
-          formatter={(value, name) => [`${value} orang`, `${name} — klik untuk filter`]}
+          formatter={(value, name) => [`${value} orang`, `${name} - klik untuk filter`]}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
         />
         <Legend

@@ -15,7 +15,7 @@ const validEmployee = {
   traineeSejak: '2024-07-01',
 }
 
-describe('Schema Validasi Karyawan — createEmployeeSchema', () => {
+describe('Schema Validasi Karyawan - createEmployeeSchema', () => {
   it('harus menerima data lengkap yang valid', () => {
     expect(createEmployeeSchema.safeParse(validEmployee).success).toBe(true)
   })
@@ -62,7 +62,7 @@ describe('Schema Validasi Karyawan — createEmployeeSchema', () => {
   })
 })
 
-describe('Schema Validasi Karyawan — updateEmployeeSchema', () => {
+describe('Schema Validasi Karyawan - updateEmployeeSchema', () => {
   it('harus memiliki field status yang wajib', () => {
     const updateData = { ...validEmployee, status: 'AKTIF' as const }
     delete (updateData as Partial<typeof updateData>).posisi
@@ -77,7 +77,7 @@ describe('Schema Validasi Karyawan — updateEmployeeSchema', () => {
   })
 })
 
-describe('Schema Validasi Kontrak — createContractSchema', () => {
+describe('Schema Validasi Kontrak - createContractSchema', () => {
   it('harus menerima kontrak valid', () => {
     const r = createContractSchema.safeParse({ posisi: 'ADMINISTRATOR', traineeSejak: '2024-07-01' })
     expect(r.success).toBe(true)

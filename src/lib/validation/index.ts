@@ -32,7 +32,7 @@ export function getCabangLabel(code: string): string {
   return CABANG_OPTIONS.find(c => c.code === code)?.label ?? code
 }
 
-// Roles — in ascending privilege order
+// Roles - in ascending privilege order
 // VIEWER       : read-only
 // HR_STAFF     : add/edit employees, no delete, no user management
 // HR_MANAGER   : full employee CRUD + contracts, no user management
@@ -50,7 +50,9 @@ export const createEmployeeSchema = z.object({
   noKtp: z.string()
     .length(16, 'No KTP harus 16 digit')
     .regex(/^\d+$/, 'No KTP hanya boleh angka'),
-  tglLahir: z.string().min(1, 'Tanggal lahir wajib diisi'),
+  tglLahir: z.string()
+    .min(1, 'Tanggal lahir wajib diisi')
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal lahir tidak valid'),
   namaIbu: z.string().min(2, 'Nama ibu minimal 2 karakter').max(100),
   noHp: z.string()
     .min(10, 'No HP minimal 10 digit')
@@ -65,7 +67,7 @@ export const createEmployeeSchema = z.object({
   departmentId: z.string().min(1).optional().nullable(),
 })
 
-// ─── Employee Schema (Update — tanpa posisi + traineeSejak, tambah status) ────
+// ─── Employee Schema (Update - tanpa posisi + traineeSejak, tambah status) ────
 export const updateEmployeeSchema = createEmployeeSchema
   .omit({ posisi: true, traineeSejak: true })
   .extend({

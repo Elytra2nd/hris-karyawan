@@ -44,7 +44,7 @@ export function NotificationBell() {
       const result = await getNotifications()
       setData(result)
     } catch {
-      // silent fail — notification is non-critical
+      // silent fail - notification is non-critical
     } finally {
       setLoading(false)
     }
@@ -173,7 +173,7 @@ export function NotificationBell() {
                       <>
                         <div className="px-4 py-1.5 bg-amber-50">
                           <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
-                            <Clock size={12} /> Perlu Perhatian (15–30 hari)
+                            <Clock size={12} /> Perlu Perhatian (15-30 hari)
                           </span>
                         </div>
                         {warn.map(c => <NotifRow key={c.id} item={c} level="warning" onClick={() => setOpen(false)} />)}
@@ -183,7 +183,7 @@ export function NotificationBell() {
                       <>
                         <div className="px-4 py-1.5 bg-muted/50">
                           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                            <Clock size={12} /> Mendekati (31–60 hari)
+                            <Clock size={12} /> Mendekati (31-60 hari)
                           </span>
                         </div>
                         {appr.map(c => <NotifRow key={c.id} item={c} level="approaching" onClick={() => setOpen(false)} />)}

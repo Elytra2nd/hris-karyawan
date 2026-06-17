@@ -66,7 +66,7 @@ export function ChangePasswordForm() {
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(String(firstField))?.focus()
       return
@@ -91,7 +91,7 @@ export function ChangePasswordForm() {
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error('Koneksi terputus — coba simpan ulang')
+      toast.error('Koneksi terputus - coba simpan ulang')
     } finally {
       setPending(false)
     }

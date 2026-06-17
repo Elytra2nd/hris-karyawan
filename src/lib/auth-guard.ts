@@ -79,7 +79,7 @@ export async function requirePermission(permission: Permission) {
   return session
 }
 
-/** Returns ActionResult.fail instead of throwing — for actions that return values. */
+/** Returns ActionResult.fail instead of throwing - for actions that return values. */
 export async function guardAdmin(): Promise<GuardResult> {
   const session = await verifySession()
   if (!hasPermission(session.role, 'user_manage')) {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parse, isValid, format } from 'date-fns'
 
-// Mirrors parseDate logic in src/app/actions/import.ts — keep in sync
+// Mirrors parseDate logic in src/app/actions/import.ts - keep in sync
 function parseDate(raw: string): string | null {
   if (!raw || raw === '-') return null
   const trimmed = raw.trim()
@@ -17,7 +17,7 @@ function parseDate(raw: string): string | null {
   return null
 }
 
-describe('Import Excel — Parsing Tanggal', () => {
+describe('Import Excel - Parsing Tanggal', () => {
   it('harus parse format dd.MM.yyyy (format ekspor HRIS)', () => {
     expect(parseDate('01.07.2024')).toBe('2024-07-01')
   })
@@ -47,7 +47,7 @@ describe('Import Excel — Parsing Tanggal', () => {
   })
 })
 
-describe('Import Excel — Validasi Kolom', () => {
+describe('Import Excel - Validasi Kolom', () => {
   const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
   it('baris lengkap tidak boleh ada kolom required yang kosong', () => {

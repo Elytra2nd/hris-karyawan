@@ -38,7 +38,7 @@ export async function createEmployee(formData: FormData) {
 
   const parsed = createEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali formulir'
+    const firstError = parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali formulir'
     return fail(firstError, 'VALIDATION')
   }
 
@@ -61,17 +61,17 @@ export async function createEmployee(formData: FormData) {
         status: 'AKTIF',
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
-        noKtp, tglLahir, namaIbu, noHp, formConsent,
+        noKtp, tglLahir: new Date(tglLahir), namaIbu, noHp, formConsent,
         departmentId,
         contracts: { create: { posisi, traineeSejak, traineeSelesai } },
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah terdaftar di sistem — gunakan nomor KTP lain`, 'DUPLICATE')
+      return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE')
     }
     logger.error('createEmployee failed', { error: String(error) })
-    return fail('Kami belum bisa menyimpan data — coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan data - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -95,7 +95,7 @@ export async function updateEmployee(id: string, formData: FormData) {
 
   const parsed = updateEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
-    return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali formulir', 'VALIDATION')
+    return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali formulir', 'VALIDATION')
   }
 
   const {
@@ -114,16 +114,16 @@ export async function updateEmployee(id: string, formData: FormData) {
         ba, baCabang, cabang, namaLengkap, status,
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
-        noKtp, tglLahir, namaIbu, noHp, formConsent,
+        noKtp, tglLahir: new Date(tglLahir), namaIbu, noHp, formConsent,
         departmentId,
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
     if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain — gunakan nomor KTP berbeda`, 'DUPLICATE')
+      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE')
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
-    return fail('Kami belum bisa menyimpan perubahan — coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 
   await createAuditLog(
@@ -149,7 +149,7 @@ export async function createContract(employeeId: string, formData: FormData): Pr
 
     const parsed = createContractSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Ada isian kontrak yang belum lengkap — periksa kembali', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian kontrak yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
     const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
@@ -174,9 +174,9 @@ export async function createContract(employeeId: string, formData: FormData): Pr
     return ok({ employeeId }, 'Kontrak berhasil diterbitkan')
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
     logger.error('createContract failed', { employeeId, error: String(error) })
-    return fail('Kami belum bisa menerbitkan kontrak — coba kirim ulang dalam beberapa saat', 'SERVER_ERROR')
+    return fail('Kami belum bisa menerbitkan kontrak - coba kirim ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 }
 
@@ -191,7 +191,7 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     })
 
     if (!employee) {
-      return fail('Data karyawan tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
+      return fail('Data karyawan tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     }
 
     await prisma.employee.delete({ where: { id } })
@@ -210,9 +210,9 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     return ok({ id })
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteEmployee failed', { error: String(error) })
-    return fail('Kami belum bisa menghapus data — coba ulangi dalam beberapa saat', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus data - coba ulangi dalam beberapa saat', 'SERVER_ERROR')
   }
 }
 
@@ -227,7 +227,7 @@ type EmployeeExportItem = {
   nik: string | null
   noJamsostek: string | null
   noKtp: string
-  tglLahir: string
+  tglLahir: Date
   namaIbu: string
   noHp: string
   formConsent: string

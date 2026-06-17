@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 interface FieldErrorProps {
   message?: string
   className?: string
-  /** id of the input — used for aria-describedby pairing */
+  /** id of the input - used for aria-describedby pairing */
   id?: string
 }
 

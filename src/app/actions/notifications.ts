@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { verifySession } from '@/lib/dal'
-import { differenceInDays } from 'date-fns'
+import { differenceInDays, startOfDay } from 'date-fns'
 
 export interface ExpiringContract {
   id: string
@@ -16,15 +16,15 @@ export interface ExpiringContract {
 
 export interface NotificationSummary {
   critical: ExpiringContract[]  // ≤ 14 hari
-  warning: ExpiringContract[]   // 15–30 hari
-  approaching: ExpiringContract[] // 31–60 hari
+  warning: ExpiringContract[]   // 15-30 hari
+  approaching: ExpiringContract[] // 31-60 hari
   totalUnread: number
 }
 
 export async function getNotifications(): Promise<NotificationSummary> {
   await verifySession()
 
-  const now = new Date()
+  const now = startOfDay(new Date())
   const cutoff = new Date(now)
   cutoff.setDate(cutoff.getDate() + 60)
 

@@ -28,13 +28,13 @@ export async function createDepartment(formData: FormData): Promise<ActionResult
 
     const parsed = departmentSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
     const existing = await prisma.department.findFirst({
       where: { OR: [{ name: parsed.data.name }, { code: parsed.data.code }] },
     })
-    if (existing) return fail('Nama atau kode ini sudah dipakai departemen lain — gunakan nama/kode berbeda', 'DUPLICATE')
+    if (existing) return fail('Nama atau kode ini sudah dipakai departemen lain - gunakan nama/kode berbeda', 'DUPLICATE')
 
     const dept = await prisma.department.create({ data: parsed.data })
 
@@ -43,9 +43,9 @@ export async function createDepartment(formData: FormData): Promise<ActionResult
     return ok({ id: dept.id }, `Departemen ${dept.name} berhasil dibuat`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('createDepartment failed', { error: String(error) })
-    return fail('Kami belum bisa membuat departemen — coba kirim ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa membuat departemen - coba kirim ulang', 'SERVER_ERROR')
   }
 }
 
@@ -56,13 +56,13 @@ export async function updateDepartment(id: string, formData: FormData): Promise<
 
     const parsed = departmentSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
     const existing = await prisma.department.findFirst({
       where: { OR: [{ name: parsed.data.name }, { code: parsed.data.code }], NOT: { id } },
     })
-    if (existing) return fail('Nama atau kode ini sudah dipakai departemen lain — gunakan nama/kode berbeda', 'DUPLICATE')
+    if (existing) return fail('Nama atau kode ini sudah dipakai departemen lain - gunakan nama/kode berbeda', 'DUPLICATE')
 
     await prisma.department.update({ where: { id }, data: parsed.data })
     await createAuditLog(session.id, session.username, 'UPDATE', 'department', id, { name: parsed.data.name, code: parsed.data.code })
@@ -70,9 +70,9 @@ export async function updateDepartment(id: string, formData: FormData): Promise<
     return ok({ id }, `Departemen diperbarui`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('updateDepartment failed', { error: String(error) })
-    return fail('Kami belum bisa menyimpan perubahan — coba simpan ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang', 'SERVER_ERROR')
   }
 }
 
@@ -84,9 +84,9 @@ export async function deleteDepartment(id: string): Promise<ActionResult<{ id: s
       where: { id },
       include: { _count: { select: { employees: true } } },
     })
-    if (!dept) return fail('Departemen tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
+    if (!dept) return fail('Departemen tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     if (dept._count.employees > 0) {
-      return fail(`Departemen ini masih memiliki ${dept._count.employees} karyawan — pindahkan mereka terlebih dahulu`, 'VALIDATION')
+      return fail(`Departemen ini masih memiliki ${dept._count.employees} karyawan - pindahkan mereka terlebih dahulu`, 'VALIDATION')
     }
 
     await prisma.department.delete({ where: { id } })
@@ -95,8 +95,8 @@ export async function deleteDepartment(id: string): Promise<ActionResult<{ id: s
     return ok({ id }, `Departemen ${dept.name} dihapus`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteDepartment failed', { error: String(error) })
-    return fail('Kami belum bisa menghapus departemen — coba ulangi', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus departemen - coba ulangi', 'SERVER_ERROR')
   }
 }

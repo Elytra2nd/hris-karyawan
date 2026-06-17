@@ -9,8 +9,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { ContractStatusChart } from '@/components/contract-status-chart'
-import { EmployeeChart } from '@/components/employee-chart'
+import { ContractStatusChart, EmployeeChart } from '@/components/dashboard-charts'
 import { LiveClock } from '@/components/live-clock'
 import { BranchTable } from '@/components/branch-table'
 
@@ -269,7 +268,11 @@ export default async function DashboardPage() {
             <h2 className="text-base font-semibold text-foreground">Ringkasan Kontrak Aktif</h2>
           </div>
 
-          <div className="px-4 pt-3">
+          <div
+            className="px-4 pt-3"
+            role="img"
+            aria-label={`Ringkasan status kontrak: ${safe.length} aman, ${expiring90.length - expiring30.length} perlu perhatian, ${expiring30.length} kritis, ${expired.length} berakhir`}
+          >
             <ContractStatusChart
               safe={safe.length}
               warning={expiring90.length - expiring30.length}
@@ -280,7 +283,7 @@ export default async function DashboardPage() {
 
           <div className="px-6 py-2 divide-y divide-gray-50 border-t border-border/60 mt-1">
             <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={safe.length} dotColor="bg-green-500" valueColor="text-green-700" />
-            <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={expiring90.length - expiring30.length} dotColor="bg-amber-400" valueColor="text-amber-700" />
+            <SummaryRow label="Perlu Perhatian" sub="31-90 hari" value={expiring90.length - expiring30.length} dotColor="bg-amber-400" valueColor="text-amber-700" />
             <SummaryRow label="Kritis" sub="≤ 30 hari" value={expiring30.length} dotColor="bg-red-500" valueColor="text-red-700" />
             <SummaryRow label="Sudah Berakhir" sub="Expired" value={expired.length} dotColor="bg-muted-foreground/40" valueColor="text-muted-foreground" />
           </div>
@@ -312,7 +315,11 @@ export default async function DashboardPage() {
               <p className="text-xs text-muted-foreground">Berdasarkan kontrak terakhir aktif</p>
             </div>
           </div>
-          <div className="px-4 pb-4">
+          <div
+            className="px-4 pb-4"
+            role="img"
+            aria-label={`Distribusi posisi karyawan: ${statsPosisi.map(([p, n]) => `${p} ${n} orang`).join(', ') || 'tidak ada data'}`}
+          >
             <EmployeeChart data={statsPosisi} />
           </div>
         </div>

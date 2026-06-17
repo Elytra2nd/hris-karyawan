@@ -123,7 +123,7 @@ export function downloadTemplate() {
   // ═══════════════════════════════════════════════════════════════════════
   const guideData = [
     ['PETUNJUK PENGISIAN TEMPLATE IMPORT KARYAWAN'],
-    ['Trainee Monitoring System — Astra Motor Kalimantan Barat'],
+    ['Trainee Monitoring System - Astra Motor Kalimantan Barat'],
     [''],
     ['ATURAN UMUM'],
     ['1. Isi data mulai dari baris ke-4 (baris 1 = legenda, baris 2 = header, baris 3 = keterangan format)'],
@@ -233,7 +233,7 @@ export function ImportExcelButton() {
         String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
       )
 
-      // Skip legend, header, and sub-header rows — find where data actually starts
+      // Skip legend, header, and sub-header rows - find where data actually starts
       // Data starts after header + 1 (sub-header row, if it looks like format hints)
       let dataStart = headerIdx + 1
       if (dataStart < rawRows.length) {
@@ -387,7 +387,7 @@ export function ImportExcelButton() {
               Import Data Karyawan
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-              {fileName && <span className="font-medium">{fileName}</span>} — {rows.length} baris terdeteksi
+              {fileName && <span className="font-medium">{fileName}</span>} - {rows.length} baris terdeteksi
             </DialogDescription>
           </DialogHeader>
 
@@ -444,7 +444,7 @@ export function ImportExcelButton() {
                     </td>
                     {displayCols.map(c => (
                       <td key={c} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[160px] truncate">
-                        {row.raw[c] || <span className="text-muted-foreground/50">—</span>}
+                        {row.raw[c] || <span className="text-muted-foreground/50">-</span>}
                       </td>
                     ))}
                     <td className="px-3 py-2 text-red-600 text-xs">{row.error || ''}</td>

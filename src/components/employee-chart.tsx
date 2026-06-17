@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-// Astra brand palette — aligned with desain.md chart tokens
+// Astra brand palette - aligned with desain.md chart tokens
 const BAR_COLORS = ['#1d4ed8', '#0e7490', '#16a34a', '#ca8a04', '#dc2626', '#7c3aed']
 const BAR_COLORS_DARK = ['#3b82f6', '#22d3ee', '#4ade80', '#fbbf24', '#f87171', '#a78bfa']
 
@@ -42,13 +42,13 @@ export function EmployeeChart({ data }: Props) {
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={gridColor} />
         <XAxis
           dataKey="posisi"
-          tick={{ fontSize: 10, fill: tickColor }}
+          tick={{ fontSize: 12, fill: tickColor }}
           tickLine={false}
           axisLine={false}
           tickFormatter={v => v.length > 7 ? v.slice(0, 7) + '…' : v}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: tickColor }}
+          tick={{ fontSize: 12, fill: tickColor }}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}
@@ -57,7 +57,7 @@ export function EmployeeChart({ data }: Props) {
           formatter={(value) => [`${value} orang`, 'Jumlah']}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
           cursor={{ fill: cursorColor }}
-          labelFormatter={(label) => `${label} — klik untuk filter`}
+          labelFormatter={(label) => `${label} - klik untuk filter`}
         />
         <Bar
           dataKey="jumlah"

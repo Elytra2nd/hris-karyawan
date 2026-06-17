@@ -63,7 +63,7 @@ export function EmployeeForm({
   }, [posisi, tglMulai])
 
   const handleSubmit = async (formData: FormData) => {
-    // Client-side validation — instant feedback before round-trip
+    // Client-side validation - instant feedback before round-trip
     const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
@@ -78,7 +78,7 @@ export function EmployeeForm({
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       // Focus first invalid field
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) {
@@ -100,7 +100,7 @@ export function EmployeeForm({
       toast.success('Data karyawan berhasil disimpan')
       router.push('/karyawan')
     } catch {
-      toast.error('Koneksi terputus — coba simpan ulang')
+      toast.error('Koneksi terputus - coba simpan ulang')
       setIsPending(false)
     }
   }
@@ -127,14 +127,14 @@ export function EmployeeForm({
               id="cabang"
               name="cabang"
               required
-              options={branches.map(b => ({ value: b.code, label: `${b.code} — ${b.label}` }))}
+              options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
               placeholder="Pilih cabang..."
             />
             <FieldError message={errors.cabang} />
           </div>
         </div>
 
-        {/* Departemen — tampil hanya jika ada data */}
+        {/* Departemen - tampil hanya jika ada data */}
         {departments.length > 0 && (
           <div className="space-y-2">
             <Label htmlFor="departmentId" className="form-label">
@@ -146,7 +146,7 @@ export function EmployeeForm({
               name="departmentId"
               options={[
                 { value: '', label: 'Tidak ditugaskan' },
-                ...departments.map(d => ({ value: d.id, label: `${d.name} — ${d.code}` })),
+                ...departments.map(d => ({ value: d.id, label: `${d.name} - ${d.code}` })),
               ]}
               placeholder="Pilih departemen..."
             />

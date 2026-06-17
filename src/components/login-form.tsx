@@ -34,7 +34,7 @@ export default function LoginForm() {
         window.location.replace('/')
       }
     } catch {
-      setError('Koneksi terputus — coba login ulang')
+      setError('Koneksi terputus - coba login ulang')
       setLoading(false)
     }
   }
@@ -48,7 +48,7 @@ export default function LoginForm() {
           Masuk ke Sistem
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Trainee Monitoring System — Astra Motor Kalbar
+          Trainee Monitoring System - Astra Motor Kalbar
         </p>
       </div>
 

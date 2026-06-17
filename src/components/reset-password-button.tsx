@@ -48,7 +48,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error('Koneksi terputus — coba ulangi')
+      toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setPending(false)
     }

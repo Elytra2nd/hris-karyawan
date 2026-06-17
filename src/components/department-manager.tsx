@@ -67,7 +67,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setCreateErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(`dept-${String(firstField)}`)?.focus()
       return
@@ -86,7 +86,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error('Koneksi terputus — coba kirim ulang')
+      toast.error('Koneksi terputus - coba kirim ulang')
     } finally {
       setCreating(false)
     }
@@ -126,7 +126,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error('Koneksi terputus — coba simpan ulang')
+      toast.error('Koneksi terputus - coba simpan ulang')
     } finally {
       setSaving(false)
     }
@@ -143,7 +143,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
         toast.error(result.error)
       }
     } catch (err: unknown) {
-      toast.error('Koneksi terputus — coba ulangi')
+      toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setDeleting(null)
     }

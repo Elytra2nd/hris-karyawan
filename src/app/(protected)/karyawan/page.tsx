@@ -150,7 +150,7 @@ export default function DataKaryawanPage() {
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!isAdmin) { toast.error('Anda tidak memiliki izin menghapus — hubungi Admin'); return }
+    if (!isAdmin) { toast.error('Anda tidak memiliki izin menghapus - hubungi Admin'); return }
     setIsDeleting(id)
 
     // Optimistic: remove from UI immediately
@@ -173,7 +173,7 @@ export default function DataKaryawanPage() {
       if (deletedEmployee) {
         setEmployees(prev => [...prev, deletedEmployee])
       }
-      toast.error('Koneksi terputus — data dikembalikan, coba ulangi')
+      toast.error('Koneksi terputus - data dikembalikan, coba ulangi')
     } finally {
       setIsDeleting(null)
     }
@@ -250,7 +250,7 @@ export default function DataKaryawanPage() {
       {!isAdmin && (
         <div className="flex items-center gap-2 px-4 py-4 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
           <Eye size={16} className="text-muted-foreground/70 shrink-0" />
-          <span>Mode <strong>Pemirsa</strong> — Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
+          <span>Mode <strong>Pemirsa</strong> - Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
         </div>
       )}
 
@@ -584,7 +584,7 @@ export default function DataKaryawanPage() {
                             <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                               {emp.namaLengkap}
                             </p>
-                            <p className="text-xs text-muted-foreground">{emp.noHp || '—'}</p>
+                            <p className="text-xs text-muted-foreground">{emp.noHp || '-'}</p>
                           </div>
                         </div>
                       </td>
@@ -594,23 +594,23 @@ export default function DataKaryawanPage() {
                           href={`/karyawan/${emp.id}`}
                           className="text-sm font-mono text-primary hover:underline font-medium"
                         >
-                          {emp.nik || '—'}
+                          {emp.nik || '-'}
                         </Link>
                       </td>
                       {/* Posisi */}
                       <td className="px-4 py-2 text-sm text-foreground/80">
-                        {c?.posisi || '—'}
+                        {c?.posisi || '-'}
                       </td>
                       {/* Cabang */}
                       <td className="px-4 py-2 text-sm text-foreground/80">{emp.cabang}</td>
                       {/* Sejak */}
-                      <td className="px-4 py-2 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '—'}</td>
+                      <td className="px-4 py-2 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '-'}</td>
                       {/* Selesai */}
                       <td className={cn(
                         'px-4 py-2 text-sm font-medium',
                         isKritis ? 'text-red-600' : isMendekat ? 'text-amber-600' : 'text-foreground/80'
                       )}>
-                        {c ? fmtDate(c.traineeSelesai) : '—'}
+                        {c ? fmtDate(c.traineeSelesai) : '-'}
                       </td>
                       {/* Sisa hari */}
                       <td className="px-4 py-2 text-center">
@@ -701,7 +701,7 @@ export default function DataKaryawanPage() {
         {totalPages > 0 && !loading && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
-              {total === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, total)}`} dari{' '}
+              {total === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}-${Math.min(page * PER_PAGE, total)}`} dari{' '}
               <span className="font-semibold text-foreground/80">{total}</span> karyawan
             </p>
             <Pagination className="mx-0 w-auto">
@@ -803,7 +803,7 @@ export default function DataKaryawanPage() {
                       <div>
                         <p className="text-sm font-semibold text-foreground">{emp.namaLengkap}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {c?.posisi || '—'} · {emp.cabang}
+                          {c?.posisi || '-'} · {emp.cabang}
                         </p>
                       </div>
                       {getStatusChip(emp)}

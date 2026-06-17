@@ -64,7 +64,7 @@ async function main() {
         namaLengkap: `${namaRandom} ${['Pratama', 'Wijaya', 'Santoso', 'Kurniawan', 'Putri'][Math.floor(Math.random() * 5)]} ${i}`,
         status: 'AKTIF',
         noKtp: `6171${Math.random().toString().slice(2, 14)}`,
-        tglLahir: '1990-01-01',
+        tglLahir: new Date('1990-01-01'),
         namaIbu: 'Ibu Kandung',
         noHp: `08${Math.random().toString().slice(2, 12)}`,
         formConsent: Math.random() > 0.2 ? 'ADA' : 'TIDAK ADA',

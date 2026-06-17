@@ -89,7 +89,7 @@ export default async function DetailKaryawanPage({
             <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CreditCard size={12} className="text-muted-foreground/70" />
-                NIK: <span className="font-medium text-foreground/80 font-mono">{employee.nik || '—'}</span>
+                NIK: <span className="font-medium text-foreground/80 font-mono">{employee.nik || '-'}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <MapPin size={12} className="text-muted-foreground/70" />
@@ -97,11 +97,11 @@ export default async function DetailKaryawanPage({
               </span>
               <span className="flex items-center gap-1.5">
                 <Phone size={12} className="text-muted-foreground/70" />
-                {employee.noHp || '—'}
+                {employee.noHp || '-'}
               </span>
               <span className="flex items-center gap-1.5">
                 <Buildings size={12} className="text-muted-foreground/70" />
-                {latestContract?.posisi || '—'}
+                {latestContract?.posisi || '-'}
               </span>
             </div>
           </div>
@@ -195,19 +195,19 @@ export default async function DetailKaryawanPage({
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
-            <InfoItem label="NIK Karyawan" value={employee.nik || '—'} mono />
+            <InfoItem label="NIK Karyawan" value={employee.nik || '-'} mono />
             <InfoItem label="No KTP" value={employee.noKtp} mono />
             <InfoItem
               label="Tanggal Lahir"
               value={
                 employee.tglLahir && isValid(new Date(employee.tglLahir))
                   ? format(new Date(employee.tglLahir), 'dd MMMM yyyy', { locale: localeID })
-                  : '—'
+                  : '-'
               }
             />
             <InfoItem label="Nama Ibu Kandung" value={employee.namaIbu} />
-            <InfoItem label="No HP / WhatsApp" value={employee.noHp || '—'} />
-            <InfoItem label="No Jamsostek" value={employee.noJamsostek || '—'} mono />
+            <InfoItem label="No HP / WhatsApp" value={employee.noHp || '-'} />
+            <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
             <InfoItem
               label="Status Karyawan"
               value={employee.status}
@@ -227,8 +227,8 @@ export default async function DetailKaryawanPage({
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
-            <InfoItem label="Kode Cabang" value={employee.cabang} mono />
-            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '—'} />
+            <InfoItem label="Nama Cabang" value={employee.cabang} />
+            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '-'} />
             <InfoItem
               label="Departemen"
               value={employee.department ? `${employee.department.name} (${employee.department.code})` : 'Belum ditugaskan'}
@@ -321,7 +321,7 @@ function InfoItem({
         mono && 'font-mono',
         valueClassName
       )}>
-        {value || '—'}
+        {value || '-'}
       </p>
     </div>
   )
