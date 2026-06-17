@@ -94,7 +94,7 @@ async function main() {
         nik: `H730-${String(i + 1).padStart(3, '0')}`,
         noJamsostek: null,
         noKtp: emp.noKtp,
-        tglLahir: new Date(emp.tglLahir || '1990-01-01'),
+        tglLahir: emp.tglLahir || '1990-01-01',
         namaIbu: emp.namaIbu || '-',
         noHp: phoneNumbers[i] || `0812345670${String(i + 1).padStart(2, '0')}`,
         formConsent: 'ADA',

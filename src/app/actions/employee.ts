@@ -61,7 +61,7 @@ export async function createEmployee(formData: FormData) {
         status: 'AKTIF',
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
-        noKtp, tglLahir: new Date(tglLahir), namaIbu, noHp, formConsent,
+        noKtp, tglLahir, namaIbu, noHp, formConsent,
         departmentId,
         contracts: { create: { posisi, traineeSejak, traineeSelesai } },
       } satisfies Prisma.EmployeeUncheckedCreateInput,
@@ -114,7 +114,7 @@ export async function updateEmployee(id: string, formData: FormData) {
         ba, baCabang, cabang, namaLengkap, status,
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
-        noKtp, tglLahir: new Date(tglLahir), namaIbu, noHp, formConsent,
+        noKtp, tglLahir, namaIbu, noHp, formConsent,
         departmentId,
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
