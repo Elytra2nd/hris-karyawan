@@ -28,7 +28,7 @@ export default function LoginPage() {
             Selamat<br />Datang!
           </p>
           <p className="text-blue-100 text-base leading-relaxed max-w-xs">
-            Trainee Monitoring System — pantau dan kelola data trainee Astra Motor Kalimantan Barat secara efisien.
+            Trainee Monitoring System - pantau dan kelola data trainee Astra Motor Kalimantan Barat secara efisien.
           </p>
         </div>
 

@@ -86,10 +86,10 @@ export function BranchTable({
                       className="flex items-center gap-2 hover:text-primary transition-colors"
                     >
                       <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0 group-hover:text-primary transition-colors" />
-                      <span className="text-sm font-semibold">{b.baCabang}</span>
+                      <span className="text-sm font-semibold">{b.cabang}</span>
                     </Link>
                   </td>
-                  <td className="px-5 py-3.5 text-sm text-foreground/70 font-mono">{b.cabang}</td>
+                  <td className="px-5 py-3.5 text-sm text-foreground/70 font-mono">{b.baCabang}</td>
                   <td className="px-5 py-3.5 text-center text-base font-bold text-foreground">{b.count}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-center gap-2">
@@ -113,7 +113,7 @@ export function BranchTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-6 py-2 border-t border-border/60 bg-muted/50">
           <p className="text-xs text-muted-foreground">
-            {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, data.length)} dari{' '}
+            {(page - 1) * PER_PAGE + 1}-{Math.min(page * PER_PAGE, data.length)} dari{' '}
             <span className="font-semibold text-foreground/80">{data.length}</span> cabang
           </p>
           <div className="flex items-center gap-1">

@@ -29,13 +29,13 @@ export async function createBranch(formData: FormData): Promise<ActionResult<{ i
 
     const parsed = branchSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
     const existing = await prisma.branch.findFirst({
       where: { OR: [{ code: parsed.data.code }, { label: parsed.data.label }] },
     })
-    if (existing) return fail('Kode atau nama cabang sudah dipakai — gunakan yang berbeda', 'DUPLICATE')
+    if (existing) return fail('Kode atau nama cabang sudah dipakai - gunakan yang berbeda', 'DUPLICATE')
 
     const branch = await prisma.branch.create({ data: parsed.data })
 
@@ -44,9 +44,9 @@ export async function createBranch(formData: FormData): Promise<ActionResult<{ i
     return ok({ id: branch.id }, `Cabang ${branch.label} berhasil dibuat`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('createBranch failed', { error: String(error) })
-    return fail('Kami belum bisa membuat cabang — coba kirim ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa membuat cabang - coba kirim ulang', 'SERVER_ERROR')
   }
 }
 
@@ -60,13 +60,13 @@ export async function updateBranch(id: string, formData: FormData): Promise<Acti
 
     const parsed = branchSchema.safeParse(raw)
     if (!parsed.success) {
-      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap — periksa kembali', 'VALIDATION')
+      return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
     const existing = await prisma.branch.findFirst({
       where: { OR: [{ code: parsed.data.code }, { label: parsed.data.label }], NOT: { id } },
     })
-    if (existing) return fail('Kode atau nama cabang sudah dipakai — gunakan yang berbeda', 'DUPLICATE')
+    if (existing) return fail('Kode atau nama cabang sudah dipakai - gunakan yang berbeda', 'DUPLICATE')
 
     await prisma.branch.update({ where: { id }, data: parsed.data })
     await createAuditLog(session.id, session.username, 'UPDATE', 'branch', id, { code: parsed.data.code, label: parsed.data.label })
@@ -74,9 +74,9 @@ export async function updateBranch(id: string, formData: FormData): Promise<Acti
     return ok({ id }, 'Cabang diperbarui')
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('updateBranch failed', { error: String(error) })
-    return fail('Kami belum bisa menyimpan perubahan — coba simpan ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang', 'SERVER_ERROR')
   }
 }
 
@@ -88,9 +88,9 @@ export async function deleteBranch(id: string): Promise<ActionResult<{ id: strin
       where: { id },
       include: { _count: { select: { employees: true } } },
     })
-    if (!branch) return fail('Cabang tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
+    if (!branch) return fail('Cabang tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     if (branch._count.employees > 0) {
-      return fail(`Cabang ini masih memiliki ${branch._count.employees} karyawan — pindahkan mereka terlebih dahulu`, 'VALIDATION')
+      return fail(`Cabang ini masih memiliki ${branch._count.employees} karyawan - pindahkan mereka terlebih dahulu`, 'VALIDATION')
     }
 
     await prisma.branch.delete({ where: { id } })
@@ -99,8 +99,8 @@ export async function deleteBranch(id: string): Promise<ActionResult<{ id: strin
     return ok({ id }, `Cabang ${branch.label} dihapus`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteBranch failed', { error: String(error) })
-    return fail('Kami belum bisa menghapus cabang — coba ulangi', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus cabang - coba ulangi', 'SERVER_ERROR')
   }
 }

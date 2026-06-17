@@ -28,7 +28,7 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
         toast.error(result.error)
       }
     } catch {
-      toast.error('Koneksi terputus — coba ulangi')
+      toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setLoading(false)
     }

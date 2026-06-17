@@ -30,7 +30,7 @@ export async function changeOwnPassword(formData: FormData): Promise<ActionResul
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.id } })
-    if (!user) return fail('Sesi Anda sudah kedaluwarsa — silakan login ulang', 'NOT_FOUND')
+    if (!user) return fail('Sesi Anda sudah kedaluwarsa - silakan login ulang', 'NOT_FOUND')
 
     const isValid = await bcrypt.compare(parsed.data.currentPassword, user.password)
     if (!isValid) {
@@ -45,7 +45,7 @@ export async function changeOwnPassword(formData: FormData): Promise<ActionResul
     return ok(undefined, 'Password berhasil diubah')
   } catch (error: unknown) {
     logger.error('changeOwnPassword failed', { error: String(error) })
-    return fail('Kami belum bisa mengubah password — coba simpan ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa mengubah password - coba simpan ulang', 'SERVER_ERROR')
   }
 }
 
@@ -67,7 +67,7 @@ export async function adminResetPassword(
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    if (!user) return fail('Pengguna tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
+    if (!user) return fail('Pengguna tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
 
     const hashed = await bcrypt.hash(newPassword, 10)
     await prisma.user.update({ where: { id: userId }, data: { password: hashed } })
@@ -81,8 +81,8 @@ export async function adminResetPassword(
     return ok(undefined, `Password ${user.username} berhasil direset`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('adminResetPassword failed', { userId, error: String(error) })
-    return fail('Kami belum bisa mereset password — coba ulangi', 'SERVER_ERROR')
+    return fail('Kami belum bisa mereset password - coba ulangi', 'SERVER_ERROR')
   }
 }

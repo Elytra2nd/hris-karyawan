@@ -29,7 +29,7 @@ declare module "next-auth/jwt" {
 
 // ─── Rate limiter login (brute-force protection) ──────────────────────────────
 // In-memory, single-instance. Untuk multi-instance/serverless ganti ke Redis.
-// Dijalankan di authorize() — bukan di proxy — karena matcher meng-exclude api/auth.
+// Dijalankan di authorize() - bukan di proxy - karena matcher meng-exclude api/auth.
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 const LOGIN_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 menit
@@ -113,7 +113,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // 8 jam — lebih aman untuk sistem HR
+    maxAge: 8 * 60 * 60, // 8 jam - lebih aman untuk sistem HR
   },
   pages: { 
     signIn: '/login' 

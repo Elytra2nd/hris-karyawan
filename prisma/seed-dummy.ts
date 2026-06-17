@@ -161,7 +161,7 @@ async function main() {
     const departmentId = deptMap[deptCode]
 
     // Tanggal lahir: 1985-2003
-    const tglLahir = randomDate(1985, 2003)
+    const tglLahir = new Date(randomDate(1985, 2003))
 
     // Kontrak: variasi yang beragam
     const now = new Date()

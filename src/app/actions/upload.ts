@@ -47,7 +47,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     const file = formData.get('file') as File
     if (!file || file.size === 0) return { success: false, message: 'Pilih file foto terlebih dahulu' }
     if (file.size > MAX_BYTES) {
-      return { success: false, message: 'Ukuran foto terlalu besar — maksimal 2 MB' }
+      return { success: false, message: 'Ukuran foto terlalu besar - maksimal 2 MB' }
     }
 
     const bytes = await file.arrayBuffer()
@@ -56,7 +56,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     // Validasi berdasarkan isi file (magic-byte), bukan file.type yang bisa dipalsukan.
     const detectedMime = sniffImageMime(buffer)
     if (!detectedMime) {
-      return { success: false, message: 'Format foto tidak didukung — gunakan JPG, PNG, atau WEBP' }
+      return { success: false, message: 'Format foto tidak didukung - gunakan JPG, PNG, atau WEBP' }
     }
 
     const employee = await prisma.employee.findUnique({
@@ -64,7 +64,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
       select: { image: true },
     })
     if (!employee) {
-      return { success: false, message: 'Data karyawan tidak ditemukan — mungkin sudah dihapus' }
+      return { success: false, message: 'Data karyawan tidak ditemukan - mungkin sudah dihapus' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'profiles')
@@ -74,7 +74,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     const fileName = `${employeeId}_${Date.now()}.${ext}`
     await writeFile(join(uploadDir, fileName), buffer)
 
-    // Stored as /api/files/profiles/... — served by auth-gated API route
+    // Stored as /api/files/profiles/... - served by auth-gated API route
     const relativePath = `/api/files/profiles/${fileName}`
 
     await prisma.employee.update({
@@ -90,7 +90,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
       try {
         await unlink(join(PRIVATE_BASE, oldRelative))
       } catch {
-        // Already deleted or migrated — not an error
+        // Already deleted or migrated - not an error
       }
     }
 
@@ -98,8 +98,8 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
     return { success: true, url: relativePath }
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return { success: false, message: 'Anda tidak memiliki izin mengunggah foto — hubungi Admin' }
+    if (e?.code === 'UNAUTHORIZED') return { success: false, message: 'Anda tidak memiliki izin mengunggah foto - hubungi Admin' }
     logger.error('uploadEmployeePhoto failed', { employeeId, error: String(error) })
-    return { success: false, message: 'Kami belum bisa mengunggah foto — coba unggah ulang' }
+    return { success: false, message: 'Kami belum bisa mengunggah foto - coba unggah ulang' }
   }
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-const MAX_BYTES = 2 * 1024 * 1024  // 2 MB — matches src/app/actions/upload.ts
+const MAX_BYTES = 2 * 1024 * 1024  // 2 MB - matches src/app/actions/upload.ts
 
 const validateUpload = (fileType: string, fileSize: number) => {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']

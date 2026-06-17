@@ -35,7 +35,7 @@ export function CreateUserModal() {
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(String(firstField))?.focus()
       return
@@ -59,7 +59,7 @@ export function CreateUserModal() {
         toast.error(result.error)
       }
     } catch {
-      toast.error('Koneksi terputus — coba kirim ulang')
+      toast.error('Koneksi terputus - coba kirim ulang')
     } finally {
       setLoading(false)
     }
@@ -137,25 +137,25 @@ export function CreateUserModal() {
                 <SelectItem value="ADMIN">
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={12} className="text-amber-600" />
-                    Admin — Akses penuh + manajemen user
+                    Admin - Akses penuh + manajemen user
                   </span>
                 </SelectItem>
                 <SelectItem value="HR_MANAGER">
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={12} className="text-primary" />
-                    HR Manager — CRUD karyawan + kontrak
+                    HR Manager - CRUD karyawan + kontrak
                   </span>
                 </SelectItem>
                 <SelectItem value="HR_STAFF">
                   <span className="flex items-center gap-2">
                     <Shield size={12} className="text-green-600" />
-                    HR Staff — Tambah & edit karyawan
+                    HR Staff - Tambah & edit karyawan
                   </span>
                 </SelectItem>
                 <SelectItem value="VIEWER">
                   <span className="flex items-center gap-2">
                     <Shield size={12} className="text-muted-foreground" />
-                    Pemirsa — Lihat saja
+                    Pemirsa - Lihat saja
                   </span>
                 </SelectItem>
               </SelectContent>

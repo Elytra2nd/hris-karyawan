@@ -44,7 +44,7 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
     // Cek username sudah ada
     const existing = await prisma.user.findUnique({ where: { username } })
     if (existing) {
-      return fail('Username ini sudah dipakai — gunakan username lain', 'DUPLICATE', { username: 'Username ini sudah dipakai' })
+      return fail('Username ini sudah dipakai - gunakan username lain', 'DUPLICATE', { username: 'Username ini sudah dipakai' })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -63,9 +63,9 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
     return ok({ id: user.id }, `Akun ${username} berhasil dibuat`)
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('createUser failed', { error: String(error) })
-    return fail('Kami belum bisa membuat akun — coba kirim ulang', 'SERVER_ERROR')
+    return fail('Kami belum bisa membuat akun - coba kirim ulang', 'SERVER_ERROR')
   }
 }
 
@@ -80,7 +80,7 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
 
     const user = await prisma.user.findUnique({ where: { id } })
     if (!user) {
-      return fail('Pengguna tidak ditemukan — mungkin sudah dihapus', 'NOT_FOUND')
+      return fail('Pengguna tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     }
 
     await prisma.user.delete({ where: { id } })
@@ -90,8 +90,8 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     return ok({ id }, `Akun ${user.username} berhasil dihapus`)
   } catch (error: unknown) {
     const e = error as { code?: string }
-    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin — hubungi Admin', 'UNAUTHORIZED')
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
     logger.error('deleteUser failed', { error: String(error) })
-    return fail('Kami belum bisa menghapus akun — coba ulangi', 'SERVER_ERROR')
+    return fail('Kami belum bisa menghapus akun - coba ulangi', 'SERVER_ERROR')
   }
 }

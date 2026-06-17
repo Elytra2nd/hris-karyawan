@@ -80,7 +80,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(String(firstField))?.focus()
       return
@@ -98,7 +98,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
       toast.success('Perubahan berhasil disimpan')
       router.push(`/karyawan/${employee.id}`)
     } catch {
-      toast.error('Koneksi terputus — coba simpan ulang')
+      toast.error('Koneksi terputus - coba simpan ulang')
       setIsPending(false)
     }
   }
@@ -151,7 +151,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required
                     size="sm"
                     value={employee.cabang}
-                    options={branches.map(b => ({ value: b.code, label: `${b.code} — ${b.label}` }))}
+                    options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
                     placeholder="Pilih cabang..."
                   />
                   <FieldError id="cabang-error" message={errors.cabang} />
@@ -216,7 +216,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     id="tglLahir"
                     name="tglLahir"
                     required
-                    value={employee.tglLahir}
+                    value={employee.tglLahir ? new Date(employee.tglLahir).toISOString().slice(0, 10) : ''}
                     placeholder="Pilih tanggal lahir"
                   />
                   <FieldError id="tglLahir-error" message={errors.tglLahir} />
@@ -275,7 +275,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     placeholder="Pilih..."
                   />
                 </div>
-                {/* Status — hanya di edit form */}
+                {/* Status - hanya di edit form */}
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="status" className="form-label">
                     Status Karyawan <span className="text-red-500">*</span>
@@ -312,7 +312,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                         value={employee.departmentId ?? ''}
                         options={[
                           { value: '', label: 'Tidak ditugaskan' },
-                          ...departments.map((d: Department) => ({ value: d.id, label: `${d.name} — ${d.code}` })),
+                          ...departments.map((d: Department) => ({ value: d.id, label: `${d.name} - ${d.code}` })),
                         ]}
                         placeholder="Pilih departemen..."
                       />

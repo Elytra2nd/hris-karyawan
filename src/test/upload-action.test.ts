@@ -45,7 +45,7 @@ describe('Upload Action (Employee Photo)', () => {
   });
 
   it('harus menolak upload jika user tidak punya izin', async () => {
-    (requirePermission as any).mockRejectedValue(
+    vi.mocked(requirePermission).mockRejectedValue(
       Object.assign(new Error('Unauthorized'), { code: 'UNAUTHORIZED' })
     );
     const formData = new FormData();
@@ -57,7 +57,7 @@ describe('Upload Action (Employee Photo)', () => {
   });
 
   it('harus berhasil memproses upload saat data valid', async () => {
-    (requirePermission as any).mockResolvedValue({
+    vi.mocked(requirePermission).mockResolvedValue({
       id: 'admin1',
       username: 'ilham_admin',
       role: 'ADMIN',
@@ -76,7 +76,7 @@ describe('Upload Action (Employee Photo)', () => {
   });
 
   it('harus error jika file kosong', async () => {
-    (requirePermission as any).mockResolvedValue({ id: 'admin1', role: 'ADMIN' });
+    vi.mocked(requirePermission).mockResolvedValue({ id: 'admin1', username: 'ilham_admin', role: 'ADMIN' });
     const formData = new FormData();
 
     const result = await uploadEmployeePhoto(formData, 'emp_123');

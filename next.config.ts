@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
   ...(process.env.NGROK_URL ? { allowedDevOrigins: [process.env.NGROK_URL] } : {}),
 
   experimental: {
+    // 5MB cap on the server action body (upload-level limit enforced separately per action)
     serverActions: { bodySizeLimit: '5mb' },
   },
 

@@ -66,7 +66,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setCreateErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(`branch-${String(firstField)}`)?.focus()
       return
@@ -85,7 +85,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
         toast.error(result.error)
       }
     } catch {
-      toast.error('Koneksi terputus — coba kirim ulang')
+      toast.error('Koneksi terputus - coba kirim ulang')
     } finally {
       setCreating(false)
     }
@@ -124,7 +124,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
         toast.error(result.error)
       }
     } catch {
-      toast.error('Koneksi terputus — coba simpan ulang')
+      toast.error('Koneksi terputus - coba simpan ulang')
     } finally {
       setSaving(false)
     }
@@ -141,7 +141,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
         toast.error(result.error)
       }
     } catch {
-      toast.error('Koneksi terputus — coba ulangi')
+      toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setDeleting(null)
     }

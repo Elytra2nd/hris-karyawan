@@ -152,7 +152,7 @@ export default async function UserManagementPage({
                         <Clock size={12} className="text-muted-foreground/70 shrink-0" />
                         {user.createdAt
                           ? format(new Date(user.createdAt), 'dd MMM yyyy', { locale: localeID })
-                          : '—'}
+                          : '-'}
                       </div>
                     </td>
                     <td className="px-5 py-4">

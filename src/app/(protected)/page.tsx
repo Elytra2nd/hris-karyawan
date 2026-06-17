@@ -11,8 +11,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { ContractStatusChart } from '@/components/contract-status-chart'
-import { EmployeeChart } from '@/components/employee-chart'
+import { ContractStatusChart, EmployeeChart } from '@/components/dashboard-charts'
 import { LiveClock } from '@/components/live-clock'
 import { BranchTable } from '@/components/branch-table'
 
@@ -289,7 +288,11 @@ export default async function DashboardPage() {
             <h2 className="text-base font-semibold text-foreground">Ringkasan Kontrak Aktif</h2>
           </div>
 
-          <div className="px-4 pt-3">
+          <div
+            className="px-4 pt-3"
+            role="img"
+            aria-label={`Ringkasan status kontrak: ${safe.length} aman, ${expiring90.length - expiring30.length} perlu perhatian, ${expiring30.length} kritis, ${expired.length} berakhir`}
+          >
             <ContractStatusChart
               safe={kpi.safe}
               warning={kpi.warningRange}
@@ -342,7 +345,11 @@ export default async function DashboardPage() {
               <p className="text-xs text-muted-foreground">Berdasarkan kontrak terakhir aktif</p>
             </div>
           </div>
-          <div className="px-4 pb-4">
+          <div
+            className="px-4 pb-4"
+            role="img"
+            aria-label={`Distribusi posisi karyawan: ${statsPosisi.map(([p, n]) => `${p} ${n} orang`).join(', ') || 'tidak ada data'}`}
+          >
             <EmployeeChart data={statsPosisi} />
           </div>
         </div>

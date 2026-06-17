@@ -164,7 +164,7 @@ export default async function AuditLogPage({
                     </p>
                   </td>
                   <td className="px-5 py-3.5 max-w-[240px]">
-                    <p className="text-xs text-muted-foreground truncate">{log.details || '—'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{log.details || '-'}</p>
                   </td>
                 </tr>
               ))}
@@ -176,7 +176,7 @@ export default async function AuditLogPage({
         {total > 0 && (
           <div className="px-5 py-2 border-t border-border/60 bg-muted/50 flex items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} dari {total} entri
+              {(page - 1) * PER_PAGE + 1}-{Math.min(page * PER_PAGE, total)} dari {total} entri
             </p>
             {totalPages > 1 && (
               <AuditPagination page={page} totalPages={totalPages} q={q} actionFilter={actionFilter} />
@@ -222,7 +222,7 @@ export default async function AuditLogPage({
         {total > 0 && (
           <div className="px-4 py-2 border-t border-border/60 bg-muted/50 space-y-2">
             <p className="text-xs text-muted-foreground">
-              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} dari {total} entri
+              {(page - 1) * PER_PAGE + 1}-{Math.min(page * PER_PAGE, total)} dari {total} entri
             </p>
             {totalPages > 1 && (
               <AuditPagination page={page} totalPages={totalPages} q={q} actionFilter={actionFilter} />

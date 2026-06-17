@@ -22,7 +22,7 @@ vi.mock('@/lib/prisma', () => ({
 describe('Integrasi Database State', () => {
   it('harus menjaga integritas data saat status karyawan berubah menjadi NON_AKTIF', async () => {
     // 1. Ambil data awal - Gunakan 'as any' untuk bypass pengecekan relasi pada mock
-    const before = await prisma.employee.findUnique({ where: { id: 'emp_123' } }) as any;
+    const before = await prisma.employee.findUnique({ where: { id: 'emp_123' } }) as unknown as { status: string; contracts: { id: string; posisi: string; traineeSejak: Date }[] };
     
     // Safety check untuk null pointer
     if (!before) throw new Error("Mock data not found");

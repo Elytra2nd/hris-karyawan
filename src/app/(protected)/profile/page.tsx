@@ -9,7 +9,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string; description: s
   ADMIN: {
     label: 'Administrator',
     color: 'bg-red-500/10 text-red-600 border-red-200',
-    description: 'Akses penuh — kelola pengguna, departemen, cabang, karyawan, dan log aktivitas',
+    description: 'Akses penuh - kelola pengguna, departemen, cabang, karyawan, dan log aktivitas',
   },
   HR_MANAGER: {
     label: 'HR Manager',

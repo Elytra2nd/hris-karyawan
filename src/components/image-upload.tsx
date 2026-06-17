@@ -45,7 +45,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
       }
     } catch {
       setUploadState('error');
-      toast.error('Koneksi terputus — coba unggah ulang');
+      toast.error('Koneksi terputus - coba unggah ulang');
       setTimeout(() => setUploadState('idle'), 3000);
     } finally {
       setLoading(false);
@@ -100,7 +100,7 @@ export function ImageUpload({ employeeId, currentImage }: { employeeId: string, 
       {uploadState === 'error' && (
         <div className="flex items-center gap-1.5 text-xs text-red-600 font-semibold">
           <Warning size={12} />
-          Gagal mengunggah — coba pilih foto lagi
+          Gagal mengunggah - coba pilih foto lagi
         </div>
       )}
 

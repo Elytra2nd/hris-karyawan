@@ -118,7 +118,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       setSearch('')
       setOpen(true)
     } catch {
-      toast.error('Kami belum bisa mengambil data — coba muat ulang halaman')
+      toast.error('Kami belum bisa mengambil data - coba muat ulang halaman')
     } finally {
       setLoading(false)
     }
@@ -129,7 +129,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
   const downloadExcel = () => {
     if (filtered.length === 0) {
-      toast.warning('Tidak ada data yang cocok dengan filter — ubah filter atau reset')
+      toast.warning('Tidak ada data yang cocok dengan filter - ubah filter atau reset')
       return
     }
     const ws = XLSX.utils.json_to_sheet(filtered)
@@ -148,7 +148,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
   const downloadPDF = () => {
     if (filtered.length === 0) {
-      toast.warning('Tidak ada data yang cocok dengan filter — ubah filter atau reset')
+      toast.warning('Tidak ada data yang cocok dengan filter - ubah filter atau reset')
       return
     }
     const pdfCols = ['BA', 'CABANG', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
@@ -162,16 +162,16 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       tr:nth-child(even){background:#f9f9f9}
       .footer{margin-top:16px;font-size:8px;color:#999;text-align:right}
     </style></head><body>
-    <h2>Laporan Data Karyawan — Astra Motor Kalimantan Barat</h2>
+    <h2>Laporan Data Karyawan - Astra Motor Kalimantan Barat</h2>
     <p class="meta">Tanggal: ${format(new Date(), 'dd MMMM yyyy, HH:mm')} | Total: ${filtered.length} data${filterCabang ? ` | Cabang: ${filterCabang}` : ''}${filterStatus ? ` | Status: ${filterStatus}` : ''}${filterPosisi ? ` | Posisi: ${filterPosisi}` : ''}</p>
     <table><thead><tr>${pdfCols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
     ${filtered.map(row => '<tr>' + pdfCols.map(h => `<td>${row[h] ?? '-'}</td>`).join('') + '</tr>').join('')}
     </tbody></table>
-    <p class="footer">Dicetak oleh sistem TMS v2.1 — ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
+    <p class="footer">Dicetak oleh sistem TMS v2.1 - ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
     </body></html>`
     const w = window.open('', '_blank')
     if (w) { w.document.write(html); w.document.close(); w.print() }
-    else { toast.error('Browser memblokir jendela cetak — izinkan pop-up lalu coba lagi') }
+    else { toast.error('Browser memblokir jendela cetak - izinkan pop-up lalu coba lagi') }
     setOpen(false)
   }
 
@@ -180,7 +180,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
-  // Preview columns — hide some less important columns in preview for cleanliness
+  // Preview columns - hide some less important columns in preview for cleanliness
   const previewCols = ['Nama Lengkap', 'Status', 'CABANG', 'Posisi', 'NIK', 'No KTP', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
   const visibleHeaders = headers.filter(h => previewCols.includes(h))
 

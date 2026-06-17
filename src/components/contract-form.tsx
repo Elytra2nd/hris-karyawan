@@ -74,7 +74,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
         if (!fieldErrors[field]) fieldErrors[field] = e.message
       })
       setErrors(fieldErrors)
-      toast.error('Ada isian yang belum sesuai — lihat kolom yang ditandai merah')
+      toast.error('Ada isian yang belum sesuai - lihat kolom yang ditandai merah')
       const firstField = parsed.error.issues[0]?.path[0]
       if (firstField) document.getElementById(String(firstField))?.focus()
       return
