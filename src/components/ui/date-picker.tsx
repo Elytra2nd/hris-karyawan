@@ -18,6 +18,7 @@ interface DatePickerProps {
   disabled?: boolean
   readOnly?: boolean
   className?: string
+  size?: 'sm' | 'default'
   minDate?: Date
   maxDate?: Date
 }
@@ -38,6 +39,7 @@ export function DatePicker({
   disabled,
   readOnly,
   className,
+  size = 'default',
   minDate,
   maxDate,
 }: DatePickerProps) {
@@ -64,7 +66,8 @@ export function DatePicker({
               type="button"
               id={id}
               className={cn(
-                'h-10 w-full inline-flex items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-sm shadow-xs/5 outline-none transition-colors',
+                'w-full inline-flex items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-base shadow-xs/5 outline-none transition-colors sm:text-sm',
+                size === 'sm' ? 'h-[30px] sm:h-[28px]' : 'h-[34px] sm:h-[32px]',
                 'hover:bg-accent/40 data-[popup-open]:border-ring focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/24',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
                 readOnly && 'bg-accent/50 text-primary font-semibold cursor-not-allowed',

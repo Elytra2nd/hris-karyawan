@@ -127,6 +127,7 @@ export function EmployeeForm({
               id="cabang"
               name="cabang"
               required
+              size="sm"
               options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
               placeholder="Pilih cabang..."
             />
@@ -144,6 +145,7 @@ export function EmployeeForm({
             <SelectCombobox
               id="departmentId"
               name="departmentId"
+              size="sm"
               options={[
                 { value: '', label: 'Tidak ditugaskan' },
                 ...departments.map(d => ({ value: d.id, label: `${d.name} - ${d.code}` })),
@@ -188,7 +190,7 @@ export function EmployeeForm({
             <Label htmlFor="tglLahir" className="form-label">
               Tanggal Lahir <span className="text-red-500">*</span>
             </Label>
-            <DatePicker id="tglLahir" name="tglLahir" required placeholder="Pilih tanggal lahir" />
+            <DatePicker id="tglLahir" name="tglLahir" required placeholder="Pilih tanggal lahir" size="sm" />
             <FieldError message={errors.tglLahir} />
           </div>
           <FormField
@@ -219,6 +221,7 @@ export function EmployeeForm({
               id="formConsent"
               name="formConsent"
               required
+              size="sm"
               options={['ADA', 'TIDAK ADA']}
               placeholder="Pilih..."
             />
@@ -244,6 +247,7 @@ export function EmployeeForm({
             id="posisi"
             name="posisi"
             required
+            size="sm"
             value={posisi}
             onValueChange={setPosisi}
             options={POSISI_OPTIONS.map(p => ({
@@ -256,36 +260,38 @@ export function EmployeeForm({
           <FieldError message={errors.posisi} />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="traineeSejak" className="form-label">
-              Mulai Kontrak <span className="text-red-500">*</span>
-            </Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+          {/* Row 1: Labels */}
+          <Label htmlFor="traineeSejak" className="form-label self-end">
+            Mulai Kontrak <span className="text-red-500">*</span>
+          </Label>
+          <Label htmlFor="traineeSelesai" className="form-label self-end flex items-center gap-1.5">
+            Akhir Kontrak
+            <span className="text-xs font-normal text-primary bg-accent px-1.5 py-0.5 rounded leading-none">
+              Otomatis
+            </span>
+          </Label>
+
+          {/* Row 2: Inputs */}
+          <div>
             <DatePicker
               id="traineeSejak"
               name="traineeSejak"
               required
+              size="sm"
               value={tglMulai}
               onValueChange={setTglMulai}
               placeholder="Pilih tanggal mulai"
             />
             <FieldError message={errors.traineeSejak} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="traineeSelesai" className="form-label flex items-center gap-1.5">
-              Akhir Kontrak
-              <span className="text-xs font-normal text-primary bg-accent px-1.5 py-0.5 rounded">
-                Otomatis
-              </span>
-            </Label>
-            <div className="h-9 inline-flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-4 text-sm font-semibold text-primary">
-              <span className="truncate">
-                {tglSelesai
-                  ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
-                  : 'Pilih posisi & tanggal'}
-              </span>
-              <CalendarCheck size={16} className="opacity-70 shrink-0" />
-            </div>
+          <div className="h-[30px] sm:h-[28px] w-full flex items-center justify-between gap-2 rounded-lg border border-blue-200 bg-accent/50 px-3 text-base sm:text-sm font-semibold text-primary">
+            <span className="truncate">
+              {tglSelesai
+                ? format(new Date(tglSelesai), 'EEEE, dd MMM yyyy', { locale: localeID })
+                : 'Pilih posisi & tanggal'}
+            </span>
+            <CalendarCheck size={16} className="opacity-70 shrink-0" />
           </div>
         </div>
 
@@ -400,9 +406,10 @@ function FormField({
         placeholder={placeholder}
         required={required}
         nativeInput
+        size="sm"
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
-        className={`h-9 text-sm ${error ? 'border-destructive' : ''} ${className ?? ''}`}
+        className={`${error ? 'border-destructive' : ''} ${className ?? ''}`}
         onBlur={onBlur ? (e) => onBlur((e.target as HTMLInputElement).value.trim()) : undefined}
       />
       <FieldError id={`${id}-error`} message={error} />

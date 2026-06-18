@@ -26,7 +26,7 @@ export default async function DetailKaryawanPage({
 
   const employee = await prisma.employee.findUnique({
     where: { id },
-    include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, department: true },
+    include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, department: true, branch: true },
   })
   if (!employee) notFound()
 
@@ -93,7 +93,7 @@ export default async function DetailKaryawanPage({
               </span>
               <span className="flex items-center gap-1.5">
                 <MapPin size={12} className="text-muted-foreground/70" />
-                {employee.cabang}
+                {employee.branch ? `${employee.branch.label} (${employee.cabang})` : employee.cabang}
               </span>
               <span className="flex items-center gap-1.5">
                 <Phone size={12} className="text-muted-foreground/70" />
@@ -227,7 +227,7 @@ export default async function DetailKaryawanPage({
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
-            <InfoItem label="Nama Cabang" value={employee.cabang} />
+            <InfoItem label="Nama Cabang" value={employee.branch ? `${employee.branch.label} (${employee.cabang})` : employee.cabang} />
             <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '-'} />
             <InfoItem
               label="Departemen"
