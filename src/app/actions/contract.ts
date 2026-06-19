@@ -21,12 +21,16 @@ export async function getContracts({
   search = '',
   cabang = '',
   status = '',
+  departmentId = '',
+  posisi = '',
   page = 1,
   perPage = 15,
 }: {
   search?: string
   cabang?: string
   status?: string // expired | critical | warning | safe | ''
+  departmentId?: string
+  posisi?: string
   page?: number
   perPage?: number
 } = {}): Promise<{ contracts: ContractRow[]; total: number }> {
@@ -36,11 +40,13 @@ export async function getContracts({
     // Get latest contract per AKTIF employee
     const allContracts = await prisma.contract.findMany({
       where: {
+        ...(posisi ? { posisi } : {}),
         employee: {
           status: 'AKTIF',
           AND: [
             search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
             cabang ? { cabang } : {},
+            departmentId ? { departmentId } : {},
           ],
         },
       },
@@ -90,11 +96,31 @@ export async function getContracts({
   }
 }
 
-export async function getContractStats() {
+export async function getContractStats({
+  search = '',
+  cabang = '',
+  departmentId = '',
+  posisi = '',
+}: {
+  search?: string
+  cabang?: string
+  departmentId?: string
+  posisi?: string
+} = {}) {
   try {
     const today = startOfDay(new Date())
     const contracts = await prisma.contract.findMany({
-      where: { employee: { status: 'AKTIF' } },
+      where: {
+        ...(posisi ? { posisi } : {}),
+        employee: {
+          status: 'AKTIF',
+          AND: [
+            search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
+            cabang ? { cabang } : {},
+            departmentId ? { departmentId } : {},
+          ],
+        },
+      },
       orderBy: { traineeSelesai: 'desc' },
       distinct: ['employeeId'],
       select: { traineeSelesai: true },
@@ -113,5 +139,20 @@ export async function getContractStats() {
   } catch (error) {
     logger.error('getContractStats failed', { error: String(error) })
     return { total: 0, expired: 0, critical: 0, warning: 0, safe: 0 }
+  }
+}
+
+/** Get distinct posisi values from contracts for filter dropdown */
+export async function getDistinctPosisi(): Promise<string[]> {
+  try {
+    const result = await prisma.contract.findMany({
+      where: { employee: { status: 'AKTIF' } },
+      select: { posisi: true },
+      distinct: ['posisi'],
+      orderBy: { posisi: 'asc' },
+    })
+    return result.map(r => r.posisi)
+  } catch {
+    return []
   }
 }

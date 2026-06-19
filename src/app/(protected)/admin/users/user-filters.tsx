@@ -45,7 +45,7 @@ export function UserFilters({ q, role }: { q: string; role: string }) {
         value={role}
         onChange={e => push({ role: e.target.value })}
         aria-label="Filter role pengguna"
-        className="h-9 px-4 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
+        className="h-8 w-fit px-3 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
       >
         {ROLE_OPTIONS.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>

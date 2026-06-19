@@ -61,7 +61,7 @@ export function ResetPasswordButton({ id, username }: { id: string; username: st
         className="flex items-center gap-2 h-8 px-4 text-xs font-semibold text-muted-foreground border border-border rounded-md hover:border-primary/30 hover:text-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
         title="Reset password"
       >
-        <Key size={12} /> Reset PW
+        <Key size={12} /> Reset Password
       </button>
 
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setPw(''); setShow(false); setError('') } }}>

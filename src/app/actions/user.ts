@@ -95,3 +95,40 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
     return fail('Kami belum bisa menghapus akun - coba ulangi', 'SERVER_ERROR')
   }
 }
+
+// ─── Update User Role ─────────────────────────────────────────────────────────
+export async function updateUserRole(id: string, newRole: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requireAdmin()
+
+    const validRoles = ['ADMIN', 'HR_MANAGER', 'HR_STAFF', 'VIEWER']
+    if (!validRoles.includes(newRole)) {
+      return fail('Role tidak valid', 'VALIDATION')
+    }
+
+    if (session.id === id) {
+      return fail('Tidak bisa mengubah role akun sendiri', 'VALIDATION')
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } })
+    if (!user) {
+      return fail('Pengguna tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
+    }
+
+    const oldRole = user.role
+    await prisma.user.update({ where: { id }, data: { role: newRole } })
+
+    revalidatePath('/admin/users')
+    await createAuditLog(session.id, session.username, 'UPDATE', 'user', id, {
+      username: user.username,
+      roleSebelumnya: oldRole,
+      roleBaru: newRole,
+    })
+    return ok({ id }, `Role ${user.username} diubah ke ${newRole}`)
+  } catch (error: unknown) {
+    const e = error as { code?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    logger.error('updateUserRole failed', { error: String(error) })
+    return fail('Kami belum bisa mengubah role - coba ulangi', 'SERVER_ERROR')
+  }
+}

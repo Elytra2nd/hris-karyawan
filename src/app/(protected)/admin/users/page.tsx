@@ -1,8 +1,11 @@
 import { getUsers } from '@/app/actions/user'
+import { verifySession } from '@/lib/dal'
+import { redirect } from 'next/navigation'
 import { ShieldCheck, Shield, Users, Clock, Info } from '@phosphor-icons/react/ssr'
 import { CreateUserModal } from '@/components/create-user-modal'
 import { DeleteUserButton } from '@/components/delete-user-button'
 import { ResetPasswordButton } from '@/components/reset-password-button'
+import { EditRoleButton } from '@/components/edit-role-button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { UserFilters } from './user-filters'
 import Link from 'next/link'
@@ -30,8 +33,12 @@ export default async function UserManagementPage({
 }: {
   searchParams: Promise<{ q?: string; role?: string }>
 }) {
+  const session = await verifySession()
+  if (session.role !== 'ADMIN') redirect('/karyawan')
+
   const { q = '', role: roleFilter = '' } = await searchParams
   const allUsers = await getUsers()
+  const currentUserId = session.id
 
   const users = allUsers.filter(u => {
     const matchQ = !q || u.username.toLowerCase().includes(q.toLowerCase())
@@ -113,7 +120,7 @@ export default async function UserManagementPage({
                 <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
                 <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Role</th>
                 <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Dibuat</th>
-                <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-16">Aksi</th>
+                <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -156,9 +163,10 @@ export default async function UserManagementPage({
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-2">
+                        <EditRoleButton id={user.id} username={user.username} currentRole={user.role} />
                         <ResetPasswordButton id={user.id} username={user.username} />
-                        <DeleteUserButton id={user.id} username={user.username} />
+                        <DeleteUserButton id={user.id} username={user.username} isSelf={user.id === currentUserId} />
                       </div>
                     </td>
                   </tr>
@@ -206,8 +214,9 @@ export default async function UserManagementPage({
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <EditRoleButton id={user.id} username={user.username} currentRole={user.role} />
                   <ResetPasswordButton id={user.id} username={user.username} />
-                  <DeleteUserButton id={user.id} username={user.username} />
+                  <DeleteUserButton id={user.id} username={user.username} isSelf={user.id === currentUserId} />
                 </div>
               </div>
             ))}

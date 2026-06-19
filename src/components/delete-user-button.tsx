@@ -15,7 +15,7 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip'
 
-export function DeleteUserButton({ id, username }: { id: string; username: string }) {
+export function DeleteUserButton({ id, username, isSelf = false }: { id: string; username: string; isSelf?: boolean }) {
   const [loading, setLoading] = useState(false)
 
   async function handleDelete() {
@@ -38,19 +38,29 @@ export function DeleteUserButton({ id, username }: { id: string; username: strin
     <AlertDialog>
       <Tooltip>
         <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>
+          {isSelf ? (
             <button
-              disabled={loading}
-              className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+              disabled
+              className="p-1.5 rounded-md text-muted-foreground/30 cursor-not-allowed"
+              aria-label="Tidak bisa menghapus akun sendiri"
             >
-              {loading
-                ? <CircleNotch size={16} className="animate-spin" />
-                : <Trash size={16} />}
+              <Trash size={16} />
             </button>
-          </AlertDialogTrigger>
+          ) : (
+            <AlertDialogTrigger asChild>
+              <button
+                disabled={loading}
+                className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 dark:hover:bg-red-950 dark:hover:text-red-400"
+              >
+                {loading
+                  ? <CircleNotch size={16} className="animate-spin" />
+                  : <Trash size={16} />}
+              </button>
+            </AlertDialogTrigger>
+          )}
         </TooltipTrigger>
         <TooltipContent side="left">
-          Hapus Akun
+          {isSelf ? 'Tidak bisa hapus akun sendiri' : 'Hapus Akun'}
         </TooltipContent>
       </Tooltip>
       <AlertDialogContent>

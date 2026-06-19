@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getContracts, getContractStats } from '@/app/actions/contract'
+import { getContracts, getContractStats, getDistinctPosisi } from '@/app/actions/contract'
+import { getDistinctCabang } from '@/app/actions/employee'
+import { getDepartments } from '@/app/actions/department'
 import type { ContractRow } from '@/app/actions/contract'
 import {
   MagnifyingGlass, XCircle, Warning, Clock, CheckCircle,
-  ShieldWarning, CaretLeft, CaretRight, Eye, FileText,
-  ArrowsDownUp, Sliders, User,
+  ShieldWarning, Eye, FileText,
+  ArrowsDownUp, ArrowUp, ArrowDown, Sliders, User,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { format, differenceInDays } from 'date-fns'
+import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -20,8 +22,13 @@ import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationPrevious, PaginationNext, PaginationEllipsis,
 } from '@/components/ui/pagination'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const PER_PAGE = 15
+type SortKey = 'employeeName' | 'posisi' | 'employeeCabang' | 'traineeSelesai' | ''
 
 export default function ManajemenKontrakPage() {
   const searchParams = useSearchParams()
@@ -31,10 +38,21 @@ export default function ManajemenKontrakPage() {
   const [stats, setStats] = useState({ total: 0, expired: 0, critical: 0, warning: 0, safe: 0 })
   const [loading, setLoading] = useState(true)
 
+  // URL-driven filter state
   const search = searchParams.get('search') ?? ''
   const cabang = searchParams.get('cabang') ?? ''
   const status = searchParams.get('status') ?? ''
+  const departmentFilter = searchParams.get('dept') ?? ''
+  const posisiFilter = searchParams.get('posisi') ?? ''
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
+
+  // Local UI state
+  const [sortCol, setSortCol] = useState<SortKey>('')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [showFilter, setShowFilter] = useState(false)
+  const [cabangOptions, setCabangOptions] = useState<string[]>([])
+  const [departmentOptions, setDepartmentOptions] = useState<{ id: string; name: string }[]>([])
+  const [posisiOptions, setPosisiOptions] = useState<string[]>([])
 
   const debouncedSearch = useDebounce(search, 300)
 
@@ -44,7 +62,8 @@ export default function ManajemenKontrakPage() {
       if (value === null || value === '') params.delete(key)
       else params.set(key, value)
     })
-    if (updates.search !== undefined || updates.status !== undefined || updates.cabang !== undefined) {
+    // Reset to page 1 when filter changes
+    if (updates.search !== undefined || updates.status !== undefined || updates.cabang !== undefined || updates.dept !== undefined || updates.posisi !== undefined) {
       params.set('page', '1')
     }
     router.push(`?${params.toString()}`, { scroll: false })
@@ -54,8 +73,8 @@ export default function ManajemenKontrakPage() {
     const fetchData = async () => {
       setLoading(true)
       const [result, statsResult] = await Promise.all([
-        getContracts({ search: debouncedSearch, cabang, status, page, perPage: PER_PAGE }),
-        getContractStats(),
+        getContracts({ search: debouncedSearch, cabang, status, departmentId: departmentFilter, posisi: posisiFilter, page, perPage: PER_PAGE }),
+        getContractStats({ search: debouncedSearch, cabang, departmentId: departmentFilter, posisi: posisiFilter }),
       ])
       setContracts(result.contracts)
       setTotal(result.total)
@@ -63,7 +82,12 @@ export default function ManajemenKontrakPage() {
       setLoading(false)
     }
     fetchData()
-  }, [debouncedSearch, cabang, status, page])
+  }, [debouncedSearch, cabang, status, departmentFilter, posisiFilter, page])
+
+  // Load filter options once on mount
+  useEffect(() => { getDistinctCabang().then(setCabangOptions) }, [])
+  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))) }, [])
+  useEffect(() => { getDistinctPosisi().then(setPosisiOptions) }, [])
 
   const totalPages = Math.ceil(total / PER_PAGE)
   const fmtDate = (d: string | Date) => format(new Date(d), 'dd MMM yyyy', { locale: localeID })
@@ -82,6 +106,39 @@ export default function ManajemenKontrakPage() {
     return p
   }, [page, totalPages])
 
+  // Client-side sort on current page
+  const sortedContracts = useMemo(() => {
+    if (!sortCol) return contracts
+    return [...contracts].sort((a, b) => {
+      let va: string, vb: string
+      if (sortCol === 'traineeSelesai') {
+        va = String(a.traineeSelesai)
+        vb = String(b.traineeSelesai)
+      } else {
+        va = String((a as Record<string, unknown>)[sortCol] ?? '')
+        vb = String((b as Record<string, unknown>)[sortCol] ?? '')
+      }
+      va = va.toLowerCase(); vb = vb.toLowerCase()
+      if (va < vb) return sortDir === 'asc' ? -1 : 1
+      if (va > vb) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [contracts, sortCol, sortDir])
+
+  const rows = sortedContracts
+
+  const handleSort = (col: SortKey) => {
+    if (sortCol === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortCol(col); setSortDir('asc') }
+  }
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
+    return sortDir === 'asc'
+      ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
+      : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
+  }
+
   const getStatusBadge = (row: ContractRow) => {
     switch (row.contractStatus) {
       case 'expired':
@@ -89,7 +146,7 @@ export default function ManajemenKontrakPage() {
       case 'critical':
         return <span className="chip-warning">Kritis · {row.daysLeft}h</span>
       case 'warning':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{row.daysLeft}h lagi</span>
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">{row.daysLeft}h lagi</span>
       case 'safe':
         return <span className="chip-aktif">Aman · {row.daysLeft}h</span>
     }
@@ -101,6 +158,8 @@ export default function ManajemenKontrakPage() {
     warning: 'Perlu Perhatian (31–90 hari)',
     safe: 'Aman (> 90 hari)',
   }
+
+  const hasActiveFilters = cabang || departmentFilter || posisiFilter
 
   return (
     <div className="space-y-6">
@@ -168,10 +227,10 @@ export default function ManajemenKontrakPage() {
       {status && (
         <div className={cn(
           'flex items-center justify-between gap-4 rounded-md border px-4 py-3',
-          status === 'expired' ? 'bg-red-50 border-red-200' :
-          status === 'critical' ? 'bg-amber-50 border-amber-200' :
-          status === 'warning' ? 'bg-blue-50 border-blue-200' :
-          'bg-green-50 border-green-200'
+          status === 'expired' ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50' :
+          status === 'critical' ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50' :
+          status === 'warning' ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50' :
+          'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/50'
         )}>
           <p className="text-sm font-semibold">
             {activeStatusLabel[status]}
@@ -186,37 +245,190 @@ export default function ManajemenKontrakPage() {
         </div>
       )}
 
-      {/* ─── Search ─── */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
-          <input
-            value={search}
-            onChange={(e) => updateParams({ search: e.target.value })}
-            placeholder="Cari nama karyawan..."
-            aria-label="Cari kontrak"
-            className="w-full h-9 pl-9 pr-4 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
-          />
-          {search && (
-            <button onClick={() => updateParams({ search: '' })} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
-              <XCircle size={16} />
-            </button>
-          )}
+      {/* ─── Posisi Filter Banner ─── */}
+      {posisiFilter && (
+        <div className="flex items-center justify-between gap-4 rounded-md border px-4 py-3 bg-accent border-primary/20">
+          <p className="text-sm font-semibold text-primary truncate">
+            Posisi: <span className="font-bold">{posisiFilter}</span>
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">({total} kontrak)</span>
+          </p>
+          <button
+            onClick={() => updateParams({ posisi: '' })}
+            className="shrink-0 text-xs font-semibold text-foreground/70 hover:text-foreground px-2 py-1 rounded border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-2"
+          >
+            <XCircle size={12} />
+            Hapus Filter
+          </button>
         </div>
+      )}
+
+      {/* ─── Search + Sort + Funnel Toolbar ─── */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
+            <input
+              value={search}
+              onChange={(e) => updateParams({ search: e.target.value })}
+              placeholder="Cari nama atau NIK karyawan..."
+              aria-label="Cari kontrak"
+              className="w-full h-8 pl-8 pr-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
+            />
+            {search && (
+              <button onClick={() => updateParams({ search: '' })} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
+                <XCircle size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* Sort dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={cn(
+                'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
+                sortCol
+                  ? 'border-primary text-primary bg-accent font-semibold'
+                  : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
+              )}>
+                <ArrowsDownUp size={16} />
+                Urutkan
+                {sortCol && <span className="ml-1 text-xs">({sortCol === 'employeeName' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol === 'employeeCabang' ? 'Cabang' : sortCol})</span>}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {[
+                { key: 'employeeName', label: 'Nama Karyawan' },
+                { key: 'posisi', label: 'Posisi' },
+                { key: 'employeeCabang', label: 'Cabang' },
+                { key: 'traineeSelesai', label: 'Tanggal Selesai' },
+              ].map(({ key, label }) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleSort(key as SortKey)}
+                  className="cursor-pointer text-sm justify-between"
+                >
+                  {label}
+                  {sortCol === key && (
+                    <span className="text-primary font-bold">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => { setSortCol(''); setSortDir('asc') }}
+                className="cursor-pointer text-sm text-muted-foreground"
+              >
+                Reset urutan
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Funnel toggle */}
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className={cn(
+              'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
+              showFilter
+                ? 'border-primary text-primary bg-accent font-semibold'
+                : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
+            )}
+          >
+            <Sliders size={16} />
+            Funnel
+            {hasActiveFilters && (
+              <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
+            )}
+          </button>
+        </div>
+
+        {/* Funnel Panel */}
+        {showFilter && (
+          <div className="flex flex-wrap gap-6 px-4 py-4 rounded-md bg-muted/50 border border-border items-end">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Cabang</label>
+              <select
+                value={cabang}
+                onChange={(e) => updateParams({ cabang: e.target.value })}
+                aria-label="Filter cabang"
+                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+              >
+                <option value="">Semua Cabang</option>
+                {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Departemen</label>
+              <select
+                value={departmentFilter}
+                onChange={(e) => updateParams({ dept: e.target.value })}
+                aria-label="Filter departemen"
+                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+              >
+                <option value="">Semua Departemen</option>
+                {departmentOptions.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Posisi</label>
+              <select
+                value={posisiFilter}
+                onChange={(e) => updateParams({ posisi: e.target.value })}
+                aria-label="Filter posisi"
+                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
+              >
+                <option value="">Semua Posisi</option>
+                {posisiOptions.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={() => updateParams({ cabang: '', dept: '', posisi: '' })}
+                className="h-8 px-4 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ─── Contract Table ─── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+      {/* ─── Contract Table (Desktop) ─── */}
+      <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-border bg-accent/60">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Karyawan</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Posisi</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Cabang</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Mulai</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Selesai</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Status</th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('employeeName')}
+                >
+                  Karyawan <SortIcon col="employeeName" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('posisi')}
+                >
+                  Posisi <SortIcon col="posisi" />
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('employeeCabang')}
+                >
+                  Cabang <SortIcon col="employeeCabang" />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                  Mulai
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                  onClick={() => handleSort('traineeSelesai')}
+                >
+                  Selesai <SortIcon col="traineeSelesai" />
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                  Status
+                </th>
                 <th className="px-4 py-3 w-10" />
               </tr>
             </thead>
@@ -233,16 +445,16 @@ export default function ManajemenKontrakPage() {
                     <td className="px-4 py-3"><Skeleton className="h-4 w-4" /></td>
                   </tr>
                 ))
-              ) : contracts.length === 0 ? (
+              ) : rows.length === 0 ? (
                 <EmptyState
                   asTableRow
                   colSpan={7}
-                  icon={search || status ? MagnifyingGlass : FileText}
-                  title={search || status ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
-                  description={search || status ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+                  icon={search || status || hasActiveFilters ? MagnifyingGlass : FileText}
+                  title={search || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
+                  description={search || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
                 />
               ) : (
-                contracts.map((row) => (
+                rows.map((row) => (
                   <tr
                     key={row.id}
                     className={cn(
@@ -331,6 +543,88 @@ export default function ManajemenKontrakPage() {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Mobile Card View ─── */}
+      <div className="md:hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="divide-y divide-border/60">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="px-4 py-4 flex items-start gap-4">
+                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-40" />
+                  <div className="flex gap-2 pt-1">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={search || status || hasActiveFilters ? MagnifyingGlass : FileText}
+            title={search || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
+            description={search || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+          />
+        ) : (
+          <div className="divide-y divide-border/60">
+            {rows.map((row) => (
+              <Link
+                key={row.id}
+                href={`/karyawan/${row.employeeId}/kontrak`}
+                className={cn(
+                  'flex items-start gap-3 px-4 py-4 hover:bg-muted/50 transition-colors',
+                  row.contractStatus === 'expired' && 'bg-red-50/30',
+                  row.contractStatus === 'critical' && 'bg-amber-50/30',
+                )}
+              >
+                <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center shrink-0">
+                  <User size={16} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{row.employeeName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{row.posisi} · {row.employeeCabang}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {getStatusBadge(row)}
+                    <span className="text-xs text-muted-foreground">
+                      {fmtDate(row.traineeSejak)} – {fmtDate(row.traineeSelesai)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Mobile Pagination */}
+        {totalPages > 1 && !loading && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/50">
+            <p className="text-xs text-muted-foreground">
+              Hal {page}/{totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => { if (page > 1) updateParams({ page: String(page - 1) }) }}
+                disabled={page <= 1}
+                className="h-8 w-8 flex items-center justify-center rounded-md border border-border bg-card text-foreground/70 disabled:opacity-40 hover:bg-muted/50 transition-colors"
+                aria-label="Halaman sebelumnya"
+              >
+                ‹
+              </button>
+              <button
+                onClick={() => { if (page < totalPages) updateParams({ page: String(page + 1) }) }}
+                disabled={page >= totalPages}
+                className="h-8 w-8 flex items-center justify-center rounded-md border border-border bg-card text-foreground/70 disabled:opacity-40 hover:bg-muted/50 transition-colors"
+                aria-label="Halaman berikutnya"
+              >
+                ›
+              </button>
+            </div>
           </div>
         )}
       </div>
