@@ -40,7 +40,7 @@ export default async function EditKaryawanPage({
       <div>
         <h1 className="text-2xl font-bold text-foreground">Edit Karyawan</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Perbarui data <span className="font-semibold text-foreground/80">{employee.namaLengkap}</span>
+          Perbarui data <span className="font-semibold text-foreground">{employee.namaLengkap}</span>
         </p>
       </div>
 

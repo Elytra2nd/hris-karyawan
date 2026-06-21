@@ -118,11 +118,11 @@ export default async function AuditLogPage({
           <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-accent/60">
-                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-36">Waktu</th>
-                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Pengguna</th>
-                <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider w-28">Aksi</th>
-                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Entitas</th>
-                <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Detail</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-36">Waktu</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pengguna</th>
+                <th className="px-5 py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-28">Aksi</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Entitas</th>
+                <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detail</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -158,7 +158,7 @@ export default async function AuditLogPage({
                     <ActionBadge action={log.action} />
                   </td>
                   <td className="px-5 py-3.5">
-                    <p className="text-sm font-medium text-foreground/80 capitalize">{log.entity}</p>
+                    <p className="text-sm font-medium text-muted-foreground capitalize">{log.entity}</p>
                     <p className="text-xs text-muted-foreground font-mono mt-0.5">
                       {log.entityId.substring(0, 10)}…
                     </p>
@@ -206,7 +206,7 @@ export default async function AuditLogPage({
                   <ActionBadge action={log.action} />
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">
-                  <span className="capitalize font-medium text-foreground/70">{log.entity}</span>
+                  <span className="capitalize font-medium text-muted-foreground">{log.entity}</span>
                   {log.details && <span className="ml-2 break-all">{log.details}</span>}
                 </p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">

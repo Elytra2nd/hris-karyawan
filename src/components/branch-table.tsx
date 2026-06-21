@@ -51,7 +51,7 @@ export function BranchTable({
             <MapPin className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Integrasi Branch</h2>
+            <h2 className="text-base font-bold text-foreground">Integrasi Branch</h2>
             <p className="text-xs text-muted-foreground">Distribusi karyawan per kode cabang</p>
           </div>
         </div>
@@ -63,11 +63,11 @@ export function BranchTable({
         <table className="w-full min-w-[540px]">
           <thead>
             <tr className="border-b border-border bg-accent/60">
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode BA</th>
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Nama Cabang</th>
-              <th className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">Kode Cabang</th>
-              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Jumlah</th>
-              <th className="px-5 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">Proporsi</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kode BA</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nama Cabang</th>
+              <th className="px-5 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kode Cabang</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Jumlah</th>
+              <th className="px-5 py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Proporsi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">

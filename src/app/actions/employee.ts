@@ -220,7 +220,6 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
 type EmployeeExportItem = {
   ba: string
   baCabang: string
-  region: string | null
   cabang: string
   namaLengkap: string
   status: string

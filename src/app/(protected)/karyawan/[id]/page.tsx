@@ -191,7 +191,7 @@ export default async function DetailKaryawanPage({
             <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
               <User className="h-4 w-4 text-primary" />
             </div>
-            <h2 className="text-base font-semibold text-foreground">Identitas Pribadi</h2>
+            <h2 className="text-base font-bold text-foreground">Identitas Pribadi</h2>
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
@@ -222,7 +222,7 @@ export default async function DetailKaryawanPage({
             <div className="h-8 w-8 rounded-md bg-green-50 flex items-center justify-center">
               <Buildings className="h-4 w-4 text-green-600" />
             </div>
-            <h2 className="text-base font-semibold text-foreground">Data Operasional</h2>
+            <h2 className="text-base font-bold text-foreground">Data Operasional</h2>
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
@@ -253,7 +253,7 @@ export default async function DetailKaryawanPage({
           <div className="h-8 w-8 rounded-md bg-orange-50 flex items-center justify-center">
             <SealCheckIcon className="h-4 w-4 text-orange-500" />
           </div>
-          <h2 className="text-base font-semibold text-foreground">Dokumen</h2>
+          <h2 className="text-base font-bold text-foreground">Dokumen</h2>
         </div>
         <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <DocCard

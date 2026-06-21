@@ -35,7 +35,6 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
   return rawData.map((emp) => ({
     'BA': emp.ba,
     'BA CABANG': emp.baCabang,
-    'REGION': emp.region ?? '-',
     'CABANG': emp.cabang,
     'DEPARTEMEN': emp.department?.name ?? '-',
     'KODE DEPT': emp.department?.code ?? '-',
@@ -184,7 +183,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const previewCols = ['Nama Lengkap', 'Status', 'CABANG', 'Posisi', 'NIK', 'No KTP', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
   const visibleHeaders = headers.filter(h => previewCols.includes(h))
 
-  const selectCls = "h-8 pl-2.5 pr-7 text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 appearance-none cursor-pointer transition-all"
+  const selectCls = "h-8 pl-2.5 pr-7 text-base sm:text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 appearance-none cursor-pointer transition-all"
 
   return (
     <>

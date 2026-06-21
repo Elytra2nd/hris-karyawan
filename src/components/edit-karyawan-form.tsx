@@ -111,7 +111,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           {/* Header */}
           <div className="px-6 py-4 border-b border-border/60">
-            <h2 className="text-base font-semibold text-foreground">Formulir Pembaruan Data</h2>
+            <h2 className="text-base font-bold text-foreground">Formulir Pembaruan Data</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               Ubah informasi operasional dan identitas pribadi karyawan.
             </p>
@@ -356,7 +356,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
               <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
                 <UserCircleIcon className="h-4 w-4 text-primary" />
               </div>
-              <h2 className="text-base font-semibold text-foreground">Foto Karyawan</h2>
+              <h2 className="text-base font-bold text-foreground">Foto Karyawan</h2>
             </div>
             <div className="px-5 py-6 flex flex-col items-center">
               <ImageUpload
