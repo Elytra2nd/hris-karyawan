@@ -814,78 +814,86 @@ export default function DataKaryawanPage() {
                 <div
                   key={emp.id}
                   className={cn(
-                    'px-4 py-4 flex items-start gap-4',
+                    'px-4 py-4 flex flex-col gap-3',
                     isKritis && 'bg-red-50/40'
                   )}
                 >
-                  {/* Avatar */}
-                  {emp.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={emp.image} alt={`Foto ${emp.namaLengkap}`} className="h-10 w-10 rounded-full object-cover shrink-0 mt-0.5" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5">
-                      <User size={16} className="text-primary" />
-                    </div>
-                  )}
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{emp.namaLengkap}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {c?.posisi || '—'} · {emp.cabang}
-                          {emp.department && (
-                            <> · <span className="text-primary/70">{emp.department.name}</span></>
-                          )}
-                        </p>
+                  <div className="flex items-start gap-3">
+                    {/* Avatar */}
+                    {emp.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={emp.image} alt={`Foto ${emp.namaLengkap}`} className="h-10 w-10 rounded-full object-cover shrink-0 mt-0.5" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5">
+                        <User size={16} className="text-primary" />
                       </div>
-                      {getStatusChip(emp)}
-                    </div>
-                    <div className="flex items-center gap-4 mt-2 flex-wrap">
-                      {emp.nik && (
-                        <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
-                          {emp.nik}
-                        </span>
-                      )}
-                      {c && (
-                        <span className="text-xs text-muted-foreground">
-                          Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-foreground/80')}>
-                            {fmtDate(c.traineeSelesai)}
+                    )}
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground truncate">{emp.namaLengkap}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {c?.posisi || '—'} · {emp.cabang}
+                            {emp.department && (
+                              <> · <span className="text-primary/70">{emp.department.name}</span></>
+                            )}
+                          </p>
+                        </div>
+                        <div className="shrink-0">
+                          {getStatusChip(emp)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 mt-2 flex-wrap">
+                        {emp.nik && (
+                          <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
+                            {emp.nik}
                           </span>
-                        </span>
-                      )}
-                      {getDaysBadge(emp)}
+                        )}
+                        {c && (
+                          <span className="text-xs text-muted-foreground">
+                            Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-foreground/80')}>
+                              {fmtDate(c.traineeSelesai)}
+                            </span>
+                          </span>
+                        )}
+                        {getDaysBadge(emp)}
+                      </div>
                     </div>
                   </div>
 
                   {/* Action */}
-                  <div className="flex items-center gap-2 mt-1 shrink-0">
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
                     <Link
                       href={`/karyawan/${emp.id}`}
                       aria-label="Lihat detail"
-                      className="h-11 w-11 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
+                      className="h-8 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
                     >
-                      <Eye size={16} />
+                      <Eye size={14} />
+                      Detail
                     </Link>
                     {isAdmin && (
                       <>
                         <Link
                           href={`/karyawan/${emp.id}/edit`}
                           aria-label="Edit data"
-                          className="h-11 w-11 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
+                          className="h-8 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
                         >
-                          <Pencil size={16} />
+                          <Pencil size={14} />
+                          Edit
                         </Link>
                         <AlertDialog>
                           <AlertDialogTrigger
                             aria-label="Hapus"
                             disabled={isDeleting === emp.id}
-                            className="h-11 w-11 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
+                            className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors disabled:opacity-50 dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
                           >
-                            {isDeleting === emp.id
-                              ? <CircleNotch size={16} className="animate-spin" />
-                              : <Trash size={16} />}
+                            {isDeleting === emp.id ? (
+                              <><CircleNotch size={14} className="animate-spin" /> Hapus</>
+                            ) : (
+                              <><Trash size={14} /> Hapus</>
+                            )}
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>

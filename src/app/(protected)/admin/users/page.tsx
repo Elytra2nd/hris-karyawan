@@ -191,7 +191,7 @@ export default async function UserManagementPage({
         ) : (
           <div className="divide-y divide-border/60">
             {users.map((user) => (
-              <div key={user.id} className="px-4 py-4 flex items-center justify-between gap-4">
+              <div key={user.id} className="px-4 py-4 flex flex-col gap-3">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 border text-sm font-bold ${
                     user.role === 'ADMIN'      ? 'bg-amber-50 border-amber-200 text-amber-700' :
@@ -201,7 +201,7 @@ export default async function UserManagementPage({
                   }`}>
                     {user.username[0].toUpperCase()}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground truncate">{user.username}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <RoleBadge role={user.role} />
@@ -213,7 +213,7 @@ export default async function UserManagementPage({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
                   <EditRoleButton id={user.id} username={user.username} currentRole={user.role} />
                   <ResetPasswordButton id={user.id} username={user.username} />
                   <DeleteUserButton id={user.id} username={user.username} isSelf={user.id === currentUserId} />
