@@ -156,7 +156,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       <div className="lg:col-span-2 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="px-4 sm:px-5 py-2 sm:py-4 border-b border-border/60 space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-foreground">
+            <h2 className="text-base font-bold text-foreground">
               Departemen
               <span className="ml-2 text-xs font-normal text-muted-foreground">({depts.length})</span>
             </h2>
@@ -343,14 +343,14 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
                       <input
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
-                        className="w-full h-8 px-2 text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className="w-full h-8 px-2 text-base sm:text-sm border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
                         autoFocus
                         placeholder="Nama departemen"
                       />
                       <input
                         value={editCode}
                         onChange={e => setEditCode(e.target.value.toUpperCase())}
-                        className="w-24 h-8 px-2 text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        className="w-24 h-8 px-2 text-base sm:text-sm font-mono border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
                         placeholder="KODE"
                       />
                       <div className="flex gap-2 pt-1">
@@ -436,7 +436,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
       {/* ─── Create Form ─── */}
       <div className={cn('bg-card border border-border rounded-lg shadow-sm overflow-hidden transition-opacity', !showForm && 'opacity-50')}>
         <div className="px-5 py-4 border-b border-border/60">
-          <h2 className="text-base font-semibold text-foreground">Tambah Departemen</h2>
+          <h2 className="text-base font-bold text-foreground">Tambah Departemen</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Buat departemen baru untuk organisasi</p>
         </div>
         <form action={handleCreate} noValidate className="p-5 space-y-4">

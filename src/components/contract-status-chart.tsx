@@ -2,15 +2,13 @@
 
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
-// Semantic colors: Aman=green, Perhatian=amber, Kritis=red, Berakhir=slate
 const SEGMENT_COLORS = {
-  light: { aman: '#16a34a', perhatian: '#d97706', kritis: '#dc2626', berakhir: '#475569' },
-  dark:  { aman: '#4ade80', perhatian: '#fbbf24', kritis: '#f87171', berakhir: '#94a3b8' },
+  light: { aman: '#16a34a', perhatian: '#d97706', kritis: '#dc2626', berakhir: '#94a3b8' },
+  dark:  { aman: '#4ade80', perhatian: '#fbbf24', kritis: '#f87171', berakhir: '#64748b' },
 }
 
-// Map segment name → karyawan filter URL
 const FILTER_MAP: Record<string, string> = {
   'Aman':      '/karyawan?status=AKTIF',
   'Perhatian': '/karyawan?filter=expiring90',
@@ -32,7 +30,9 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
   const c = isDark ? SEGMENT_COLORS.dark : SEGMENT_COLORS.light
   const tooltipBg = isDark ? '#1e293b' : '#ffffff'
   const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
-  const legendColor = isDark ? '#cbd5e1' : '#64748b'
+
+  // C1: total untuk ditampilkan di lubang donut
+  const total = safe + warning + critical + expired
 
   const data = [
     { name: 'Aman',      value: safe,     color: c.aman },
@@ -50,32 +50,48 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
   }
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <PieChart style={{ cursor: 'pointer' }}>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="45%"
-          innerRadius={55}
-          outerRadius={85}
-          paddingAngle={2}
-          dataKey="value"
-          onClick={(entry: { name?: string }) => router.push(FILTER_MAP[entry.name ?? ''] ?? '/karyawan')}
-        >
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(value, name) => [`${value} orang`, `${name} - klik untuk filter`]}
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
-        />
-        <Legend
-          iconType="circle"
-          iconSize={8}
-          formatter={(value) => <span style={{ fontSize: 11, color: legendColor }}>{value}</span>}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="relative">
+      <ResponsiveContainer width="100%" height={200}>
+        {/* C2: Legend dihapus — SummaryRow di bawah sudah berisi info yang sama persis */}
+        <PieChart style={{ cursor: 'pointer' }}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={55}
+            outerRadius={85}
+            paddingAngle={2}
+            dataKey="value"
+            onClick={(entry: { name?: string }) => router.push(FILTER_MAP[entry.name ?? ''] ?? '/karyawan')}
+          >
+            {data.map((entry, i) => (
+              <Cell
+                key={i}
+                fill={entry.color}
+                tabIndex={0}
+                role="button"
+                aria-label={`${entry.name}: ${entry.value} orang - tekan Enter untuk filter`}
+                onKeyDown={(e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    router.push(FILTER_MAP[entry.name] ?? '/karyawan')
+                  }
+                }}
+              />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value, name) => [`${value} orang`, `${name} - klik untuk filter`]}
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+
+      {/* C1: angka total di lubang donut ("show the whole in the hole") */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-2xl font-bold text-foreground tabular-nums">{total}</span>
+        <span className="text-xs text-muted-foreground">kontrak</span>
+      </div>
+    </div>
   )
 }

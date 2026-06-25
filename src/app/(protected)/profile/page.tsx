@@ -122,7 +122,7 @@ export default async function ProfilePage() {
             <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
               <Key size={16} className="text-primary" />
             </div>
-            <h2 className="text-base font-semibold text-foreground">Ganti Password</h2>
+            <h2 className="text-base font-bold text-foreground">Ganti Password</h2>
           </div>
           <div className="p-5">
             <ChangePasswordForm />

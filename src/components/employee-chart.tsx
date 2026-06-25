@@ -2,11 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-
-// Astra brand palette - aligned with desain.md chart tokens
-const BAR_COLORS = ['#1d4ed8', '#0e7490', '#16a34a', '#ca8a04', '#dc2626', '#7c3aed']
-const BAR_COLORS_DARK = ['#3b82f6', '#22d3ee', '#4ade80', '#fbbf24', '#f87171', '#a78bfa']
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 
 interface Props {
   data: [posisi: string, count: number][]
@@ -17,12 +13,14 @@ export function EmployeeChart({ data }: Props) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const chartData = data.map(([posisi, jumlah]) => ({ posisi, jumlah }))
-  const palette = isDark ? BAR_COLORS_DARK : BAR_COLORS
-  const gridColor = isDark ? '#334155' : '#f1f5f9'
-  const tickColor = isDark ? '#94a3b8' : '#94a3b8'
-  const tooltipBg = isDark ? '#1e293b' : '#ffffff'
+
+  // A1: single Astra Blue — warna hanya encode "ini data", bukan dekorasi per-bar
+  const barColor     = isDark ? '#3b82f6' : '#1d4ed8'
+  const gridColor    = isDark ? '#334155' : '#e2e8f0'  // B4: slate-200 (tetap mundur)
+  const tickColor    = isDark ? '#94a3b8' : '#475569'  // B3: slate-600 (lebih gelap)
+  const tooltipBg    = isDark ? '#1e293b' : '#ffffff'
   const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
-  const cursorColor = isDark ? '#334155' : '#f1f5f9'
+  const cursorColor  = isDark ? '#334155' : '#f1f5f9'
 
   if (chartData.length === 0) {
     return (
@@ -33,10 +31,10 @@ export function EmployeeChart({ data }: Props) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height="100%" minHeight={240}>
       <BarChart
         data={chartData}
-        margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+        margin={{ top: 22, right: 4, left: -20, bottom: 0 }}
         style={{ cursor: 'pointer' }}
       >
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={gridColor} />
@@ -45,7 +43,7 @@ export function EmployeeChart({ data }: Props) {
           tick={{ fontSize: 12, fill: tickColor }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={v => v.length > 7 ? v.slice(0, 7) + '…' : v}
+          tickFormatter={v => v.length > 9 ? v.slice(0, 9) + '…' : v}
         />
         <YAxis
           tick={{ fontSize: 12, fill: tickColor }}
@@ -68,8 +66,26 @@ export function EmployeeChart({ data }: Props) {
             if (posisi) router.push(`/karyawan?posisi=${encodeURIComponent(posisi)}`)
           }}
         >
-          {chartData.map((_, i) => (
-            <Cell key={i} fill={palette[i % palette.length]} />
+          {/* C3: direct label di atas tiap bar — tidak perlu hover untuk baca nilai */}
+          <LabelList
+            dataKey="jumlah"
+            position="top"
+            style={{ fontSize: 11, fill: tickColor, fontWeight: 700 }}
+          />
+          {chartData.map((entry, i) => (
+            <Cell
+              key={i}
+              fill={barColor}
+              tabIndex={0}
+              role="button"
+              aria-label={`${entry.posisi}: ${entry.jumlah} orang - tekan Enter untuk filter`}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  router.push(`/karyawan?posisi=${encodeURIComponent(entry.posisi)}`)
+                }
+              }}
+            />
           ))}
         </Bar>
       </BarChart>
