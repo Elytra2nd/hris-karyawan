@@ -11,6 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
 import { bulkImportEmployees, type ImportRow } from '@/app/actions/import'
+import { normalizeRow, REQUIRED_COLS } from '@/lib/import-utils'
+import { createEmployeeSchema } from '@/lib/validation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -21,8 +23,6 @@ interface PreviewRow {
   status: RowStatus
   error?: string
 }
-
-const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
 export function downloadTemplate() {
   const wb = XLSX.utils.book_new()
@@ -203,16 +203,17 @@ export function ImportExcelButton() {
     const reader = new FileReader()
     reader.onload = (ev) => {
       const data = new Uint8Array(ev.target!.result as ArrayBuffer)
-      const wb = XLSX.read(data, { type: 'array' })
+      // cellDates: sel tanggal Excel dibaca sebagai objek Date (bukan serial)
+      const wb = XLSX.read(data, { type: 'array', cellDates: true })
       const ws = wb.Sheets[wb.SheetNames[0]]
 
       // Read all rows as raw arrays to find the actual header row
-      const rawRows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+      const rawRows: (string | number | Date)[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
 
       // Find header row: the row containing REQUIRED_COLS keys (with or without ★/○ prefix)
       let headerIdx = -1
       for (let i = 0; i < Math.min(rawRows.length, 5); i++) {
-        const rowKeys = rawRows[i].map((c: string) =>
+        const rowKeys = rawRows[i].map((c) =>
           String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
         )
         // If this row contains at least 3 required columns, it's the header
@@ -229,7 +230,7 @@ export function ImportExcelButton() {
       }
 
       // Build header keys from the detected header row
-      const headerKeys = rawRows[headerIdx].map((c: string) =>
+      const headerKeys = rawRows[headerIdx].map((c) =>
         String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
       )
 
@@ -237,7 +238,7 @@ export function ImportExcelButton() {
       // Data starts after header + 1 (sub-header row, if it looks like format hints)
       let dataStart = headerIdx + 1
       if (dataStart < rawRows.length) {
-        const nextRow = rawRows[dataStart].map((c: string) => String(c).toLowerCase().trim())
+        const nextRow = rawRows[dataStart].map((c) => String(c).toLowerCase().trim())
         const looksLikeSubHeader = nextRow.some(v =>
           v.includes('wajib') || v.includes('opsional') || v.includes('dropdown') ||
           v.includes('maks') || v.includes('min ') || v.includes('dd.mm')
@@ -245,23 +246,35 @@ export function ImportExcelButton() {
         if (looksLikeSubHeader) dataStart++
       }
 
+      // Ubah sel ke teks. Sel tanggal (Date dari cellDates) → ISO yyyy-MM-dd.
+      const cellToText = (cell: unknown): string => {
+        if (cell instanceof Date && !isNaN(cell.getTime())) {
+          const yyyy = cell.getFullYear()
+          const mm = String(cell.getMonth() + 1).padStart(2, '0')
+          const dd = String(cell.getDate()).padStart(2, '0')
+          return `${yyyy}-${mm}-${dd}`
+        }
+        return String(cell ?? '').trim()
+      }
+
       // Map remaining rows to objects using header keys
       const dataRows = rawRows.slice(dataStart)
-      const normalized = dataRows
-        .filter(row => row.some((c: string) => String(c).trim() !== ''))  // skip blank rows
+      const normalizedRaw = dataRows
+        .filter(row => row.some((c) => String(c).trim() !== ''))  // skip blank rows
         .map(row => {
           const out: Record<string, string> = {}
           headerKeys.forEach((key, idx) => {
-            if (key) out[key] = String(row[idx] ?? '').trim()
+            if (key) out[key] = cellToText(row[idx])
           })
           return out
         })
 
-      const preview: PreviewRow[] = normalized.map((raw, i) => {
-        // Quick client-side check for missing required columns
-        const missing = REQUIRED_COLS.filter(col => !raw[col] || raw[col] === '-')
-        if (missing.length > 0) {
-          return { index: i, raw, status: 'error', error: `Kolom kosong: ${missing.slice(0, 3).join(', ')}` }
+      // Validasi preview memakai schema yang SAMA dengan server (lewat normalizeRow),
+      // sehingga baris yang tampil "Siap" pasti lolos saat diimpor (bukan cuma cek kolom kosong).
+      const preview: PreviewRow[] = normalizedRaw.map((raw, i) => {
+        const parsed = createEmployeeSchema.safeParse(normalizeRow(raw))
+        if (!parsed.success) {
+          return { index: i, raw, status: 'error', error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }
         }
         return { index: i, raw, status: 'pending' }
       })
