@@ -293,6 +293,35 @@ function buildContractWhere(contractFilter: string, today: Date) {
   }
 }
 
+type SortableEmployee = {
+  namaLengkap: string
+  nik: string | null
+  cabang: string
+  contracts: { posisi: string; traineeSelesai: Date }[]
+}
+
+// Sort lintas seluruh dataset (bukan hanya halaman aktif). Kolom posisi/traineeSelesai
+// diturunkan dari kontrak terbaru, jadi sort dilakukan di server setelah fetch-all.
+function sortEmployeeRows<T extends SortableEmployee>(rows: T[], sortBy: string, sortDir: 'asc' | 'desc'): T[] {
+  const dir = sortDir === 'desc' ? -1 : 1
+  const getVal = (r: T): string => {
+    switch (sortBy) {
+      case 'nik':            return r.nik ?? ''
+      case 'cabang':         return r.cabang
+      case 'posisi':         return r.contracts[0]?.posisi ?? ''
+      case 'traineeSelesai': return r.contracts[0]?.traineeSelesai ? new Date(r.contracts[0].traineeSelesai).toISOString() : ''
+      default:               return r.namaLengkap
+    }
+  }
+  return [...rows].sort((a, b) => {
+    const va = getVal(a).toLowerCase()
+    const vb = getVal(b).toLowerCase()
+    if (va < vb) return -1 * dir
+    if (va > vb) return 1 * dir
+    return 0
+  })
+}
+
 export async function getEmployees({
   search = '',
   cabang = '',
@@ -302,6 +331,8 @@ export async function getEmployees({
   departmentId = '',
   page = 1,
   perPage = PER_PAGE,
+  sortBy = '',
+  sortDir = 'asc',
 }: {
   search?: string
   cabang?: string
@@ -311,6 +342,8 @@ export async function getEmployees({
   departmentId?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
 } = {}) {
   try {
     const today = new Date()
@@ -325,16 +358,16 @@ export async function getEmployees({
       ],
     }
 
-    const [employees, total] = await prisma.$transaction([
-      prisma.employee.findMany({
-        where,
-        include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
-        orderBy: { namaLengkap: 'asc' },
-        take: perPage,
-        skip: (page - 1) * perPage,
-      }),
-      prisma.employee.count({ where }),
-    ])
+    // Fetch seluruh hasil filter agar sort berlaku global (bukan per halaman),
+    // lalu paginate di memori. Skala data HRIS ini kecil sehingga aman.
+    const all = await prisma.employee.findMany({
+      where,
+      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
+    })
+
+    const sorted = sortEmployeeRows(all, sortBy, sortDir)
+    const total = sorted.length
+    const employees = sorted.slice((page - 1) * perPage, page * perPage)
 
     return { employees, total }
   } catch (error) {
@@ -361,17 +394,26 @@ export async function getDistinctCabang(): Promise<string[]> {
 export async function getEmployeeStats({
   search = '',
   cabang = '',
+  departmentId = '',
+  posisi = '',
 }: {
   search?: string
   cabang?: string
+  departmentId?: string
+  posisi?: string
 } = {}) {
   try {
     const today = startOfDay(new Date())
 
+    // Scope statistik mengikuti filter populasi (search/cabang/dept/posisi) agar
+    // angka kartu konsisten dengan tabel. Filter status & kontrak TIDAK diterapkan
+    // di sini karena justru itu yang dipecah oleh kartu-kartu ini.
     const baseWhere = {
       AND: [
         { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
         cabang ? { cabang } : {},
+        departmentId ? { departmentId } : {},
+        posisi ? { contracts: { some: { posisi } } } : {},
       ],
     }
 

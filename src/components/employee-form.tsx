@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { addMonths, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from '@phosphor-icons/react'
@@ -40,6 +40,8 @@ export function EmployeeForm({
   const [tglSelesai, setTglSelesai] = useState('')
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Kunci sinkron anti double-submit (disabled={isPending} tidak instan karena state async)
+  const submittingRef = useRef(false)
 
   // On-blur per-field validation pakai Zod schema shape
   const blurField = (name: keyof typeof createEmployeeSchema.shape, value: string) => {
@@ -64,6 +66,8 @@ export function EmployeeForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Cegah double-submit secara sinkron sebelum apa pun berjalan
+    if (submittingRef.current) return
     // Buat FormData dari DOM form secara synchronous — ini menjamin
     // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
     const formData = new FormData(e.currentTarget)
@@ -93,20 +97,28 @@ export function EmployeeForm({
       return
     }
 
+    submittingRef.current = true
     setErrors({})
     setIsPending(true)
+    let navigated = false
     try {
       const res = await action(formData)
       if (res && res.success === false) {
         toast.error(res.error)
-        setIsPending(false)
         return
       }
       toast.success('Data karyawan berhasil disimpan')
+      navigated = true
       router.push('/karyawan')
     } catch {
       toast.error('Koneksi terputus - coba simpan ulang')
-      setIsPending(false)
+    } finally {
+      // Pada sukses, biarkan tombol tetap terkunci sampai halaman pindah.
+      // Pada error, buka kunci agar bisa coba lagi.
+      if (!navigated) {
+        submittingRef.current = false
+        setIsPending(false)
+      }
     }
   }
 

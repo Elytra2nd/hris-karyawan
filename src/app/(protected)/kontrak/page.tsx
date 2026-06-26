@@ -31,6 +31,14 @@ import {
 const PER_PAGE = 15
 type SortKey = 'employeeName' | 'posisi' | 'employeeCabang' | 'traineeSelesai' | ''
 
+// Dideklarasikan di module-level (bukan dalam render) agar tidak reset tiap render
+function SortIcon({ col, sortCol, sortDir }: { col: SortKey; sortCol: SortKey; sortDir: 'asc' | 'desc' }) {
+  if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
+  return sortDir === 'asc'
+    ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
+    : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
+}
+
 export default function ManajemenKontrakPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -40,7 +48,7 @@ export default function ManajemenKontrakPage() {
   const [loading, setLoading] = useState(true)
 
   // URL-driven filter state
-  const search = searchParams.get('search') ?? ''
+  const urlSearch = searchParams.get('search') ?? ''
   const cabang = searchParams.get('cabang') ?? ''
   const status = searchParams.get('status') ?? ''
   const departmentFilter = searchParams.get('dept') ?? ''
@@ -55,7 +63,20 @@ export default function ManajemenKontrakPage() {
   const [departmentOptions, setDepartmentOptions] = useState<{ id: string; name: string }[]>([])
   const [posisiOptions, setPosisiOptions] = useState<string[]>([])
 
-  const debouncedSearch = useDebounce(search, 300)
+  // Input search pakai state lokal (responsif instan), lalu di-debounce
+  const [searchInput, setSearchInput] = useState(urlSearch)
+  const debouncedSearch = useDebounce(searchInput, 300)
+
+  // Sinkronkan hasil debounce ke URL pakai replace (tanpa spam history + tanpa input lag)
+  useEffect(() => {
+    if (debouncedSearch === urlSearch) return
+    const params = new URLSearchParams(searchParams)
+    if (debouncedSearch) params.set('search', debouncedSearch)
+    else params.delete('search')
+    params.set('page', '1')
+    router.replace(`?${params.toString()}`, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch])
 
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams)
@@ -70,25 +91,29 @@ export default function ManajemenKontrakPage() {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
+  // Fetch data. Flag `ignore` mencegah respons lama (out-of-order) menimpa yang baru.
   useEffect(() => {
+    let ignore = false
     const fetchData = async () => {
       setLoading(true)
       const [result, statsResult] = await Promise.all([
-        getContracts({ search: debouncedSearch, cabang, status, departmentId: departmentFilter, posisi: posisiFilter, page, perPage: PER_PAGE }),
+        getContracts({ search: debouncedSearch, cabang, status, departmentId: departmentFilter, posisi: posisiFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
         getContractStats({ search: debouncedSearch, cabang, departmentId: departmentFilter, posisi: posisiFilter }),
       ])
+      if (ignore) return
       setContracts(result.contracts)
       setTotal(result.total)
       setStats(statsResult)
       setLoading(false)
     }
     fetchData()
-  }, [debouncedSearch, cabang, status, departmentFilter, posisiFilter, page])
+    return () => { ignore = true }
+  }, [debouncedSearch, cabang, status, departmentFilter, posisiFilter, page, sortCol, sortDir])
 
   // Load filter options once on mount
-  useEffect(() => { getDistinctCabang().then(setCabangOptions) }, [])
-  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))) }, [])
-  useEffect(() => { getDistinctPosisi().then(setPosisiOptions) }, [])
+  useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
+  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))).catch(() => setDepartmentOptions([])) }, [])
+  useEffect(() => { getDistinctPosisi().then(setPosisiOptions).catch(() => setPosisiOptions([])) }, [])
 
   const totalPages = Math.ceil(total / PER_PAGE)
   const fmtDate = (d: string | Date) => format(new Date(d), 'dd MMM yyyy', { locale: localeID })
@@ -107,38 +132,14 @@ export default function ManajemenKontrakPage() {
     return p
   }, [page, totalPages])
 
-  // Client-side sort on current page
-  const sortedContracts = useMemo(() => {
-    if (!sortCol) return contracts
-    return [...contracts].sort((a, b) => {
-      let va: string, vb: string
-      if (sortCol === 'traineeSelesai') {
-        va = String(a.traineeSelesai)
-        vb = String(b.traineeSelesai)
-      } else {
-        va = String((a as Record<string, unknown>)[sortCol] ?? '')
-        vb = String((b as Record<string, unknown>)[sortCol] ?? '')
-      }
-      va = va.toLowerCase(); vb = vb.toLowerCase()
-      if (va < vb) return sortDir === 'asc' ? -1 : 1
-      if (va > vb) return sortDir === 'asc' ? 1 : -1
-      return 0
-    })
-  }, [contracts, sortCol, sortDir])
-
-  const rows = sortedContracts
+  // Sort dilakukan di server (lintas seluruh dataset, bukan hanya halaman aktif)
+  const rows = contracts
 
   const handleSort = (col: SortKey) => {
     if (sortCol === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else { setSortCol(col); setSortDir('asc') }
   }
 
-  const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
-    return sortDir === 'asc'
-      ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
-      : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
-  }
 
   const getStatusBadge = (row: ContractRow) => {
     switch (row.contractStatus) {
@@ -270,14 +271,14 @@ export default function ManajemenKontrakPage() {
           <div className="relative flex-1 max-w-sm">
             <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
-              value={search}
-              onChange={(e) => updateParams({ search: e.target.value })}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Cari nama atau NIK karyawan..."
               aria-label="Cari kontrak"
               className="w-full h-8 pl-8 pr-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
-            {search && (
-              <button onClick={() => updateParams({ search: '' })} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
+            {searchInput && (
+              <button onClick={() => setSearchInput('')} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
                 <XCircle size={16} />
               </button>
             )}
@@ -401,19 +402,19 @@ export default function ManajemenKontrakPage() {
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('employeeName')}
                 >
-                  Karyawan <SortIcon col="employeeName" />
+                  Karyawan <SortIcon col="employeeName" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('posisi')}
                 >
-                  Posisi <SortIcon col="posisi" />
+                  Posisi <SortIcon col="posisi" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('employeeCabang')}
                 >
-                  Cabang <SortIcon col="employeeCabang" />
+                  Cabang <SortIcon col="employeeCabang" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Mulai
@@ -422,7 +423,7 @@ export default function ManajemenKontrakPage() {
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('traineeSelesai')}
                 >
-                  Selesai <SortIcon col="traineeSelesai" />
+                  Selesai <SortIcon col="traineeSelesai" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Status
@@ -447,9 +448,9 @@ export default function ManajemenKontrakPage() {
                 <EmptyState
                   asTableRow
                   colSpan={7}
-                  icon={search || status || hasActiveFilters ? MagnifyingGlass : FileText}
-                  title={search || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
-                  description={search || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+                  icon={searchInput || status || hasActiveFilters ? MagnifyingGlass : FileText}
+                  title={searchInput || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
+                  description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
                 />
               ) : (
                 rows.map((row) => (
@@ -565,9 +566,9 @@ export default function ManajemenKontrakPage() {
           </div>
         ) : rows.length === 0 ? (
           <EmptyState
-            icon={search || status || hasActiveFilters ? MagnifyingGlass : FileText}
-            title={search || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
-            description={search || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+            icon={searchInput || status || hasActiveFilters ? MagnifyingGlass : FileText}
+            title={searchInput || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
+            description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
           />
         ) : (
           <div className="divide-y divide-border/60">

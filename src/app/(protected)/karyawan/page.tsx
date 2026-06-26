@@ -46,6 +46,14 @@ import { cn } from '@/lib/utils'
 const PER_PAGE = 10
 type SortKey = 'namaLengkap' | 'nik' | 'posisi' | 'cabang' | 'traineeSelesai' | ''
 
+// Dideklarasikan di module-level (bukan dalam render) agar tidak reset tiap render
+function SortIcon({ col, sortCol, sortDir }: { col: SortKey; sortCol: SortKey; sortDir: 'asc' | 'desc' }) {
+  if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
+  return sortDir === 'asc'
+    ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
+    : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
+}
+
 export default function DataKaryawanPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -56,7 +64,7 @@ export default function DataKaryawanPage() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   // Get from URL params, default to empty string
-  const search = searchParams.get('search') ?? ''
+  const urlSearch = searchParams.get('search') ?? ''
   const cabang = searchParams.get('cabang') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
   const contractFilter = searchParams.get('filter') ?? '' // expiring14 | expiring30 | expiring90 | expired
@@ -81,7 +89,7 @@ export default function DataKaryawanPage() {
       }
     })
     // Always reset to page 1 when filter changes
-    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined || updates.dept !== undefined) {
+    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined || updates.dept !== undefined || updates.posisi !== undefined) {
       params.set('page', '1')
     }
     router.push(`?${params.toString()}`, { scroll: false })
@@ -90,50 +98,51 @@ export default function DataKaryawanPage() {
   const { role } = useSidebar()
   const isAdmin = role === 'ADMIN'
 
-  // Debounce search 300ms to avoid query spam on every keystroke
-  const debouncedSearch = useDebounce(search, 300)
+  // Input search pakai state lokal (responsif instan), lalu di-debounce.
+  const [searchInput, setSearchInput] = useState(urlSearch)
+  const debouncedSearch = useDebounce(searchInput, 300)
 
-  const fetchData = async () => {
-    setLoading(true)
-    const [result, statsResult] = await Promise.all([
-      getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, departmentId: departmentFilter, page, perPage: PER_PAGE }),
-      getEmployeeStats({ search: debouncedSearch, cabang }),
-    ])
-    setEmployees(result.employees)
-    setTotal(result.total)
-    setStats(statsResult)
-    setLoading(false)
-  }
-  useEffect(() => { fetchData() }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, departmentFilter, page])
+  // Sinkronkan hasil debounce ke URL pakai replace (tanpa spam history + tanpa input lag)
+  useEffect(() => {
+    if (debouncedSearch === urlSearch) return
+    const params = new URLSearchParams(searchParams)
+    if (debouncedSearch) params.set('search', debouncedSearch)
+    else params.delete('search')
+    params.set('page', '1')
+    router.replace(`?${params.toString()}`, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch])
 
-  // Load cabang options once on mount (from all data, not just current page)
-  useEffect(() => { getDistinctCabang().then(setCabangOptions) }, [])
-  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))) }, [])
+  // Fetch data. Flag `ignore` mencegah respons lama (out-of-order) menimpa yang baru.
+  useEffect(() => {
+    let ignore = false
+    const run = async () => {
+      setLoading(true)
+      const [result, statsResult] = await Promise.all([
+        getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, departmentId: departmentFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
+        getEmployeeStats({ search: debouncedSearch, cabang, departmentId: departmentFilter, posisi: posisiFilter }),
+      ])
+      if (ignore) return
+      setEmployees(result.employees)
+      setTotal(result.total)
+      setStats(statsResult)
+      setLoading(false)
+    }
+    run()
+    return () => { ignore = true }
+  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, departmentFilter, page, sortCol, sortDir])
+
+  // Load opsi filter sekali saat mount (dari seluruh data, bukan halaman aktif)
+  useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
+  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))).catch(() => setDepartmentOptions([])) }, [])
 
 
 
   const now = new Date()
 
-  // Sort is applied client-side on the current page (server handles filtering + pagination)
-  const sortedEmployees = useMemo(() => {
-    if (!sortCol) return employees
-    return [...employees].sort((a, b) => {
-      let va: string, vb: string
-      if (sortCol === 'posisi') { va = a.contracts?.[0]?.posisi ?? ''; vb = b.contracts?.[0]?.posisi ?? '' }
-      else if (sortCol === 'traineeSelesai') {
-        va = a.contracts?.[0]?.traineeSelesai ? String(a.contracts[0].traineeSelesai) : ''
-        vb = b.contracts?.[0]?.traineeSelesai ? String(b.contracts[0].traineeSelesai) : ''
-      }
-      else { va = String((a as Record<string, unknown>)[sortCol] ?? ''); vb = String((b as Record<string, unknown>)[sortCol] ?? '') }
-      va = va.toLowerCase(); vb = vb.toLowerCase()
-      if (va < vb) return sortDir === 'asc' ? -1 : 1
-      if (va > vb) return sortDir === 'asc' ? 1 : -1
-      return 0
-    })
-  }, [employees, sortCol, sortDir])
-
   const totalPages = Math.ceil(total / PER_PAGE)
-  const rows = sortedEmployees
+  // Sort dilakukan di server (lintas seluruh dataset, bukan hanya halaman aktif)
+  const rows = employees
 
   const pageNums = useMemo(() => {
     const p: (number | string)[] = []
@@ -217,13 +226,6 @@ export default function DataKaryawanPage() {
       return <span className="text-xs font-medium text-muted-foreground">{d}h</span>
     }
     return <span className="inline-flex items-center gap-1 text-xs text-green-600"><CheckCircle size={12} /> {d}h</span>
-  }
-
-  const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortCol !== col) return <ArrowsDownUp size={12} className="ml-1 text-muted-foreground/50 inline-block" />
-    return sortDir === 'asc'
-      ? <ArrowUp size={12} className="ml-1 text-primary inline-block" />
-      : <ArrowDown size={12} className="ml-1 text-primary inline-block" />
   }
 
   return (
@@ -354,14 +356,14 @@ export default function DataKaryawanPage() {
           <div className="relative flex-1 max-w-sm">
             <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
-              value={search}
-              onChange={(e) => updateParams({ search: e.target.value })}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Cari nama, NIK, atau posisi..."
               aria-label="Cari karyawan"
               className="w-full h-8 pl-8 pr-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
-            {search && (
-              <button onClick={() => updateParams({ search: '' })} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
+            {searchInput && (
+              <button onClick={() => setSearchInput('')} aria-label="Hapus pencarian" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/70">
                 <XCircle size={16} />
               </button>
             )}
@@ -488,25 +490,25 @@ export default function DataKaryawanPage() {
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('namaLengkap')}
                 >
-                  Nama Karyawan <SortIcon col="namaLengkap" />
+                  Nama Karyawan <SortIcon col="namaLengkap" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('nik')}
                 >
-                  NIK <SortIcon col="nik" />
+                  NIK <SortIcon col="nik" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('posisi')}
                 >
-                  Posisi <SortIcon col="posisi" />
+                  Posisi <SortIcon col="posisi" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('cabang')}
                 >
-                  Cabang <SortIcon col="cabang" />
+                  Cabang <SortIcon col="cabang" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Departemen
@@ -518,7 +520,7 @@ export default function DataKaryawanPage() {
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('traineeSelesai')}
                 >
-                  Selesai <SortIcon col="traineeSelesai" />
+                  Selesai <SortIcon col="traineeSelesai" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th className="px-4 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Sisa
@@ -558,15 +560,15 @@ export default function DataKaryawanPage() {
                 <EmptyState
                   asTableRow
                   colSpan={11}
-                  icon={search || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
-                  title={search || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+                  icon={searchInput || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
+                  title={searchInput || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
                   description={
-                    search || cabang || statusFilter || contractFilter
+                    searchInput || cabang || statusFilter || contractFilter
                       ? 'Coba ubah filter atau kata kunci pencarian'
                       : 'Tambahkan karyawan pertama atau import dari Excel'
                   }
                   action={
-                    !search && !cabang && !statusFilter && !contractFilter && isAdmin
+                    !searchInput && !cabang && !statusFilter && !contractFilter && isAdmin
                       ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                       : undefined
                   }
@@ -788,15 +790,15 @@ export default function DataKaryawanPage() {
           </div>
         ) : rows.length === 0 ? (
           <EmptyState
-            icon={search || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
-            title={search || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
+            icon={searchInput || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
+            title={searchInput || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
             description={
-              search || cabang || statusFilter || contractFilter
+              searchInput || cabang || statusFilter || contractFilter
                 ? 'Coba ubah filter atau kata kunci'
                 : 'Tambahkan karyawan pertama atau import dari Excel'
             }
             action={
-              !search && !cabang && !statusFilter && !contractFilter && isAdmin
+              !searchInput && !cabang && !statusFilter && !contractFilter && isAdmin
                 ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                 : undefined
             }
