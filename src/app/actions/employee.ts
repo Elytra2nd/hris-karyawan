@@ -31,6 +31,11 @@ function isUniqueKtpError(error: unknown): boolean {
   return Array.isArray(target) ? target.includes('noKtp') : String(target ?? '').includes('noKtp')
 }
 
+// Prisma P2003 = foreign key constraint. Untuk Employee, FK satu-satunya adalah cabang -> Branch.code.
+function isCabangFkError(error: unknown): boolean {
+  return (error as { code?: string })?.code === 'P2003'
+}
+
 // ─── Create Employee ──────────────────────────────────────────────────────────
 export async function createEmployee(formData: FormData) {
   const session = await requirePermission('employee_create')
@@ -69,6 +74,9 @@ export async function createEmployee(formData: FormData) {
   } catch (error) {
     if (isUniqueKtpError(error)) {
       return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE')
+    }
+    if (isCabangFkError(error)) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
     }
     logger.error('createEmployee failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan data - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -121,6 +129,9 @@ export async function updateEmployee(id: string, formData: FormData) {
   } catch (error) {
     if (isUniqueKtpError(error)) {
       return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE')
+    }
+    if (isCabangFkError(error)) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')

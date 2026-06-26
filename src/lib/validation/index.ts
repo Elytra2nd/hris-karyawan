@@ -44,7 +44,9 @@ export type AppRole = (typeof ROLE_VALID)[number]
 export const createEmployeeSchema = z.object({
   ba: z.string().min(1, 'Kode BA wajib diisi').max(20),
   baCabang: z.string().min(1, 'BA Cabang wajib diisi').max(100),
-  cabang: z.enum(CABANG_VALID, { message: 'Cabang tidak valid' }),
+  // Cabang divalidasi terhadap tabel Branch (dinamis), bukan daftar statis.
+  // Keberadaan kode cabang dijamin oleh foreign key Employee.cabang -> Branch.code.
+  cabang: z.string().min(1, 'Cabang wajib dipilih').max(20),
   namaLengkap: z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang'),
   nik: z.string().max(20).optional().nullable(),
   noKtp: z.string()
