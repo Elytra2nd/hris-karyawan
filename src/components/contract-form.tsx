@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { addMonths, format } from 'date-fns'
 import { Label } from '@/components/ui/label'
@@ -58,7 +58,12 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     }
   }, [posisi, tglMulai])
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // Buat FormData dari DOM form secara synchronous — menjamin semua
+    // input (SelectCombobox hidden input, DatePicker) terkumpul.
+    const formData = new FormData(e.currentTarget)
+
     // Client-side Zod validation
     const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
@@ -115,7 +120,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)
 
   return (
-    <form action={handleSubmit} noValidate className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
 
       {/* Posisi */}
       <div className="space-y-2">

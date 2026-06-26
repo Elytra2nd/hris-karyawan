@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Buildings, Plus, Trash, CircleNotch, Users, MagnifyingGlass, Pencil, Check, X } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
@@ -52,7 +52,10 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     [depts, search]
   )
 
-  const handleCreate = async (formData: FormData) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
     // Client-side Zod validation
     const raw = {
       name: formData.get('name')?.toString().trim() ?? '',
@@ -439,7 +442,7 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
           <h2 className="text-base font-bold text-foreground">Tambah Departemen</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Buat departemen baru untuk organisasi</p>
         </div>
-        <form action={handleCreate} noValidate className="p-5 space-y-4">
+        <form onSubmit={handleCreate} noValidate className="p-5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="dept-name" className="form-label">Nama Departemen <span className="text-red-500">*</span></Label>
             <Input

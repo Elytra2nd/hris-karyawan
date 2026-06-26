@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
@@ -65,7 +65,12 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     }
   }
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // Buat FormData dari DOM form secara synchronous — ini menjamin
+    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
+    const formData = new FormData(e.currentTarget)
+
     const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
@@ -117,7 +122,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
             </p>
           </div>
 
-          <form action={handleSubmit} noValidate onChange={() => setIsDirty(true)} className="px-6 py-6 space-y-8">
+          <form onSubmit={handleSubmit} noValidate onChange={() => setIsDirty(true)} className="px-6 py-6 space-y-8">
 
             {/* ─── A. Data Operasional ─── */}
             <section className="space-y-4">

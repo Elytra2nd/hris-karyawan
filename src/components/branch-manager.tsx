@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, Plus, Trash, CircleNotch, Users, MagnifyingGlass, Pencil, Check, X } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
@@ -52,7 +52,10 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
     [branches, search]
   )
 
-  const handleCreate = async (formData: FormData) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
     const raw = {
       code: formData.get('code')?.toString().trim().toUpperCase() ?? '',
       label: formData.get('label')?.toString().trim().toUpperCase() ?? '',
@@ -437,7 +440,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
           <h2 className="text-base font-bold text-foreground">Tambah Cabang</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Buat cabang baru untuk organisasi</p>
         </div>
-        <form action={handleCreate} noValidate className="p-5 space-y-4">
+        <form onSubmit={handleCreate} noValidate className="p-5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="branch-code" className="form-label">Kode Cabang <span className="text-red-500">*</span></Label>
             <Input

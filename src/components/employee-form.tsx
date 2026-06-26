@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { addMonths, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from '@phosphor-icons/react'
@@ -62,7 +62,12 @@ export function EmployeeForm({
     }
   }, [posisi, tglMulai])
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // Buat FormData dari DOM form secara synchronous — ini menjamin
+    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
+    const formData = new FormData(e.currentTarget)
+
     // Client-side validation - instant feedback before round-trip
     const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
@@ -106,7 +111,7 @@ export function EmployeeForm({
   }
 
   return (
-    <form action={handleSubmit} noValidate className="space-y-8">
+    <form onSubmit={handleSubmit} noValidate className="space-y-8">
 
       {/* ─── A. Data Operasional ─── */}
       <section className="space-y-4">
