@@ -12,6 +12,7 @@ import {
   MagnifyingGlass,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
+import { NativeSelect } from '@/components/ui/native-select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { getAllEmployeesForExport } from '@/app/actions/employee'
 import { format } from 'date-fns'
@@ -183,7 +184,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const previewCols = ['Nama Lengkap', 'Status', 'CABANG', 'Posisi', 'NIK', 'No KTP', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
   const visibleHeaders = headers.filter(h => previewCols.includes(h))
 
-  const selectCls = "h-8 pl-2.5 pr-7 text-base sm:text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 appearance-none cursor-pointer transition-all"
+  const selectCls = "rounded-lg sm:text-xs"
 
   return (
     <>
@@ -249,20 +250,20 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
               />
             </div>
 
-            <select value={filterCabang} onChange={e => setFilterCabang(e.target.value)} aria-label="Filter cabang" className={selectCls}>
+            <NativeSelect value={filterCabang} onChange={e => setFilterCabang(e.target.value)} aria-label="Filter cabang" className={selectCls}>
               <option value="">Semua Cabang</option>
               {cabangOpts.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            </NativeSelect>
 
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} aria-label="Filter status" className={selectCls}>
+            <NativeSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)} aria-label="Filter status" className={selectCls}>
               <option value="">Semua Status</option>
               {statusOpts.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            </NativeSelect>
 
-            <select value={filterPosisi} onChange={e => setFilterPosisi(e.target.value)} className={selectCls}>
+            <NativeSelect value={filterPosisi} onChange={e => setFilterPosisi(e.target.value)} aria-label="Filter posisi" className={selectCls}>
               <option value="">Semua Posisi</option>
               {posisiOpts.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+            </NativeSelect>
 
             {hasFilter && (
               <button onClick={reset} className="flex items-center gap-1 h-8 px-4 text-xs font-medium text-red-500 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors">

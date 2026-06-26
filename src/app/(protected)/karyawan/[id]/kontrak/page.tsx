@@ -4,7 +4,7 @@ import { createContract } from '@/app/actions/employee'
 import { ContractForm } from '@/components/contract-form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle, ArrowLeft } from '@phosphor-icons/react/ssr'
+import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle } from '@phosphor-icons/react/ssr'
 import { format, differenceInDays } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
@@ -33,27 +33,27 @@ export default async function TambahKontrakPage({
     : null
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-3xl mx-auto space-y-5">
 
-      {/* ─── Page Header with Back ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Kelola Kontrak</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Menerbitkan kontrak baru untuk{' '}
-            <span className="font-semibold text-foreground/80">{employee.namaLengkap}</span>
-            {employee.cabang && (
-              <span className="text-muted-foreground/70"> · {employee.cabang}</span>
-            )}
-          </p>
-        </div>
-        <Link
-          href={`/karyawan/${id}`}
-          className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-border bg-card text-sm font-medium text-foreground/70 hover:bg-muted/50 hover:text-foreground transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <ArrowLeft size={16} aria-hidden="true" />
-          Kembali ke Detail
-        </Link>
+      {/* ─── Back link (konsisten dengan tambah/edit) ─── */}
+      <Link
+        href={`/karyawan/${id}`}
+        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
+      >
+        <CaretLeft size={16} />
+        Kembali ke Detail Karyawan
+      </Link>
+
+      {/* ─── Page Header ─── */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Kelola Kontrak</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Menerbitkan kontrak baru untuk{' '}
+          <span className="font-semibold text-foreground">{employee.namaLengkap}</span>
+          {employee.cabang && (
+            <span> · {employee.cabang}</span>
+          )}
+        </p>
       </div>
 
       <div className="max-w-2xl space-y-8">

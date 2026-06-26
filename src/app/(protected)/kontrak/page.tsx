@@ -12,6 +12,7 @@ import {
   ArrowsDownUp, ArrowUp, ArrowDown, Sliders, User,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
+import { NativeSelect } from '@/components/ui/native-select'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -162,7 +163,7 @@ export default function ManajemenKontrakPage() {
   const hasActiveFilters = cabang || departmentFilter || posisiFilter
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
 
       {/* ─── Page Header ─── */}
       <div>
@@ -347,39 +348,36 @@ export default function ManajemenKontrakPage() {
           <div className="flex flex-wrap gap-6 px-4 py-4 rounded-md bg-muted/50 border border-border items-end">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Cabang</label>
-              <select
+              <NativeSelect
                 value={cabang}
                 onChange={(e) => updateParams({ cabang: e.target.value })}
                 aria-label="Filter cabang"
-                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Cabang</option>
                 {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Departemen</label>
-              <select
+              <NativeSelect
                 value={departmentFilter}
                 onChange={(e) => updateParams({ dept: e.target.value })}
                 aria-label="Filter departemen"
-                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Departemen</option>
                 {departmentOptions.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Posisi</label>
-              <select
+              <NativeSelect
                 value={posisiFilter}
                 onChange={(e) => updateParams({ posisi: e.target.value })}
                 aria-label="Filter posisi"
-                className="h-8 px-2 pr-7 text-sm border border-border rounded-md bg-card text-foreground/80 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
               >
                 <option value="">Semua Posisi</option>
                 {posisiOptions.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             {hasActiveFilters && (
               <button

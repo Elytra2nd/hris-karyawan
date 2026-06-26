@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useCallback } from 'react'
+import { NativeSelect } from '@/components/ui/native-select'
 
 const ROLE_OPTIONS = [
   { value: '', label: 'Semua Role' },
@@ -41,16 +42,15 @@ export function UserFilters({ q, role }: { q: string; role: string }) {
           </button>
         )}
       </div>
-      <select
+      <NativeSelect
         value={role}
         onChange={e => push({ role: e.target.value })}
         aria-label="Filter role pengguna"
-        className="h-8 w-fit px-3 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
       >
         {ROLE_OPTIONS.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useCallback } from 'react'
+import { NativeSelect } from '@/components/ui/native-select'
 
 const ACTION_OPTIONS = [
   { value: '', label: 'Semua Aksi' },
@@ -48,16 +49,15 @@ export function AuditFilters({ q, actionFilter }: { q: string; actionFilter: str
       </div>
 
       {/* Action filter */}
-      <select
+      <NativeSelect
         value={actionFilter}
         onChange={e => push({ action: e.target.value })}
         aria-label="Filter jenis aksi"
-        className="h-8 px-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-foreground"
       >
         {ACTION_OPTIONS.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   )
 }

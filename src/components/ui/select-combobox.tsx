@@ -77,10 +77,12 @@ export function SelectCombobox({
           <ComboboxList>
             {(item: ComboboxOption) => (
               <ComboboxItem key={item.value} value={item}>
-                <span>{item.label}</span>
-                {item.hint && (
-                  <span className="ml-auto text-xs text-muted-foreground">{item.hint}</span>
-                )}
+                <span className="flex items-center justify-between gap-4 w-full">
+                  <span>{item.label}</span>
+                  {item.hint && (
+                    <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{item.hint}</span>
+                  )}
+                </span>
               </ComboboxItem>
             )}
           </ComboboxList>
