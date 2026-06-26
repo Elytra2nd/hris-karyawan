@@ -191,10 +191,16 @@ export function ContractList({
 
                   {/* Status */}
                   <td className="px-5 py-4 text-center">
-                    {isActive && !isExpired ? (
-                      <span className="chip-aktif">Berjalan</span>
-                    ) : (
+                    {!isActive ? (
                       <span className="chip-nonaktif">Selesai</span>
+                    ) : isExpired ? (
+                      <span className="chip-expired">Expired</span>
+                    ) : isKritis ? (
+                      <span className="chip-expired">Kritis · {daysLeft}h</span>
+                    ) : isMendekat ? (
+                      <span className="chip-warning">Segera · {daysLeft}h</span>
+                    ) : (
+                      <span className="chip-aktif">Berjalan</span>
                     )}
                   </td>
 
@@ -220,6 +226,7 @@ export function ContractList({
             new Date(contract.traineeSejak)
           )
           const isKritis = isActive && !isExpired && daysLeft <= 14
+          const isMendekat = isActive && !isExpired && daysLeft > 14 && daysLeft <= 30
 
           return (
             <div
@@ -250,9 +257,17 @@ export function ContractList({
                   )}>
                     {contract.posisi}
                   </p>
-                  {isActive && !isExpired
-                    ? <span className="chip-aktif">Berjalan</span>
-                    : <span className="chip-nonaktif">Selesai</span>}
+                  {!isActive ? (
+                    <span className="chip-nonaktif">Selesai</span>
+                  ) : isExpired ? (
+                    <span className="chip-expired">Expired</span>
+                  ) : isKritis ? (
+                    <span className="chip-expired">Kritis · {daysLeft}h</span>
+                  ) : isMendekat ? (
+                    <span className="chip-warning">Segera · {daysLeft}h</span>
+                  ) : (
+                    <span className="chip-aktif">Berjalan</span>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(contract.traineeSejak), 'dd MMM yyyy', { locale: localeID })}

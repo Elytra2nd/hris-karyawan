@@ -12,6 +12,7 @@ import {
 import { ContractList } from '@/components/contract-list'
 import { ActivityTimeline } from '@/components/activity-timeline'
 import { EmployeeDetailActions } from '@/components/employee-detail-actions'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 export default async function DetailKaryawanPage({
@@ -210,8 +211,11 @@ export default async function DetailKaryawanPage({
             <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
             <InfoItem
               label="Status Karyawan"
-              value={employee.status}
-              valueClassName={employee.status === 'AKTIF' ? 'text-green-700 font-semibold' : 'text-red-600 font-semibold'}
+              value={
+                employee.status === 'AKTIF'
+                  ? <span className="chip-aktif">Aktif</span>
+                  : <span className="chip-nonaktif">Non-Aktif</span>
+              }
             />
           </div>
         </div>
@@ -228,13 +232,26 @@ export default async function DetailKaryawanPage({
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
             <InfoItem label="Nama Cabang" value={employee.branch ? `${employee.branch.label} (${employee.cabang})` : employee.cabang} />
-            <InfoItem label="Posisi Terakhir" value={latestContract?.posisi || '-'} />
+            <InfoItem
+              label="Posisi Terakhir"
+              value={
+                latestContract?.posisi
+                  ? <Badge variant="secondary" className="uppercase">{latestContract.posisi}</Badge>
+                  : '-'
+              }
+            />
             <InfoItem
               label="Departemen"
-              value={employee.department ? `${employee.department.name} (${employee.department.code})` : 'Belum ditugaskan'}
-              valueClassName={!employee.department ? 'text-muted-foreground italic' : undefined}
+              value={
+                employee.department
+                  ? <Badge variant="secondary">{employee.department.name} ({employee.department.code})</Badge>
+                  : <Badge variant="outline" className="text-muted-foreground font-normal">Belum ditugaskan</Badge>
+              }
             />
-            <InfoItem label="Total Kontrak" value={`${employee.contracts.length} kontrak`} />
+            <InfoItem
+              label="Total Kontrak"
+              value={<Badge variant="secondary">{employee.contracts.length} kontrak</Badge>}
+            />
             <InfoItem
               label="Dibuat"
               value={format(new Date(employee.createdAt), 'dd MMM yyyy', { locale: localeID })}
@@ -278,7 +295,11 @@ export default async function DetailKaryawanPage({
             label="Form Consent"
             icon={<Hash size={22} className="text-teal-400" />}
             available={!!employee.formConsent}
-            customValue={employee.formConsent || undefined}
+            customValue={
+              employee.formConsent
+                ? <span className={employee.formConsent === 'ADA' ? 'chip-aktif' : 'chip-warning'}>{employee.formConsent}</span>
+                : undefined
+            }
           />
         </div>
       </div>
@@ -307,7 +328,7 @@ function InfoItem({
   valueClassName,
 }: {
   label: string
-  value: string
+  value: React.ReactNode
   mono?: boolean
   valueClassName?: string
 }) {
@@ -338,7 +359,7 @@ function DocCard({
   icon: React.ReactNode
   available: boolean
   href?: string
-  customValue?: string
+  customValue?: React.ReactNode
 }) {
   return (
     <div className={cn(
@@ -353,26 +374,23 @@ function DocCard({
       </div>
       <p className="text-xs font-semibold text-foreground/70 leading-snug">{label}</p>
       {customValue ? (
-        <p className="text-xs text-foreground/80 font-mono">{customValue}</p>
+        customValue
       ) : available ? (
         href ? (
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-green-700 flex items-center gap-1 hover:underline"
-          >
-            <CheckCircle size={12} /> Tersedia
+          <a href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+            <Badge className="gap-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+              <CheckCircle size={12} /> Tersedia
+            </Badge>
           </a>
         ) : (
-          <span className="text-xs font-semibold text-green-700 flex items-center gap-1">
+          <Badge className="gap-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
             <CheckCircle size={12} /> Tersedia
-          </span>
+          </Badge>
         )
       ) : (
-        <span className="text-xs font-semibold text-muted-foreground/70 flex items-center gap-1">
+        <Badge variant="outline" className="gap-1 text-muted-foreground font-normal">
           <XCircle size={12} /> Belum ada
-        </span>
+        </Badge>
       )}
     </div>
   )
