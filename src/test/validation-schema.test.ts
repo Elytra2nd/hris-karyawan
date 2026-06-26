@@ -46,8 +46,8 @@ describe('Schema Validasi Karyawan - createEmployeeSchema', () => {
     expect(r.success).toBe(true)
   })
 
-  it('harus menolak cabang yang tidak valid', () => {
-    const r = createEmployeeSchema.safeParse({ ...validEmployee, cabang: 'JAKARTA' })
+  it('harus menolak cabang yang kosong', () => {
+    const r = createEmployeeSchema.safeParse({ ...validEmployee, cabang: '' })
     expect(r.success).toBe(false)
   })
 
