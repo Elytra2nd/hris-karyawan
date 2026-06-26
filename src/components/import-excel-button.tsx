@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Upload, MicrosoftExcelLogoIcon, WarningCircle, CheckCircle,
-  CircleNotch, Download, X, WarningIcon, CaretDown,
+  CircleNotch, Download, X, WarningIcon, CaretDown, MagnifyingGlass,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
@@ -277,6 +277,23 @@ export function ImportExcelButton() {
   const validRows = rows.filter(r => r.status !== 'error')
   const errorRows = rows.filter(r => r.status === 'error')
 
+  // Filter preview (memudahkan saat baris banyak): status + cari nama/KTP
+  const [rowFilter, setRowFilter] = useState<'all' | 'ok' | 'error'>('all')
+  const [rowSearch, setRowSearch] = useState('')
+  const displayedRows = useMemo(() => {
+    const q = rowSearch.trim().toLowerCase()
+    return rows.filter(r => {
+      const matchStatus =
+        rowFilter === 'all' ? true
+          : rowFilter === 'error' ? r.status === 'error'
+            : r.status !== 'error'
+      const matchSearch = !q
+        || (r.raw['NAMA LENGKAP'] ?? '').toLowerCase().includes(q)
+        || (r.raw['NO KTP'] ?? '').includes(rowSearch.trim())
+      return matchStatus && matchSearch
+    })
+  }, [rows, rowFilter, rowSearch])
+
   const handleImport = async () => {
     if (validRows.length === 0) return
     setImporting(true)
@@ -314,6 +331,8 @@ export function ImportExcelButton() {
     setRows([])
     setFileName('')
     setDone(null)
+    setRowFilter('all')
+    setRowSearch('')
     setOpen(false)
   }
 
@@ -412,6 +431,46 @@ export function ImportExcelButton() {
             </button>
           </div>
 
+          {/* Filter bar - memudahkan menelusuri baris saat data banyak */}
+          {rows.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 px-6 py-2 border-b border-border/60 bg-card">
+              <div className="relative">
+                <MagnifyingGlass size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none" />
+                <input
+                  value={rowSearch}
+                  onChange={e => setRowSearch(e.target.value)}
+                  placeholder="Cari nama / No KTP..."
+                  aria-label="Cari baris import"
+                  className="h-8 pl-7 pr-3 w-52 text-base sm:text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
+                />
+              </div>
+              <div className="flex items-center gap-1 ml-auto">
+                {([
+                  ['all', `Semua (${rows.length})`],
+                  ['ok', `Siap (${validRows.length})`],
+                  ['error', `Error (${errorRows.length})`],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setRowFilter(key)}
+                    className={cn(
+                      'h-8 px-3 text-xs font-semibold rounded-lg border transition-colors',
+                      rowFilter === key
+                        ? key === 'error'
+                          ? 'bg-red-500/10 border-red-300 text-red-600'
+                          : key === 'ok'
+                            ? 'bg-emerald-500/10 border-emerald-300 text-emerald-700'
+                            : 'bg-primary/10 border-primary/30 text-primary'
+                        : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           <div className="flex-1 overflow-auto">
             <table className="w-full border-collapse text-xs">
@@ -428,9 +487,16 @@ export function ImportExcelButton() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, i) => (
+                {displayedRows.length === 0 && (
+                  <tr>
+                    <td colSpan={displayCols.length + 3} className="px-3 py-8 text-center text-muted-foreground">
+                      Tidak ada baris yang cocok dengan filter
+                    </td>
+                  </tr>
+                )}
+                {displayedRows.map((row, i) => (
                   <tr
-                    key={i}
+                    key={row.index}
                     className={cn(
                       'border-b border-border/60',
                       row.status === 'error' ? 'bg-red-50' : row.status === 'ok' ? 'bg-green-50' : i % 2 === 0 ? 'bg-card' : 'bg-muted/60'

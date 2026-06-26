@@ -30,7 +30,7 @@ export function EmployeeForm({
   departments = [],
   branches = [],
 }: {
-  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
+  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   departments?: Department[]
   branches?: Branch[]
 }) {
@@ -104,6 +104,12 @@ export function EmployeeForm({
     try {
       const res = await action(formData)
       if (res && res.success === false) {
+        // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
+        if (res.fields && Object.keys(res.fields).length > 0) {
+          setErrors(res.fields)
+          const firstField = Object.keys(res.fields)[0]
+          if (firstField) document.getElementById(firstField)?.focus()
+        }
         toast.error(res.error)
         return
       }

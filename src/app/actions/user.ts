@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 import { requireAdmin } from '@/lib/auth-guard'
 import { createUserSchema, formDataToObject } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
+import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import { createAuditLog } from '@/lib/audit'
 
@@ -64,6 +65,7 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ id:
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    if (isUniqueViolation(error, 'username')) return fail('Username ini sudah dipakai - gunakan username lain', 'DUPLICATE', { username: 'Username ini sudah dipakai' })
     logger.error('createUser failed', { error: String(error) })
     return fail('Kami belum bisa membuat akun - coba kirim ulang', 'SERVER_ERROR')
   }

@@ -22,7 +22,7 @@ interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
+  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   departments?: Department[]
   branches?: Branch[]
 }
@@ -113,6 +113,12 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     try {
       const res = await updateAction(formData)
       if (res && res.success === false) {
+        // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
+        if (res.fields && Object.keys(res.fields).length > 0) {
+          setErrors(res.fields)
+          const firstField = Object.keys(res.fields)[0]
+          if (firstField) document.getElementById(firstField)?.focus()
+        }
         toast.error(res.error)
         return
       }

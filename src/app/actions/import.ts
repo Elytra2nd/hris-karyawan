@@ -6,6 +6,7 @@ import { addMonths, parse, isValid, format } from 'date-fns'
 import { requirePermission } from "@/lib/auth-guard"
 import { createAuditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
+import { isUniqueViolation, isForeignKeyViolation } from '@/lib/prisma-error'
 import { createEmployeeSchema } from '@/lib/validation'
 
 // Batas baris per import - cegah payload raksasa / memory spike (DoS).
@@ -183,8 +184,11 @@ export async function bulkImportEmployees(
 
       result.created++
     } catch (error) {
-      logger.error('bulkImport row failed', { row: index + 1, error: String(error) })
-      result.errors.push({ row: index + 1, message: 'Kami belum bisa menyimpan baris ini - coba impor ulang' })
+      let message = 'Kami belum bisa menyimpan baris ini - coba impor ulang'
+      if (isUniqueViolation(error, 'noKtp')) message = `No KTP ${noKtp} sudah terdaftar - baris dilewati`
+      else if (isForeignKeyViolation(error, 'cabang')) message = `Cabang "${cabang}" tidak terdaftar - tambahkan dulu di Kelola Cabang`
+      else logger.error('bulkImport row failed', { row: index + 1, error: String(error) })
+      result.errors.push({ row: index + 1, message })
       result.skipped++
     }
   }

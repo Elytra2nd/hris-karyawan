@@ -113,6 +113,9 @@ export default function DataKaryawanPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch])
 
+  // Penanda untuk memaksa refetch (mis. setelah delete) tanpa mengubah filter
+  const [refreshTick, setRefreshTick] = useState(0)
+
   // Fetch data. Flag `ignore` mencegah respons lama (out-of-order) menimpa yang baru.
   useEffect(() => {
     let ignore = false
@@ -130,7 +133,7 @@ export default function DataKaryawanPage() {
     }
     run()
     return () => { ignore = true }
-  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, departmentFilter, page, sortCol, sortDir])
+  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, departmentFilter, page, sortCol, sortDir, refreshTick])
 
   // Load opsi filter sekali saat mount (dari seluruh data, bukan halaman aktif)
   useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
@@ -167,8 +170,7 @@ export default function DataKaryawanPage() {
     if (!isAdmin) { toast.error('Anda tidak memiliki izin menghapus - hubungi Admin'); return }
     setIsDeleting(id)
 
-    // Optimistic: remove from UI immediately
-    const deletedEmployee = employees.find(e => e.id === id)
+    // Optimistic: hapus dari UI seketika
     setEmployees(prev => prev.filter(e => e.id !== id))
 
     try {
@@ -176,20 +178,15 @@ export default function DataKaryawanPage() {
       if (r.success) {
         toast.success(`Data ${name} berhasil dihapus`)
       } else {
-        // Restore on error
-        if (deletedEmployee) {
-          setEmployees(prev => [...prev, deletedEmployee])
-        }
         toast.error(r.error)
       }
-    } catch (err) {
-      // Restore on network error
-      if (deletedEmployee) {
-        setEmployees(prev => [...prev, deletedEmployee])
-      }
-      toast.error('Koneksi terputus - data dikembalikan, coba ulangi')
+    } catch {
+      toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setIsDeleting(null)
+      // Selalu refetch: sukses -> sinkron total/stats/pagination; gagal -> kembalikan
+      // baris ke posisi sortir yang benar (bukan ditempel di bawah).
+      setRefreshTick(t => t + 1)
     }
   }
 

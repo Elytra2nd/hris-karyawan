@@ -13,6 +13,7 @@ import {
   formDataToObject,
 } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
+import { isUniqueViolation, isForeignKeyViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
@@ -21,19 +22,6 @@ function calculateEndDate(posisi: string, startDate: Date): Date {
   return posisi.toLowerCase().includes('admin')
     ? addMonths(startDate, 3)
     : addMonths(startDate, 6)
-}
-
-// Prisma P2002 = unique constraint violation. Cek apakah menyangkut field noKtp.
-function isUniqueKtpError(error: unknown): boolean {
-  const e = error as { code?: string; meta?: { target?: unknown } }
-  if (e?.code !== 'P2002') return false
-  const target = e.meta?.target
-  return Array.isArray(target) ? target.includes('noKtp') : String(target ?? '').includes('noKtp')
-}
-
-// Prisma P2003 = foreign key constraint. Untuk Employee, FK satu-satunya adalah cabang -> Branch.code.
-function isCabangFkError(error: unknown): boolean {
-  return (error as { code?: string })?.code === 'P2003'
 }
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
@@ -74,11 +62,11 @@ export async function createEmployee(formData: FormData) {
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
-    if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE')
+    if (isUniqueViolation(error, 'noKtp')) {
+      return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE', { noKtp: 'No KTP ini sudah terdaftar' })
     }
-    if (isCabangFkError(error)) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
+    if (isForeignKeyViolation(error, 'cabang')) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('createEmployee failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan data - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -131,11 +119,11 @@ export async function updateEmployee(id: string, formData: FormData) {
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
-    if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE')
+    if (isUniqueViolation(error, 'noKtp')) {
+      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai karyawan lain' })
     }
-    if (isCabangFkError(error)) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
+    if (isForeignKeyViolation(error, 'cabang')) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -349,7 +337,7 @@ export async function getEmployees({
     const today = new Date()
     const where = {
       AND: [
-        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
         status ? { status } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
@@ -410,7 +398,7 @@ export async function getEmployeeStats({
     // di sini karena justru itu yang dipecah oleh kartu-kartu ini.
     const baseWhere = {
       AND: [
-        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
         departmentId ? { departmentId } : {},
         posisi ? { contracts: { some: { posisi } } } : {},

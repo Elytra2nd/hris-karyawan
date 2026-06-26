@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth-guard'
 import { createAuditLog } from '@/lib/audit'
 import { ok, fail, type ActionResult } from '@/lib/result'
+import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import { departmentSchema } from '@/lib/validation'
 
@@ -44,6 +45,7 @@ export async function createDepartment(formData: FormData): Promise<ActionResult
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    if (isUniqueViolation(error)) return fail('Nama atau kode ini sudah dipakai departemen lain - gunakan nama/kode berbeda', 'DUPLICATE')
     logger.error('createDepartment failed', { error: String(error) })
     return fail('Kami belum bisa membuat departemen - coba kirim ulang', 'SERVER_ERROR')
   }
@@ -71,6 +73,7 @@ export async function updateDepartment(id: string, formData: FormData): Promise<
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    if (isUniqueViolation(error)) return fail('Nama atau kode ini sudah dipakai departemen lain - gunakan nama/kode berbeda', 'DUPLICATE')
     logger.error('updateDepartment failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang', 'SERVER_ERROR')
   }
