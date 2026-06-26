@@ -132,9 +132,12 @@ export async function bulkImportEmployees(
 
     const {
       ba, baCabang, cabang, namaLengkap,
-      nik, noKtp, tglLahir, namaIbu, noHp,
+      nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
       noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
     } = parsed.data
+
+    // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
+    const tglLahir = new Date(tglLahirRaw)
 
     // Skip duplikat KTP (sudah di DB atau duplikat dalam file ini)
     if (existingKtp.has(noKtp) || seenInBatch.has(noKtp)) {

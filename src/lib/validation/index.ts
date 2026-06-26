@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// formDataToObject() mengubah input kosong menjadi null. Untuk field WAJIB,
+// helper ini mengembalikan null/undefined ke string kosong agar validasi
+// menampilkan pesan ramah (mis. "wajib diisi") - bukan error tipe Zod bawaan
+// "Invalid input: expected string, received null".
+function reqString<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((v) => (v == null ? '' : v), schema)
+}
+
 // ─── Konstanta ────────────────────────────────────────────────────────────────
 export const POSISI_VALID = [
   'SALES EXECUTIVE',
@@ -42,30 +50,30 @@ export type AppRole = (typeof ROLE_VALID)[number]
 
 // ─── Employee Schema (Create) ─────────────────────────────────────────────────
 export const createEmployeeSchema = z.object({
-  ba: z.string().min(1, 'Kode BA wajib diisi').max(20),
-  baCabang: z.string().min(1, 'BA Cabang wajib diisi').max(100),
+  ba: reqString(z.string().min(1, 'Kode BA wajib diisi').max(20)),
+  baCabang: reqString(z.string().min(1, 'BA Cabang wajib diisi').max(100)),
   // Cabang divalidasi terhadap tabel Branch (dinamis), bukan daftar statis.
   // Keberadaan kode cabang dijamin oleh foreign key Employee.cabang -> Branch.code.
-  cabang: z.string().min(1, 'Cabang wajib dipilih').max(20),
-  namaLengkap: z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang'),
+  cabang: reqString(z.string().min(1, 'Cabang wajib dipilih').max(20)),
+  namaLengkap: reqString(z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang')),
   nik: z.string().max(20).optional().nullable(),
-  noKtp: z.string()
+  noKtp: reqString(z.string()
     .length(16, 'No KTP harus 16 digit')
-    .regex(/^\d+$/, 'No KTP hanya boleh angka'),
-  tglLahir: z.string()
+    .regex(/^\d+$/, 'No KTP hanya boleh angka')),
+  tglLahir: reqString(z.string()
     .min(1, 'Tanggal lahir wajib diisi')
-    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal lahir tidak valid'),
-  namaIbu: z.string().min(2, 'Nama ibu minimal 2 karakter').max(100),
-  noHp: z.string()
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal lahir tidak valid')),
+  namaIbu: reqString(z.string().min(2, 'Nama ibu minimal 2 karakter').max(100)),
+  noHp: reqString(z.string()
     .min(10, 'No HP minimal 10 digit')
     .max(15, 'No HP maksimal 15 digit')
-    .regex(/^08\d+$/, 'No HP harus diawali 08'),
+    .regex(/^08\d+$/, 'No HP harus diawali 08')),
   noJamsostek: z.string().max(30).optional().nullable(),
   formConsent: z.enum(['ADA', 'TIDAK ADA'] as const, { message: 'Form consent tidak valid' }),
   posisi: z.enum(POSISI_VALID, { message: 'Jabatan tidak valid' }),
-  traineeSejak: z.string()
+  traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai wajib diisi')
-    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid'),
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid')),
   departmentId: z.string().min(1).optional().nullable(),
 })
 
@@ -79,9 +87,9 @@ export const updateEmployeeSchema = createEmployeeSchema
 // ─── Contract Schema ──────────────────────────────────────────────────────────
 export const createContractSchema = z.object({
   posisi: z.enum(POSISI_VALID, { message: 'Pilih salah satu jabatan yang tersedia' }),
-  traineeSejak: z.string()
+  traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai kontrak wajib diisi')
-    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih'),
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih')),
 })
 
 // ─── User Schema ──────────────────────────────────────────────────────────────

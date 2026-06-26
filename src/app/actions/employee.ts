@@ -49,11 +49,13 @@ export async function createEmployee(formData: FormData) {
 
   const {
     ba, baCabang, cabang, namaLengkap,
-    nik, noKtp, tglLahir, namaIbu, noHp,
+    nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
     departmentId: deptId,
   } = parsed.data
 
+  // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
+  const tglLahir = new Date(tglLahirRaw)
   const traineeSejak = new Date(traineeSejakRaw)
   const traineeSelesai = calculateEndDate(posisi, traineeSejak)
   const departmentId = deptId ?? null
@@ -108,11 +110,13 @@ export async function updateEmployee(id: string, formData: FormData) {
 
   const {
     ba, baCabang, cabang, namaLengkap,
-    nik, noKtp, tglLahir, namaIbu, noHp,
+    nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, status,
     departmentId: deptId,
   } = parsed.data
 
+  // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
+  const tglLahir = new Date(tglLahirRaw)
   const departmentId = deptId ?? null
 
   try {
