@@ -61,6 +61,8 @@ export default function DataKaryawanPage() {
   const [stats, setStats] = useState({ total: 0, aktif: 0, nonAktif: 0, segera: 0, expired: 0 })
   const [loading, setLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  // Konfirmasi hapus dari kebab mobile (AlertDialog terkontrol)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
 
   // Get from URL params, default to empty string
   const urlSearch = searchParams.get('search') ?? ''
@@ -342,11 +344,11 @@ export default function DataKaryawanPage() {
         />
       </div>
 
-      {/* ─── MagnifyingGlass + Funnel Toolbar ─── */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-2">
-          {/* MagnifyingGlass */}
-          <div className="relative flex-1 max-w-sm">
+      {/* ─── Search + Funnel Toolbar (sticky di atas saat scroll) ─── */}
+      <div className="sticky top-12 z-20 py-2 bg-background/95 backdrop-blur-sm space-y-3">
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0 sm:max-w-sm">
             <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
               value={searchInput}
@@ -807,8 +809,37 @@ export default function DataKaryawanPage() {
                             {c?.posisi || '—'} · {emp.cabang}
                           </p>
                         </div>
-                        <div className="shrink-0">
+                        <div className="shrink-0 flex items-center gap-1">
                           {getStatusChip(emp)}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                aria-label="Aksi karyawan"
+                                className="h-8 w-8 -mr-1.5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted/60 transition-colors"
+                              >
+                                <DotsThreeVertical size={18} weight="bold" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem asChild className="cursor-pointer">
+                                <Link href={`/karyawan/${emp.id}`}><Eye size={14} className="mr-2" /> Lihat Detail</Link>
+                              </DropdownMenuItem>
+                              {isAdmin && (
+                                <>
+                                  <DropdownMenuItem asChild className="cursor-pointer">
+                                    <Link href={`/karyawan/${emp.id}/edit`}><Pencil size={14} className="mr-2" /> Edit Data</Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onSelect={(e) => { e.preventDefault(); setConfirmDelete({ id: emp.id, name: emp.namaLengkap }) }}
+                                    className="cursor-pointer text-red-600 focus:text-red-600"
+                                  >
+                                    <Trash size={14} className="mr-2" /> Hapus
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
@@ -828,65 +859,32 @@ export default function DataKaryawanPage() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Action */}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
-                    <Link
-                      href={`/karyawan/${emp.id}`}
-                      aria-label="Lihat detail"
-                      className="h-8 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
-                    >
-                      <Eye size={14} />
-                      Detail
-                    </Link>
-                    {isAdmin && (
-                      <>
-                        <Link
-                          href={`/karyawan/${emp.id}/edit`}
-                          aria-label="Edit data"
-                          className="h-8 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
-                        >
-                          <Pencil size={14} />
-                          Edit
-                        </Link>
-                        <AlertDialog>
-                          <AlertDialogTrigger
-                            aria-label="Hapus"
-                            disabled={isDeleting === emp.id}
-                            className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center gap-1 text-xs font-medium transition-colors disabled:opacity-50 dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
-                          >
-                            {isDeleting === emp.id ? (
-                              <><CircleNotch size={14} className="animate-spin" /> Hapus</>
-                            ) : (
-                              <><Trash size={14} /> Hapus</>
-                            )}
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Data <strong>{emp.namaLengkap}</strong> akan dihapus permanen.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Batal</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(emp.id, emp.namaLengkap)}
-                                className="bg-rose-600 hover:bg-rose-700"
-                              >
-                                Ya, Hapus
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
-                  </div>
                 </div>
               )
             })}
           </div>
         )}
+
+        {/* Konfirmasi hapus (mobile, dari kebab) */}
+        <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Data <strong>{confirmDelete?.name}</strong> akan dihapus permanen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => { if (confirmDelete) handleDelete(confirmDelete.id, confirmDelete.name); setConfirmDelete(null) }}
+                className="bg-rose-600 hover:bg-rose-700"
+              >
+                Ya, Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Mobile Pagination */}
         {totalPages > 1 && !loading && (
