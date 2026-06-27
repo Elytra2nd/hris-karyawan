@@ -62,11 +62,11 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
         action: () => router.push('/admin/users'),
       },
       {
-        id: 'departments',
-        title: 'Departemen',
-        description: 'Kelola departemen organisasi',
+        id: 'positions',
+        title: 'Posisi',
+        description: 'Kelola posisi / jabatan',
         icon: <Buildings size={16} />,
-        action: () => router.push('/admin/departments'),
+        action: () => router.push('/admin/positions'),
       },
       {
         id: 'branches',

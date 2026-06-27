@@ -48,6 +48,7 @@ export function AppSidebar() {
   const isAdmin       = role === 'ADMIN'
   const canManageHR   = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')
   const canReadAudit  = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
+  const canManagePosition = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const pathname = usePathname()
 
   useEffect(() => {
@@ -171,18 +172,20 @@ export function AppSidebar() {
                       active={isActive('/admin/users')}
                     />
                     <NavItem
-                      href="/admin/departments"
-                      icon={<Buildings size={16} />}
-                      label="Departemen"
-                      active={isActive('/admin/departments')}
-                    />
-                    <NavItem
                       href="/admin/branches"
                       icon={<MapPin size={16} />}
                       label="Cabang"
                       active={isActive('/admin/branches')}
                     />
                   </>
+                )}
+                {canManagePosition && (
+                  <NavItem
+                    href="/admin/positions"
+                    icon={<Buildings size={16} />}
+                    label="Posisi"
+                    active={isActive('/admin/positions')}
+                  />
                 )}
                 {canReadAudit && (
                   <NavItem

@@ -25,7 +25,7 @@ const LABEL_MAP: Record<string, string> = {
   kontrak: 'Manajemen Kontrak',
   admin: 'Administrasi',
   users: 'Manajemen Pengguna',
-  departments: 'Departemen',
+  positions: 'Posisi',
   branches: 'Cabang',
   'audit-log': 'Log Aktivitas',
   settings: 'Pengaturan',

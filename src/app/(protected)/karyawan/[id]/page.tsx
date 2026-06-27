@@ -27,7 +27,7 @@ export default async function DetailKaryawanPage({
 
   const employee = await prisma.employee.findUnique({
     where: { id },
-    include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, department: true, branch: true },
+    include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, branch: true },
   })
   if (!employee) notFound()
 
@@ -238,14 +238,6 @@ export default async function DetailKaryawanPage({
                 latestContract?.posisi
                   ? <Badge variant="secondary" className="uppercase">{latestContract.posisi}</Badge>
                   : '-'
-              }
-            />
-            <InfoItem
-              label="Departemen"
-              value={
-                employee.department
-                  ? <Badge variant="secondary">{employee.department.name} ({employee.department.code})</Badge>
-                  : <Badge variant="outline" className="text-muted-foreground font-normal">Belum ditugaskan</Badge>
               }
             />
             <InfoItem

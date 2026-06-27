@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getContracts, getContractStats, getDistinctPosisi } from '@/app/actions/contract'
 import { getDistinctCabang } from '@/app/actions/employee'
-import { getDepartments } from '@/app/actions/department'
 import type { ContractRow } from '@/app/actions/contract'
 import {
   MagnifyingGlass, XCircle, Warning, Clock, CheckCircle,
@@ -51,7 +50,6 @@ export default function ManajemenKontrakPage() {
   const urlSearch = searchParams.get('search') ?? ''
   const cabang = searchParams.get('cabang') ?? ''
   const status = searchParams.get('status') ?? ''
-  const departmentFilter = searchParams.get('dept') ?? ''
   const posisiFilter = searchParams.get('posisi') ?? ''
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
 
@@ -60,7 +58,6 @@ export default function ManajemenKontrakPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [showFilter, setShowFilter] = useState(false)
   const [cabangOptions, setCabangOptions] = useState<string[]>([])
-  const [departmentOptions, setDepartmentOptions] = useState<{ id: string; name: string }[]>([])
   const [posisiOptions, setPosisiOptions] = useState<string[]>([])
 
   // Input search pakai state lokal (responsif instan), lalu di-debounce
@@ -85,7 +82,7 @@ export default function ManajemenKontrakPage() {
       else params.set(key, value)
     })
     // Reset to page 1 when filter changes
-    if (updates.search !== undefined || updates.status !== undefined || updates.cabang !== undefined || updates.dept !== undefined || updates.posisi !== undefined) {
+    if (updates.search !== undefined || updates.status !== undefined || updates.cabang !== undefined || updates.posisi !== undefined) {
       params.set('page', '1')
     }
     router.push(`?${params.toString()}`, { scroll: false })
@@ -97,8 +94,8 @@ export default function ManajemenKontrakPage() {
     const fetchData = async () => {
       setLoading(true)
       const [result, statsResult] = await Promise.all([
-        getContracts({ search: debouncedSearch, cabang, status, departmentId: departmentFilter, posisi: posisiFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
-        getContractStats({ search: debouncedSearch, cabang, departmentId: departmentFilter, posisi: posisiFilter }),
+        getContracts({ search: debouncedSearch, cabang, status, posisi: posisiFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
+        getContractStats({ search: debouncedSearch, cabang, posisi: posisiFilter }),
       ])
       if (ignore) return
       setContracts(result.contracts)
@@ -108,11 +105,10 @@ export default function ManajemenKontrakPage() {
     }
     fetchData()
     return () => { ignore = true }
-  }, [debouncedSearch, cabang, status, departmentFilter, posisiFilter, page, sortCol, sortDir])
+  }, [debouncedSearch, cabang, status, posisiFilter, page, sortCol, sortDir])
 
   // Load filter options once on mount
   useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
-  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))).catch(() => setDepartmentOptions([])) }, [])
   useEffect(() => { getDistinctPosisi().then(setPosisiOptions).catch(() => setPosisiOptions([])) }, [])
 
   const totalPages = Math.ceil(total / PER_PAGE)
@@ -161,7 +157,7 @@ export default function ManajemenKontrakPage() {
     safe: 'Aman (> 90 hari)',
   }
 
-  const hasActiveFilters = cabang || departmentFilter || posisiFilter
+  const hasActiveFilters = cabang || posisiFilter
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -359,17 +355,6 @@ export default function ManajemenKontrakPage() {
               </NativeSelect>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Departemen</label>
-              <NativeSelect
-                value={departmentFilter}
-                onChange={(e) => updateParams({ dept: e.target.value })}
-                aria-label="Filter departemen"
-              >
-                <option value="">Semua Departemen</option>
-                {departmentOptions.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </NativeSelect>
-            </div>
-            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Posisi</label>
               <NativeSelect
                 value={posisiFilter}
@@ -382,7 +367,7 @@ export default function ManajemenKontrakPage() {
             </div>
             {hasActiveFilters && (
               <button
-                onClick={() => updateParams({ cabang: '', dept: '', posisi: '' })}
+                onClick={() => updateParams({ cabang: '', posisi: '' })}
                 className="h-8 px-4 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
               >
                 Reset

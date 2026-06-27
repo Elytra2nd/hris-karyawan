@@ -3,11 +3,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getEmployees, getEmployeeStats, deleteEmployee, getDistinctCabang } from '@/app/actions/employee'
-import { getDepartments } from '@/app/actions/department'
 import type { Prisma } from '@prisma/client'
 
 type EmployeeRow = Prisma.EmployeeGetPayload<{
-  include: { contracts: true; department: true }
+  include: { contracts: true }
 }>
 import {
   CircleNotch, Eye, Pencil, ClockCounterClockwise, Trash, MagnifyingGlass,
@@ -69,14 +68,12 @@ export default function DataKaryawanPage() {
   const statusFilter = searchParams.get('status') ?? ''
   const contractFilter = searchParams.get('filter') ?? '' // expiring14 | expiring30 | expiring90 | expired
   const posisiFilter = searchParams.get('posisi') ?? ''
-  const departmentFilter = searchParams.get('dept') ?? ''
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
 
   const [sortCol, setSortCol] = useState<SortKey>('')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [showFilter, setShowFilter] = useState(false)
   const [cabangOptions, setCabangOptions] = useState<string[]>([])
-  const [departmentOptions, setDepartmentOptions] = useState<{ id: string; name: string }[]>([])
 
   // Helper to update URL params
   const updateParams = (updates: Record<string, string | null>) => {
@@ -89,7 +86,7 @@ export default function DataKaryawanPage() {
       }
     })
     // Always reset to page 1 when filter changes
-    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined || updates.dept !== undefined || updates.posisi !== undefined) {
+    if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined || updates.posisi !== undefined) {
       params.set('page', '1')
     }
     router.push(`?${params.toString()}`, { scroll: false })
@@ -122,8 +119,8 @@ export default function DataKaryawanPage() {
     const run = async () => {
       setLoading(true)
       const [result, statsResult] = await Promise.all([
-        getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, departmentId: departmentFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
-        getEmployeeStats({ search: debouncedSearch, cabang, departmentId: departmentFilter, posisi: posisiFilter }),
+        getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
+        getEmployeeStats({ search: debouncedSearch, cabang, posisi: posisiFilter }),
       ])
       if (ignore) return
       setEmployees(result.employees)
@@ -133,11 +130,10 @@ export default function DataKaryawanPage() {
     }
     run()
     return () => { ignore = true }
-  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, departmentFilter, page, sortCol, sortDir, refreshTick])
+  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, page, sortCol, sortDir, refreshTick])
 
   // Load opsi filter sekali saat mount (dari seluruh data, bukan halaman aktif)
   useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
-  useEffect(() => { getDepartments().then(depts => setDepartmentOptions(depts.map(d => ({ id: d.id, name: d.name })))).catch(() => setDepartmentOptions([])) }, [])
 
 
 
@@ -421,7 +417,7 @@ export default function DataKaryawanPage() {
           >
             <Sliders size={16} />
             Funnel
-            {(cabang || statusFilter || departmentFilter) && (
+            {(cabang || statusFilter) && (
               <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
             )}
           </button>
@@ -453,20 +449,9 @@ export default function DataKaryawanPage() {
                 <option value="NON-AKTIF">Non-Aktif</option>
               </NativeSelect>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Departemen</label>
-              <NativeSelect
-                value={departmentFilter}
-                onChange={(e) => updateParams({ dept: e.target.value })}
-                aria-label="Filter departemen"
-              >
-                <option value="">Semua Departemen</option>
-                {departmentOptions.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </NativeSelect>
-            </div>
-            {(cabang || statusFilter || departmentFilter) && (
+            {(cabang || statusFilter) && (
               <button
-                onClick={() => updateParams({ cabang: '', status: '', dept: '' })}
+                onClick={() => updateParams({ cabang: '', status: '' })}
                 className="h-8 px-4 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
               >
                 Reset
@@ -506,9 +491,6 @@ export default function DataKaryawanPage() {
                   onClick={() => handleSort('cabang')}
                 >
                   Cabang <SortIcon col="cabang" sortCol={sortCol} sortDir={sortDir} />
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
-                  Departemen
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Trainee Sejak
@@ -621,16 +603,6 @@ export default function DataKaryawanPage() {
                       </td>
                       {/* Cabang */}
                       <td className="px-4 py-2 text-sm text-foreground/80">{emp.cabang}</td>
-                      {/* Departemen */}
-                      <td className="px-4 py-2 text-sm text-foreground/80">
-                        {emp.department ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent text-xs font-medium text-foreground/80">
-                            {emp.department.name}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/60 italic">—</span>
-                        )}
-                      </td>
                       {/* Sejak */}
                       <td className="px-4 py-2 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '-'}</td>
                       {/* Selesai */}
@@ -833,9 +805,6 @@ export default function DataKaryawanPage() {
                           <p className="text-sm font-semibold text-foreground truncate">{emp.namaLengkap}</p>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
                             {c?.posisi || '—'} · {emp.cabang}
-                            {emp.department && (
-                              <> · <span className="text-primary/70">{emp.department.name}</span></>
-                            )}
                           </p>
                         </div>
                         <div className="shrink-0">

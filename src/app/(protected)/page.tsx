@@ -1,13 +1,13 @@
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
-import { getDepartmentStats, getDashboardKPI } from '@/app/actions/employee'
+import { getDashboardKPI } from '@/app/actions/employee'
 import { startOfDay, differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import {
   Users, UserCheck, UserMinusIcon, Warning,
   TrendUp, Buildings, MapPin, Clock,
   PlusCircle, Calendar, CaretRight, CheckCircle,
-  GridFour, ShieldWarning,
+  ShieldWarning,
 } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const now = new Date()
   const today = startOfDay(now)
 
-  const [kpi, statsBranch, recentContracts, statsDepartment] = await Promise.all([
+  const [kpi, statsBranch, recentContracts] = await Promise.all([
     getDashboardKPI(),
     prisma.employee.groupBy({
       by: ['ba', 'baCabang', 'cabang'],
@@ -33,7 +33,6 @@ export default async function DashboardPage() {
       distinct: ['employeeId'],
       include: { employee: { select: { namaLengkap: true, cabang: true, id: true } } },
     }),
-    getDepartmentStats(),
   ])
 
   const expiring30 = recentContracts.filter(c => {
@@ -386,46 +385,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* ─── Sebaran per Departemen ─── */}
-      {statsDepartment.length > 0 && (
-        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-md bg-violet-50 flex items-center justify-center">
-                <GridFour className="h-4 w-4 text-violet-600" aria-hidden="true" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-foreground">Sebaran per Departemen</h2>
-                <p className="text-xs text-muted-foreground">Karyawan aktif per unit kerja</p>
-              </div>
-            </div>
-            <span className="text-xs text-muted-foreground">{statsDepartment.length} departemen</span>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {statsDepartment.map((dept, i) => {
-              const pct = kpi.totalAktif > 0 ? Math.round((dept.count / kpi.totalAktif) * 100) : 0
-              const dotColors = [
-                'bg-violet-500', 'bg-fuchsia-500', 'bg-indigo-500', 'bg-purple-400',
-                'bg-sky-500', 'bg-cyan-500', 'bg-teal-500', 'bg-emerald-500',
-              ]
-              return (
-                <div key={dept.departmentId ?? 'unassigned'} className="flex items-center gap-4 px-6 py-4">
-                  <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColors[i % dotColors.length])} aria-hidden="true" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-foreground/80 truncate block">{dept.name}</span>
-                    {dept.code !== '-' && (
-                      <span className="text-xs text-muted-foreground">{dept.code}</span>
-                    )}
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{dept.count}</span>
-                  <span className="text-xs text-muted-foreground w-8 text-right">{pct}%</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {/* ─── Tabel Branch Overview (dengan paginasi) ─── */}
       <BranchTable
