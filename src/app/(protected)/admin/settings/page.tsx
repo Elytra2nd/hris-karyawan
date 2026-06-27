@@ -89,7 +89,7 @@ export default async function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-muted/50 border border-border/60">
               <p className="text-xs text-muted-foreground font-medium">Aplikasi</p>
-              <p className="text-sm font-bold text-foreground">Trainee Monitoring System</p>
+              <p className="text-sm font-bold text-foreground">Astra Trainee Monitoring System (ATMS)</p>
             </div>
             <div className="flex flex-col gap-1 px-4 py-2 rounded-lg bg-muted/50 border border-border/60">
               <p className="text-xs text-muted-foreground font-medium">Versi</p>

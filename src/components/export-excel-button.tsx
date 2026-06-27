@@ -138,7 +138,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     ws['!cols'] = colWidths
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Report')
-    const fileName = `HRIS_Astra_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`
+    const fileName = `ATMS_Astra_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`
     XLSX.writeFile(wb, fileName)
     toast.success(`File ${fileName} berhasil diunduh`)
     setOpen(false)
@@ -150,7 +150,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       return
     }
     const pdfCols = ['BA', 'CABANG', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
-    const html = `<html><head><title>HRIS Report</title><style>
+    const html = `<html><head><title>ATMS Report</title><style>
       @page{size:landscape;margin:10mm}
       body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
       h2{font-size:14px;margin-bottom:4px}p.meta{color:#666;font-size:10px;margin-bottom:12px}
@@ -165,7 +165,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     <table><thead><tr>${pdfCols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
     ${filtered.map(row => '<tr>' + pdfCols.map(h => `<td>${row[h] ?? '-'}</td>`).join('') + '</tr>').join('')}
     </tbody></table>
-    <p class="footer">Dicetak oleh HRIS Astra Motor Kalimantan Barat - ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
+    <p class="footer">Dicetak oleh ATMS - Astra Motor Kalimantan Barat - ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
     </body></html>`
     const w = window.open('', '_blank')
     if (w) { w.document.write(html); w.document.close(); w.print() }

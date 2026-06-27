@@ -94,7 +94,7 @@ export function AppSidebar() {
           />
           <div className="h-4 w-px bg-sidebar-border" />
           <div>
-            <p className="text-sm font-bold text-foreground leading-snug">TMS</p>
+            <p className="text-sm font-bold text-foreground leading-snug">ATMS</p>
             <p className="text-xs text-muted-foreground leading-snug mt-0.5">
               Kalimantan Barat
             </p>
@@ -270,7 +270,7 @@ export function AppSidebar() {
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground/70 text-center">
-          Trainee Monitoring System · v2.1
+          Astra Trainee Monitoring System · v2.1
         </p>
       </SidebarFooter>
     </Sidebar>

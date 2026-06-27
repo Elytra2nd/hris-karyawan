@@ -79,7 +79,7 @@ export function CreateUserModal() {
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">Tambah Pengguna Baru</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Buat akun untuk Admin atau Pemirsa sistem TMS.
+            Buat akun untuk Admin atau Pemirsa sistem ATMS.
           </DialogDescription>
         </DialogHeader>
 

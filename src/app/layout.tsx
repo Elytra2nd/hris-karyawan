@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { RootThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
-  title: 'TMS - Trainee Monitoring System',
-  description: 'Trainee Monitoring System - Astra Motor Kalimantan Barat',
+  title: 'ATMS - Astra Trainee Monitoring System',
+  description: 'Astra Trainee Monitoring System - Astra Motor Kalimantan Barat',
 };
 
 export const viewport: Viewport = {

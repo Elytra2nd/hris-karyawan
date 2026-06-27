@@ -29,7 +29,7 @@ export default function LoginPage() {
             Selamat<br />Datang!
           </p>
           <p className="text-blue-100 text-sm lg:text-base leading-relaxed max-w-xs">
-            Trainee Monitoring System — pantau dan kelola data trainee Astra Motor Kalimantan Barat.
+            Astra Trainee Monitoring System — pantau dan kelola data trainee Astra Motor Kalimantan Barat.
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
             © 2026 PT Astra Motor Kalimantan Barat
           </p>
           <p className="text-blue-300/70 text-xs mt-1">
-            Trainee Monitoring System v2.1
+            ATMS · Astra Trainee Monitoring System v2.1
           </p>
         </div>
       </div>

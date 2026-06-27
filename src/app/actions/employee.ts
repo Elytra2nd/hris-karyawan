@@ -355,7 +355,7 @@ export async function getEmployees({
     }
 
     // Fetch seluruh hasil filter agar sort berlaku global (bukan per halaman),
-    // lalu paginate di memori. Skala data HRIS ini kecil sehingga aman.
+    // lalu paginate di memori. Skala data ATMS ini kecil sehingga aman.
     const all = await prisma.employee.findMany({
       where,
       include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },

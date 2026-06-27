@@ -48,7 +48,7 @@ export default function LoginForm() {
           Masuk ke Sistem
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Trainee Monitoring System - Astra Motor Kalbar
+          Astra Trainee Monitoring System - Astra Motor Kalbar
         </p>
       </div>
 
@@ -143,7 +143,7 @@ export default function LoginForm() {
         </span>
         <span className="flex items-center gap-1">
           <Shield size={12} aria-hidden="true" />
-          TMS v2.1
+          ATMS v2.1
         </span>
       </div>
     </div>

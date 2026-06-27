@@ -123,7 +123,7 @@ export function downloadTemplate() {
   // ═══════════════════════════════════════════════════════════════════════
   const guideData = [
     ['PETUNJUK PENGISIAN TEMPLATE IMPORT KARYAWAN'],
-    ['Trainee Monitoring System - Astra Motor Kalimantan Barat'],
+    ['Astra Trainee Monitoring System (ATMS) - Astra Motor Kalimantan Barat'],
     [''],
     ['ATURAN UMUM'],
     ['1. Isi data mulai dari baris ke-4 (baris 1 = legenda, baris 2 = header, baris 3 = keterangan format)'],
@@ -183,7 +183,7 @@ export function downloadTemplate() {
 
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Petunjuk')
 
-  XLSX.writeFile(wb, 'Template_Import_Karyawan_TMS.xlsx')
+  XLSX.writeFile(wb, 'Template_Import_Karyawan_ATMS.xlsx')
 }
 
 export function ImportExcelButton() {
