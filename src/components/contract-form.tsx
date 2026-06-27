@@ -220,22 +220,32 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
         )}
       </div>
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={isPending || !posisi || !tglMulai}
-        aria-busy={isPending}
-        aria-disabled={isPending || !posisi || !tglMulai}
-        className="w-full h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-      >
-        {isPending ? (
-          <><CircleNotch size={16} className="animate-spin" aria-hidden="true" />
-            <span role="status">Menerbitkan...</span>
-          </>
-        ) : (
-          'Terbitkan Kontrak Baru'
-        )}
-      </button>
+      {/* Action bar - menempel di bawah saat scroll (mobile-friendly) */}
+      <div className="sticky bottom-0 -mx-8 -mb-8 px-8 py-3 bg-card/95 backdrop-blur-sm border-t border-border flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          disabled={isPending}
+          className="h-11 px-5 rounded-lg border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors disabled:opacity-60"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={isPending || !posisi || !tglMulai}
+          aria-busy={isPending}
+          aria-disabled={isPending || !posisi || !tglMulai}
+          className="flex-1 h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+        >
+          {isPending ? (
+            <><CircleNotch size={16} className="animate-spin" aria-hidden="true" />
+              <span role="status">Menerbitkan...</span>
+            </>
+          ) : (
+            'Terbitkan Kontrak Baru'
+          )}
+        </button>
+      </div>
     </form>
   )
 }

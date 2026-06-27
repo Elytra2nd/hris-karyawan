@@ -367,15 +367,15 @@ export default function DataKaryawanPage() {
           {/* Sort dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
+              <button aria-label="Urutkan" className={cn(
+                'flex items-center gap-2 h-8 px-3 sm:px-4 text-sm border rounded-md transition-colors shrink-0',
                 sortCol
                   ? 'border-primary text-primary bg-accent font-semibold'
                   : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
               )}>
                 <ArrowsDownUp size={16} />
-                Urutkan
-                {sortCol && <span className="ml-1 text-xs">({sortCol === 'namaLengkap' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol})</span>}
+                <span className="hidden sm:inline">Urutkan</span>
+                {sortCol && <span className="ml-1 text-xs hidden sm:inline">({sortCol === 'namaLengkap' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol})</span>}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -410,15 +410,16 @@ export default function DataKaryawanPage() {
           {/* Funnel toggle */}
           <button
             onClick={() => setShowFilter(!showFilter)}
+            aria-label="Filter"
             className={cn(
-              'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
-              showFilter
+              'flex items-center gap-2 h-8 px-3 sm:px-4 text-sm border rounded-md transition-colors shrink-0',
+              (showFilter || cabang || statusFilter)
                 ? 'border-primary text-primary bg-accent font-semibold'
                 : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
             )}
           >
             <Sliders size={16} />
-            Funnel
+            <span className="hidden sm:inline">Funnel</span>
             {(cabang || statusFilter) && (
               <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
             )}

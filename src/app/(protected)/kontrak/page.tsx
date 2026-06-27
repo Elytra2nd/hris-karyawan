@@ -260,11 +260,11 @@ export default function ManajemenKontrakPage() {
         </div>
       )}
 
-      {/* ─── Search + Sort + Funnel Toolbar ─── */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-2">
+      {/* ─── Search + Sort + Funnel Toolbar (sticky di atas saat scroll) ─── */}
+      <div className="sticky top-12 z-20 py-2 bg-background/95 backdrop-blur-sm space-y-3">
+        <div className="flex items-center gap-2">
           {/* Search */}
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 min-w-0 sm:max-w-sm">
             <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
             <input
               value={searchInput}
@@ -283,15 +283,15 @@ export default function ManajemenKontrakPage() {
           {/* Sort dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
+              <button aria-label="Urutkan" className={cn(
+                'flex items-center gap-2 h-8 px-3 sm:px-4 text-sm border rounded-md transition-colors shrink-0',
                 sortCol
                   ? 'border-primary text-primary bg-accent font-semibold'
                   : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
               )}>
                 <ArrowsDownUp size={16} />
-                Urutkan
-                {sortCol && <span className="ml-1 text-xs">({sortCol === 'employeeName' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol === 'employeeCabang' ? 'Cabang' : sortCol})</span>}
+                <span className="hidden sm:inline">Urutkan</span>
+                {sortCol && <span className="ml-1 text-xs hidden sm:inline">({sortCol === 'employeeName' ? 'Nama' : sortCol === 'traineeSelesai' ? 'Tgl Selesai' : sortCol === 'employeeCabang' ? 'Cabang' : sortCol})</span>}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -325,15 +325,16 @@ export default function ManajemenKontrakPage() {
           {/* Funnel toggle */}
           <button
             onClick={() => setShowFilter(!showFilter)}
+            aria-label="Filter"
             className={cn(
-              'flex items-center gap-2 h-8 px-4 text-sm border rounded-md transition-colors',
-              showFilter
+              'flex items-center gap-2 h-8 px-3 sm:px-4 text-sm border rounded-md transition-colors shrink-0',
+              (showFilter || hasActiveFilters)
                 ? 'border-primary text-primary bg-accent font-semibold'
                 : 'border-border text-foreground/70 bg-card hover:bg-muted/50'
             )}
           >
             <Sliders size={16} />
-            Funnel
+            <span className="hidden sm:inline">Funnel</span>
             {hasActiveFilters && (
               <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
             )}
@@ -579,6 +580,10 @@ export default function ManajemenKontrakPage() {
                       {fmtDate(row.traineeSejak)} – {fmtDate(row.traineeSelesai)}
                     </span>
                   </div>
+                </div>
+                {/* Ikon aksi: kelola kontrak */}
+                <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 self-center dark:bg-blue-950 dark:text-blue-400">
+                  <Eye size={16} />
                 </div>
               </Link>
             ))}

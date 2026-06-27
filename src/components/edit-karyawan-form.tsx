@@ -320,25 +320,35 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
               </div>
             </section>
 
-            {/* ─── Submit ─── */}
-            <div className="pt-2 border-t border-border/60 space-y-4">
+            {/* ─── Action bar (sticky di bawah saat scroll) ─── */}
+            <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-3 bg-card/95 backdrop-blur-sm border-t border-border space-y-2">
               {isDirty && !isPending && (
                 <p className="text-xs text-amber-600 flex items-center gap-1.5">
                   <Warning size={12} />
                   Ada perubahan belum disimpan
                 </p>
               )}
-              <button
-                type="submit"
-                disabled={isPending}
-                className="w-full h-10 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-              >
-                {isPending ? (
-                  <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
-                ) : (
-                  <><FloppyDisk size={16} /> Simpan Perubahan</>
-                )}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  disabled={isPending}
+                  className="h-11 px-5 rounded-lg border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors disabled:opacity-60"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {isPending ? (
+                    <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
+                  ) : (
+                    <><FloppyDisk size={16} /> Simpan Perubahan</>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>
