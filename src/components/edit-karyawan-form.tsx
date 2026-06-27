@@ -22,7 +22,7 @@ interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
+  updateAction: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   branches?: Branch[]
 }
 
@@ -109,7 +109,8 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
     setIsPending(true)
     let navigated = false
     try {
-      const res = await updateAction(formData)
+      // Kirim plain object (menghindari OpenLiteSpeed multipart bug)
+      const res = await updateAction(raw)
       if (res && res.success === false) {
         // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
         if (res.fields && Object.keys(res.fields).length > 0) {

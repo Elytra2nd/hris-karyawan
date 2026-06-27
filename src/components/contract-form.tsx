@@ -19,7 +19,7 @@ interface Position { name: string; contractMonths: number }
 
 interface ContractFormProps {
   employeeId: string
-  action: (id: string, formData: FormData) => Promise<ActionResult<{ employeeId: string }>>
+  action: (id: string, data: Record<string, string | null>) => Promise<ActionResult<{ employeeId: string }>>
   positions?: Position[]
 }
 
@@ -88,7 +88,8 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
     setIsPending(true)
     let navigated = false
     try {
-      const result = await action(employeeId, formData)
+      // Kirim plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await action(employeeId, raw)
       if (result.success) {
         toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
         navigated = true

@@ -51,9 +51,16 @@ describe('Schema Validasi Karyawan - createEmployeeSchema', () => {
     expect(r.success).toBe(false)
   })
 
-  it('harus menolak posisi yang tidak valid', () => {
-    const r = createEmployeeSchema.safeParse({ ...validEmployee, posisi: 'DIREKTUR' })
+  // Posisi kini string dinamis (divalidasi ke tabel Position di server),
+  // jadi schema hanya mewajibkan tidak kosong - bukan enum statis.
+  it('harus menolak posisi yang kosong', () => {
+    const r = createEmployeeSchema.safeParse({ ...validEmployee, posisi: '' })
     expect(r.success).toBe(false)
+  })
+
+  it('harus menerima posisi kustom non-kosong (divalidasi ke DB di server)', () => {
+    const r = createEmployeeSchema.safeParse({ ...validEmployee, posisi: 'DIREKTUR' })
+    expect(r.success).toBe(true)
   })
 
   it('harus menolak tanggal trainee tidak valid', () => {
@@ -83,8 +90,8 @@ describe('Schema Validasi Kontrak - createContractSchema', () => {
     expect(r.success).toBe(true)
   })
 
-  it('harus menolak posisi tidak valid', () => {
-    const r = createContractSchema.safeParse({ posisi: 'INTERN', traineeSejak: '2024-07-01' })
+  it('harus menolak posisi yang kosong', () => {
+    const r = createContractSchema.safeParse({ posisi: '', traineeSejak: '2024-07-01' })
     expect(r.success).toBe(false)
   })
 })

@@ -21,7 +21,7 @@ export function EmployeeForm({
   positions = [],
   branches = [],
 }: {
-  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
+  action: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   positions?: Position[]
   branches?: Branch[]
 }) {
@@ -95,7 +95,8 @@ export function EmployeeForm({
     setIsPending(true)
     let navigated = false
     try {
-      const res = await action(formData)
+      // Kirim plain object (menghindari OpenLiteSpeed multipart bug)
+      const res = await action(raw)
       if (res && res.success === false) {
         // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
         if (res.fields && Object.keys(res.fields).length > 0) {
