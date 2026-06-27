@@ -21,17 +21,17 @@ export async function getPositions() {
   }
 }
 
-function parsePositionForm(formData: FormData) {
+function parsePositionForm(data: Record<string, string | null>) {
   return positionSchema.safeParse({
-    name: formData.get('name')?.toString().trim().toUpperCase() ?? '',
-    contractMonths: formData.get('contractMonths')?.toString() ?? '',
+    name: (data.name ?? '').trim().toUpperCase(),
+    contractMonths: data.contractMonths ?? '',
   })
 }
 
-export async function createPosition(formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function createPosition(data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requirePermission('position_manage')
-    const parsed = parsePositionForm(formData)
+    const parsed = parsePositionForm(data)
     if (!parsed.success) {
       return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
@@ -52,10 +52,10 @@ export async function createPosition(formData: FormData): Promise<ActionResult<{
   }
 }
 
-export async function updatePosition(id: string, formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function updatePosition(id: string, data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requirePermission('position_manage')
-    const parsed = parsePositionForm(formData)
+    const parsed = parsePositionForm(data)
     if (!parsed.success) {
       return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali', 'VALIDATION')
     }
