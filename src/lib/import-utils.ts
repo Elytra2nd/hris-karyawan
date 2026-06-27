@@ -29,9 +29,6 @@ export const COL_MAP: Record<string, string> = {
   'FORM CONSENT': 'formConsent',
   'POSISI': 'posisi',
   'TRAINEE SEJAK': 'traineeSejak',
-  'DEPARTEMEN': 'departmentCode',
-  'KODE DEPT': 'departmentCode',
-  'KODE DEPARTEMEN': 'departmentCode',
 }
 
 // ─── Parse tanggal: dukung dd.MM.yyyy, dd/MM/yyyy, ISO, dan serial Excel ──────

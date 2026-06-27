@@ -44,7 +44,7 @@ export function getCabangLabel(code: string): string {
 // VIEWER       : read-only
 // HR_STAFF     : add/edit employees, no delete, no user management
 // HR_MANAGER   : full employee CRUD + contracts, no user management
-// ADMIN        : everything (user management, audit log, departments)
+// ADMIN        : everything (user management, audit log, positions, branches)
 export const ROLE_VALID = ['ADMIN', 'HR_MANAGER', 'HR_STAFF', 'VIEWER'] as const
 export type AppRole = (typeof ROLE_VALID)[number]
 
