@@ -44,7 +44,8 @@ export function CreateUserModal() {
     setErrors({})
     setLoading(true)
     try {
-      const result = await createUser(formData)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await createUser(raw)
       if (result.success) {
         toast.success('Akun pengguna berhasil dibuat')
         setOpen(false)

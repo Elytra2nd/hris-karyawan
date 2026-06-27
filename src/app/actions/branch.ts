@@ -19,12 +19,12 @@ export async function getBranches() {
   }
 }
 
-export async function createBranch(formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function createBranch(data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()
     const raw = {
-      code: formData.get('code')?.toString().trim().toUpperCase() ?? '',
-      label: formData.get('label')?.toString().trim().toUpperCase() ?? '',
+      code: (data.code ?? '').trim().toUpperCase(),
+      label: (data.label ?? '').trim().toUpperCase(),
     }
 
     const parsed = branchSchema.safeParse(raw)
@@ -50,12 +50,12 @@ export async function createBranch(formData: FormData): Promise<ActionResult<{ i
   }
 }
 
-export async function updateBranch(id: string, formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function updateBranch(id: string, data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()
     const raw = {
-      code: formData.get('code')?.toString().trim().toUpperCase() ?? '',
-      label: formData.get('label')?.toString().trim().toUpperCase() ?? '',
+      code: (data.code ?? '').trim().toUpperCase(),
+      label: (data.label ?? '').trim().toUpperCase(),
     }
 
     const parsed = branchSchema.safeParse(raw)

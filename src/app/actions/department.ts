@@ -21,10 +21,13 @@ export async function getDepartments() {
   }
 }
 
-export async function createDepartment(formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function createDepartment(data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()
-    const raw = { name: formData.get('name')?.toString().trim() ?? '', code: formData.get('code')?.toString().trim().toUpperCase() ?? '' }
+    const raw = {
+      name: (data.name ?? '').trim(),
+      code: (data.code ?? '').trim().toUpperCase(),
+    }
 
     const parsed = departmentSchema.safeParse(raw)
     if (!parsed.success) {
@@ -49,10 +52,13 @@ export async function createDepartment(formData: FormData): Promise<ActionResult
   }
 }
 
-export async function updateDepartment(id: string, formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function updateDepartment(id: string, data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()
-    const raw = { name: formData.get('name')?.toString().trim() ?? '', code: formData.get('code')?.toString().trim().toUpperCase() ?? '' }
+    const raw = {
+      name: (data.name ?? '').trim(),
+      code: (data.code ?? '').trim().toUpperCase(),
+    }
 
     const parsed = departmentSchema.safeParse(raw)
     if (!parsed.success) {

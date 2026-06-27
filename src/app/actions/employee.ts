@@ -10,7 +10,6 @@ import {
   createEmployeeSchema,
   updateEmployeeSchema,
   createContractSchema,
-  formDataToObject,
 } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
 import { logger } from '@/lib/logger'
@@ -37,12 +36,14 @@ function isCabangFkError(error: unknown): boolean {
 }
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
-export async function createEmployee(formData: FormData) {
+export async function createEmployee(data: Record<string, string | null>) {
   const session = await requirePermission('employee_create')
-  const raw = formDataToObject(formData)
+  const raw = data
+  logger.info('createEmployee raw data received:', raw)
 
   const parsed = createEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
+    logger.warn('createEmployee validation failed:', { issues: parsed.error.issues, raw })
     const firstError = parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali formulir'
     return fail(firstError, 'VALIDATION')
   }
@@ -99,12 +100,14 @@ export async function createEmployee(formData: FormData) {
 }
 
 // ─── Update Employee ──────────────────────────────────────────────────────────
-export async function updateEmployee(id: string, formData: FormData) {
+export async function updateEmployee(id: string, data: Record<string, string | null>) {
   const session = await requirePermission('employee_update')
-  const raw = formDataToObject(formData)
+  const raw = data
+  logger.info('updateEmployee raw data received:', { id, ...raw })
 
   const parsed = updateEmployeeSchema.safeParse(raw)
   if (!parsed.success) {
+    logger.warn('updateEmployee validation failed:', { id, issues: parsed.error.issues, raw })
     return fail(parsed.error.issues[0]?.message ?? 'Ada isian yang belum lengkap - periksa kembali formulir', 'VALIDATION')
   }
 
@@ -157,10 +160,10 @@ export async function updateEmployee(id: string, formData: FormData) {
 }
 
 // ─── Create Contract ──────────────────────────────────────────────────────────
-export async function createContract(employeeId: string, formData: FormData): Promise<ActionResult<{ employeeId: string }>> {
+export async function createContract(employeeId: string, data: Record<string, string | null>): Promise<ActionResult<{ employeeId: string }>> {
   try {
     const session = await requirePermission('contract_create')
-    const raw = formDataToObject(formData)
+    const raw = data
 
     const parsed = createContractSchema.safeParse(raw)
     if (!parsed.success) {

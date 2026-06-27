@@ -22,7 +22,7 @@ interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
+  updateAction: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
   departments?: Department[]
   branches?: Branch[]
 }
@@ -32,6 +32,14 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [statusValue, setStatusValue] = useState(employee.status)
+  // State untuk semua custom components (SelectCombobox, DatePicker)
+  // agar nilai perubahan user selalu tersimpan saat submit
+  const [cabangValue, setCabangValue] = useState(employee.cabang)
+  const [tglLahirValue, setTglLahirValue] = useState(
+    employee.tglLahir ? new Date(employee.tglLahir).toISOString().slice(0, 10) : ''
+  )
+  const [formConsentValue, setFormConsentValue] = useState(employee.formConsent)
+  const [departmentIdValue, setDepartmentIdValue] = useState(employee.departmentId ?? '')
   const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
 
@@ -67,17 +75,25 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Buat FormData dari DOM form secara synchronous — ini menjamin
-    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
+    // Kumpulkan nilai dari DOM form (native inputs + hidden inputs dari SelectCombobox/DatePicker)
     const formData = new FormData(e.currentTarget)
 
-    const raw: Record<string, string | null> = {}
+    // Bangun plain object — dikirim sebagai JSON ke server action
+    // agar tidak di-intercept oleh OpenLiteSpeed (bug multipart stripping)
+    const data: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      raw[k] = s === '' ? null : s
+      data[k] = s === '' ? null : s
     })
+    // Override dengan state React — ini memastikan nilai custom components
+    // (SelectCombobox, DatePicker) selalu tersimpan meski FormData DOM ada isu
+    data['cabang'] = cabangValue || null
+    data['tglLahir'] = tglLahirValue || null
+    data['formConsent'] = formConsentValue || null
+    data['status'] = statusValue || null
+    data['departmentId'] = departmentIdValue || null
 
-    const parsed = updateEmployeeSchema.safeParse(raw)
+    const parsed = updateEmployeeSchema.safeParse(data)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -94,7 +110,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     setErrors({})
     setIsPending(true)
     try {
-      const res = await updateAction(formData)
+      const res = await updateAction(data)
       if (res && res.success === false) {
         toast.error(res.error)
         setIsPending(false)
@@ -155,7 +171,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     name="cabang"
                     required
                     size="sm"
-                    value={employee.cabang}
+                    value={cabangValue}
+                    onValueChange={setCabangValue}
                     options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
                     placeholder="Pilih cabang..."
                   />
@@ -221,7 +238,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     id="tglLahir"
                     name="tglLahir"
                     required
-                    value={employee.tglLahir ? new Date(employee.tglLahir).toISOString().slice(0, 10) : ''}
+                    value={tglLahirValue}
+                    onValueChange={setTglLahirValue}
                     placeholder="Pilih tanggal lahir"
                   />
                   <FieldError id="tglLahir-error" message={errors.tglLahir} />
@@ -275,7 +293,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     name="formConsent"
                     required
                     size="sm"
-                    value={employee.formConsent}
+                    value={formConsentValue}
+                    onValueChange={setFormConsentValue}
                     options={['ADA', 'TIDAK ADA']}
                     placeholder="Pilih..."
                   />
@@ -310,11 +329,12 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                       <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opsional)</span>
                     </Label>
                     <div className="max-w-xs">
-                      <SelectCombobox
+                    <SelectCombobox
                         id="departmentId"
                         name="departmentId"
                         size="sm"
-                        value={employee.departmentId ?? ''}
+                        value={departmentIdValue}
+                        onValueChange={setDepartmentIdValue}
                         options={[
                           { value: '', label: 'Tidak ditugaskan' },
                           ...departments.map((d: Department) => ({ value: d.id, label: `${d.name} - ${d.code}` })),

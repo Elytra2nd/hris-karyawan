@@ -30,7 +30,7 @@ export function EmployeeForm({
   departments = [],
   branches = [],
 }: {
-  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
+  action: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
   departments?: Department[]
   branches?: Branch[]
 }) {
@@ -64,18 +64,22 @@ export function EmployeeForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Buat FormData dari DOM form secara synchronous — ini menjamin
-    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
+    // Kumpulkan nilai dari DOM form (native inputs + hidden inputs dari SelectCombobox/DatePicker)
     const formData = new FormData(e.currentTarget)
 
-    // Client-side validation - instant feedback before round-trip
-    const raw: Record<string, string | null> = {}
+    // Bangun plain object — dikirim sebagai JSON ke server action
+    // agar tidak di-intercept oleh OpenLiteSpeed (bug multipart stripping)
+    const data: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      raw[k] = s === '' ? null : s
+      data[k] = s === '' ? null : s
     })
+    // Pastikan nilai dari state React (posisi, tglMulai) selalu tersimpan
+    if (posisi) data['posisi'] = posisi
+    if (tglMulai) data['traineeSejak'] = tglMulai
 
-    const parsed = createEmployeeSchema.safeParse(raw)
+    // Client-side validation - instant feedback before round-trip
+    const parsed = createEmployeeSchema.safeParse(data)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -96,7 +100,7 @@ export function EmployeeForm({
     setErrors({})
     setIsPending(true)
     try {
-      const res = await action(formData)
+      const res = await action(data)
       if (res && res.success === false) {
         toast.error(res.error)
         setIsPending(false)

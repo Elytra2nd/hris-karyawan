@@ -10,7 +10,7 @@ function createPrismaClient() {
     user: process.env.DB_USER ?? 'root',
     password: process.env.DB_PASSWORD ?? '',
     database: process.env.DB_NAME ?? 'hris_karyawan',
-    connectionLimit: 5,
+    connectionLimit: 1,
   })
 
   return new PrismaClient({ adapter })
@@ -18,4 +18,4 @@ function createPrismaClient() {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+globalForPrisma.prisma = prisma

@@ -75,7 +75,8 @@ export function ChangePasswordForm() {
     setErrors({})
     setPending(true)
     try {
-      const result = await changeOwnPassword(formData)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await changeOwnPassword(raw)
       if (result.success) {
         toast.success(result.message ?? 'Password berhasil diubah')
         const form = document.getElementById('change-pw-form') as HTMLFormElement

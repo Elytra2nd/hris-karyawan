@@ -34,6 +34,28 @@ async function main() {
   await prisma.employee.deleteMany();
   await prisma.auditLog.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.branch.deleteMany();
+  await prisma.department.deleteMany();
+
+  // ============ 0. SETUP BRANCHES ============
+  console.log('🏛️  Membuat data cabang Astra Motor Kalbar...');
+  const realBranches = [
+    { code: 'H720', label: 'REGION PONTIANAK' },
+    { code: 'H721', label: 'KETAPANG' },
+    { code: 'H722', label: 'PATTIMURA' },
+    { code: 'H723', label: 'SINGKAWANG' },
+    { code: 'H724', label: 'SANGGAU' },
+    { code: 'H725', label: 'IMAM BONJOL' },
+    { code: 'H726', label: 'NDS.AYANI' },
+    { code: 'H727', label: 'BENUA KAYONG' },
+    { code: 'H728', label: 'SINTANG' },
+    { code: 'H729', label: 'PUTUSSIBAU' },
+    { code: 'H730', label: 'SAMBAS' },
+  ];
+  for (const b of realBranches) {
+    await prisma.branch.upsert({ where: { code: b.code }, update: {}, create: b });
+  }
+  console.log(`  ✅ ${realBranches.length} cabang dibuat`);
 
   // ============ 1. SETUP USERS ============
   console.log('👤 Membuat akun pengguna...');
@@ -66,11 +88,27 @@ async function main() {
   const data = seedHistory as any[];
   let totalContracts = 0;
 
+  // Map baCabang name → Branch code (FK ke tabel branch harus pakai code, bukan nama)
+  const cabangNameToCode: Record<string, string> = {
+    'SAMBAS':          'H730',
+    'PONTIANAK':       'H720',
+    'KETAPANG':        'H721',
+    'PATTIMURA':       'H722',
+    'SINGKAWANG':      'H723',
+    'SANGGAU':         'H724',
+    'IMAM BONJOL':     'H725',
+    'NDS.AYANI':       'H726',
+    'BENUA KAYONG':    'H727',
+    'SINTANG':         'H728',
+    'PUTUSSIBAU':      'H729',
+  };
+
   for (let i = 0; i < data.length; i++) {
     const emp = data[i];
-    
-    // Tentukan cabang (baCabang) — dari data Excel
-    const cabang = emp.baCabang || 'SAMBAS';
+
+    // Tentukan cabang code (FK ke Branch.code)
+    const baCabangName = emp.baCabang || 'SAMBAS';
+    const cabang = cabangNameToCode[baCabangName] ?? 'H730';
     
     // Sort contracts by date (oldest first)
     const sortedContracts = emp.contracts.sort(
@@ -86,15 +124,15 @@ async function main() {
     const created = await prisma.employee.create({
       data: {
         ba: emp.ba || 'H730',
-        baCabang: cabang,
+        baCabang: baCabangName,    // nama (SAMBAS) — display only
         region: emp.region || 'PONTIANAK',
-        cabang: cabang,
+        cabang: cabang,            // kode (H730) — FK ke Branch.code
         namaLengkap: emp.namaLengkap,
         status: status,
         nik: `H730-${String(i + 1).padStart(3, '0')}`,
         noJamsostek: null,
         noKtp: emp.noKtp,
-        tglLahir: emp.tglLahir || '1990-01-01',
+        tglLahir: new Date(emp.tglLahir || '1990-01-01'),
         namaIbu: emp.namaIbu || '-',
         noHp: phoneNumbers[i] || `0812345670${String(i + 1).padStart(2, '0')}`,
         formConsent: 'ADA',

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import bcrypt from 'bcryptjs'
 import { requireAdmin } from '@/lib/auth-guard'
-import { createUserSchema, formDataToObject } from '@/lib/validation'
+import { createUserSchema } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
 import { logger } from '@/lib/logger'
 import { createAuditLog } from '@/lib/audit'
@@ -23,11 +23,11 @@ export async function getUsers() {
 }
 
 // ─── Create User ──────────────────────────────────────────────────────────────
-export async function createUser(formData: FormData): Promise<ActionResult<{ id: string }>> {
+export async function createUser(data: Record<string, string | null>): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdmin()
 
-    const raw = formDataToObject(formData)
+    const raw = data
     const parsed = createUserSchema.safeParse(raw)
 
     if (!parsed.success) {

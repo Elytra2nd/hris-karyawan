@@ -78,7 +78,8 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
     setCreateErrors({})
     setCreating(true)
     try {
-      const result = await createAction(formData)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await createAction({ code: raw.code, label: raw.label })
       if (result.success) {
         toast.success(result.message ?? 'Cabang dibuat')
         setShowForm(false)
@@ -115,10 +116,8 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
 
     setSaving(true)
     try {
-      const fd = new FormData()
-      fd.set('code', editCode)
-      fd.set('label', editLabel)
-      const result = await updateAction(id, fd)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await updateAction(id, { code: editCode.trim().toUpperCase(), label: editLabel.trim().toUpperCase() })
       if (result.success) {
         toast.success(result.message ?? 'Cabang diperbarui')
         setBranches(prev => prev.map(b => b.id === id ? { ...b, label: editLabel.toUpperCase(), code: editCode.toUpperCase() } : b))

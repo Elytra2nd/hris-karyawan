@@ -26,7 +26,7 @@ import type { ActionResult } from '@/lib/result'
 
 interface ContractFormProps {
   employeeId: string
-  action: (id: string, formData: FormData) => Promise<ActionResult<{ employeeId: string }>>
+  action: (id: string, data: Record<string, string | null>) => Promise<ActionResult<{ employeeId: string }>>
 }
 
 export function ContractForm({ employeeId, action }: ContractFormProps) {
@@ -60,18 +60,21 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Buat FormData dari DOM form secara synchronous — menjamin semua
-    // input (SelectCombobox hidden input, DatePicker) terkumpul.
+    // Kumpulkan nilai dari DOM form
     const formData = new FormData(e.currentTarget)
 
-    // Client-side Zod validation
-    const raw: Record<string, string | null> = {}
+    // Bangun plain object — dikirim sebagai JSON (menghindari OpenLiteSpeed multipart bug)
+    const data: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      raw[k] = s === '' ? null : s
+      data[k] = s === '' ? null : s
     })
+    // Pastikan nilai state React selalu tersimpan
+    if (posisi) data['posisi'] = posisi
+    if (tglMulai) data['traineeSejak'] = tglMulai
 
-    const parsed = createContractSchema.safeParse(raw)
+    // Client-side Zod validation
+    const parsed = createContractSchema.safeParse(data)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -88,7 +91,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     setErrors({})
     setIsPending(true)
     try {
-      const result = await action(employeeId, formData)
+      const result = await action(employeeId, data)
       if (result.success) {
         toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
         router.push(`/karyawan/${employeeId}`)

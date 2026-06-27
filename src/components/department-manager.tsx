@@ -79,7 +79,8 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
     setCreateErrors({})
     setCreating(true)
     try {
-      const result = await createAction(formData)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await createAction({ name: raw.name, code: raw.code })
       if (result.success) {
         toast.success(result.message ?? 'Departemen dibuat')
         setShowForm(false)
@@ -117,10 +118,8 @@ export function DepartmentManager({ departments: initial, createAction, deleteAc
 
     setSaving(true)
     try {
-      const fd = new FormData()
-      fd.set('name', editName)
-      fd.set('code', editCode)
-      const result = await updateAction(id, fd)
+      // Kirim sebagai plain object (menghindari OpenLiteSpeed multipart bug)
+      const result = await updateAction(id, { name: editName.trim(), code: editCode.trim().toUpperCase() })
       if (result.success) {
         toast.success(result.message ?? 'Departemen diperbarui')
         setDepts(prev => prev.map(d => d.id === id ? { ...d, name: editName, code: editCode.toUpperCase() } : d))

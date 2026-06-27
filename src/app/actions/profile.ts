@@ -12,14 +12,14 @@ import { changePasswordSchema } from '@/lib/validation'
 
 
 
-export async function changeOwnPassword(formData: FormData): Promise<ActionResult<void>> {
+export async function changeOwnPassword(data: Record<string, string | null>): Promise<ActionResult<void>> {
   try {
     const session = await verifySession()
 
     const raw = {
-      currentPassword: formData.get('currentPassword')?.toString() ?? '',
-      newPassword: formData.get('newPassword')?.toString() ?? '',
-      confirmPassword: formData.get('confirmPassword')?.toString() ?? '',
+      currentPassword: (data.currentPassword ?? ''),
+      newPassword: (data.newPassword ?? ''),
+      confirmPassword: (data.confirmPassword ?? ''),
     }
 
     const parsed = changePasswordSchema.safeParse(raw)
