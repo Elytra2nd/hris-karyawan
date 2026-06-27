@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectCombobox } from '@/components/ui/select-combobox'
@@ -22,7 +22,7 @@ interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string }>
+  updateAction: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   departments?: Department[]
   branches?: Branch[]
 }
@@ -31,6 +31,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Kunci sinkron anti double-submit
+  const submittingRef = useRef(false)
   const [statusValue, setStatusValue] = useState(employee.status)
   // State untuk semua custom components (SelectCombobox, DatePicker)
   // agar nilai perubahan user selalu tersimpan saat submit
@@ -42,6 +44,9 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
   const [departmentIdValue, setDepartmentIdValue] = useState(employee.departmentId ?? '')
   const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
+
+  // Field non-native tidak memicu onChange form, jadi tandai dirty manual
+  const markDirty = () => setIsDirty(true)
 
   useEffect(() => {
     if (!isDirty) return
@@ -75,6 +80,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Cegah double-submit secara sinkron sebelum apa pun berjalan
+    if (submittingRef.current) return
     // Kumpulkan nilai dari DOM form (native inputs + hidden inputs dari SelectCombobox/DatePicker)
     const formData = new FormData(e.currentTarget)
 
@@ -107,20 +114,32 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
       return
     }
 
+    submittingRef.current = true
     setErrors({})
     setIsPending(true)
+    let navigated = false
     try {
       const res = await updateAction(data)
       if (res && res.success === false) {
+        // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
+        if (res.fields && Object.keys(res.fields).length > 0) {
+          setErrors(res.fields)
+          const firstField = Object.keys(res.fields)[0]
+          if (firstField) document.getElementById(firstField)?.focus()
+        }
         toast.error(res.error)
-        setIsPending(false)
         return
       }
       toast.success('Perubahan berhasil disimpan')
+      navigated = true
       router.push(`/karyawan/${employee.id}`)
     } catch {
       toast.error('Koneksi terputus - coba simpan ulang')
-      setIsPending(false)
+    } finally {
+      if (!navigated) {
+        submittingRef.current = false
+        setIsPending(false)
+      }
     }
   }
 
@@ -172,7 +191,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required
                     size="sm"
                     value={cabangValue}
-                    onValueChange={setCabangValue}
+                    onValueChange={(v) => { setCabangValue(v); markDirty() }}
                     options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
                     placeholder="Pilih cabang..."
                   />
@@ -239,7 +258,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     name="tglLahir"
                     required
                     value={tglLahirValue}
-                    onValueChange={setTglLahirValue}
+                    onValueChange={(v) => { setTglLahirValue(v); markDirty() }}
                     placeholder="Pilih tanggal lahir"
                   />
                   <FieldError id="tglLahir-error" message={errors.tglLahir} />
@@ -294,7 +313,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     required
                     size="sm"
                     value={formConsentValue}
-                    onValueChange={setFormConsentValue}
+                    onValueChange={(v) => { setFormConsentValue(v); markDirty() }}
                     options={['ADA', 'TIDAK ADA']}
                     placeholder="Pilih..."
                   />
@@ -334,7 +353,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                         name="departmentId"
                         size="sm"
                         value={departmentIdValue}
-                        onValueChange={setDepartmentIdValue}
+                        onValueChange={(v) => { setDepartmentIdValue(v); markDirty() }}
                         options={[
                           { value: '', label: 'Tidak ditugaskan' },
                           ...departments.map((d: Department) => ({ value: d.id, label: `${d.name} - ${d.code}` })),

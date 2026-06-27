@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { addMonths, format } from 'date-fns'
 import { Label } from '@/components/ui/label'
@@ -36,6 +36,8 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
   const [tglSelesai, setTglSelesai] = useState('')
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Kunci sinkron anti double-submit
+  const submittingRef = useRef(false)
 
   // On-blur per-field validation (sama seperti edit-karyawan-form)
   const blurField = (name: keyof typeof createContractSchema.shape, value: string) => {
@@ -60,6 +62,8 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Cegah double-submit secara sinkron sebelum apa pun berjalan
+    if (submittingRef.current) return
     // Kumpulkan nilai dari DOM form
     const formData = new FormData(e.currentTarget)
 
@@ -88,12 +92,15 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
       return
     }
 
+    submittingRef.current = true
     setErrors({})
     setIsPending(true)
+    let navigated = false
     try {
       const result = await action(employeeId, data)
       if (result.success) {
         toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
+        navigated = true
         router.push(`/karyawan/${employeeId}`)
       } else {
         // Map server-side per-field errors to UI
@@ -112,11 +119,14 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           SERVER_ERROR: result.error ?? 'Terjadi gangguan server — coba beberapa saat lagi',
         }
         toast.error(errorMessages[result.code] ?? result.error ?? 'Terjadi kesalahan')
-        setIsPending(false)
       }
     } catch (err: unknown) {
       toast.error('Koneksi terputus — periksa internet Anda lalu coba kirim ulang')
-      setIsPending(false)
+    } finally {
+      if (!navigated) {
+        submittingRef.current = false
+        setIsPending(false)
+      }
     }
   }
 

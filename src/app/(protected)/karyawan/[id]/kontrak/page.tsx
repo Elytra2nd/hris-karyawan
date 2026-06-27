@@ -2,6 +2,7 @@ import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { createContract } from '@/app/actions/employee'
 import { ContractForm } from '@/components/contract-form'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CaretLeft, Warning, ClockCounterClockwise, CheckCircle } from '@phosphor-icons/react/ssr'
@@ -78,29 +79,30 @@ export default async function TambahKontrakPage({
                   ? 'text-amber-600'
                   : 'text-muted-foreground/70'
             }`} />
-            <div className="text-sm space-y-1">
-              <p className="font-semibold text-foreground">Kontrak Berjalan</p>
+            <div className="text-sm space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-semibold text-foreground">Kontrak Berjalan</p>
+                <Badge variant="secondary" className="uppercase">{latestContract.posisi}</Badge>
+              </div>
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground/80">{latestContract.posisi}</span>
-                {' · '}
                 {format(new Date(latestContract.traineeSejak), 'dd MMM yyyy', { locale: localeID })}
                 {' → '}
                 {format(new Date(latestContract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
               </p>
               {daysToExpiry !== null && (
-                <p
+                <span
                   role="status"
                   aria-label={daysToExpiry < 0 ? 'Kontrak sudah expired' : `Sisa ${daysToExpiry} hari`}
-                  className={`font-semibold text-xs ${
+                  className={
                     daysToExpiry < 0
-                      ? 'text-red-600'
+                      ? 'chip-expired'
                       : daysToExpiry <= 30
-                        ? 'text-amber-600'
-                        : 'text-green-600'
-                  }`}
+                        ? 'chip-warning'
+                        : 'chip-aktif'
+                  }
                 >
                   {daysToExpiry < 0 ? `Expired ${Math.abs(daysToExpiry)} hari lalu` : `Sisa ${daysToExpiry} hari`}
-                </p>
+                </span>
               )}
             </div>
           </div>

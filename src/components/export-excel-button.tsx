@@ -54,14 +54,15 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
   }))
 }
 
-function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, search: string): Row[] {
+function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, dept: string, search: string): Row[] {
   return rows.filter(r => {
     const matchCabang = !cabang || r['CABANG'] === cabang
     const matchStatus = !status || r['Status'] === status
     const matchPosisi = !posisi || r['Posisi'] === posisi
+    const matchDept = !dept || r['DEPARTEMEN'] === dept
     const matchSearch = !search || r['Nama Lengkap'].toLowerCase().includes(search.toLowerCase())
       || r['No KTP'].includes(search) || r['NIK']?.includes(search)
-    return matchCabang && matchStatus && matchPosisi && matchSearch
+    return matchCabang && matchStatus && matchPosisi && matchDept && matchSearch
   })
 }
 
@@ -91,11 +92,12 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const [filterCabang, setFilterCabang] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterPosisi, setFilterPosisi] = useState('')
+  const [filterDept, setFilterDept] = useState('')
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(
-    () => applyFilters(allRows, filterCabang, filterStatus, filterPosisi, search),
-    [allRows, filterCabang, filterStatus, filterPosisi, search]
+    () => applyFilters(allRows, filterCabang, filterStatus, filterPosisi, filterDept, search),
+    [allRows, filterCabang, filterStatus, filterPosisi, filterDept, search]
   )
 
 
@@ -115,6 +117,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       setFilterCabang('')
       setFilterStatus('')
       setFilterPosisi('')
+      setFilterDept('')
       setSearch('')
       setOpen(true)
     } catch {
@@ -124,8 +127,8 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     }
   }
 
-  const hasFilter = filterCabang || filterStatus || filterPosisi || search
-  const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi(''); setSearch('') }
+  const hasFilter = filterCabang || filterStatus || filterPosisi || filterDept || search
+  const reset = () => { setFilterCabang(''); setFilterStatus(''); setFilterPosisi(''); setFilterDept(''); setSearch('') }
 
   const downloadExcel = () => {
     if (filtered.length === 0) {
@@ -163,11 +166,11 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       .footer{margin-top:16px;font-size:8px;color:#999;text-align:right}
     </style></head><body>
     <h2>Laporan Data Karyawan - Astra Motor Kalimantan Barat</h2>
-    <p class="meta">Tanggal: ${format(new Date(), 'dd MMMM yyyy, HH:mm')} | Total: ${filtered.length} data${filterCabang ? ` | Cabang: ${filterCabang}` : ''}${filterStatus ? ` | Status: ${filterStatus}` : ''}${filterPosisi ? ` | Posisi: ${filterPosisi}` : ''}</p>
+    <p class="meta">Tanggal: ${format(new Date(), 'dd MMMM yyyy, HH:mm')} | Total: ${filtered.length} data${filterCabang ? ` | Cabang: ${filterCabang}` : ''}${filterStatus ? ` | Status: ${filterStatus}` : ''}${filterPosisi ? ` | Posisi: ${filterPosisi}` : ''}${filterDept ? ` | Dept: ${filterDept}` : ''}</p>
     <table><thead><tr>${pdfCols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
     ${filtered.map(row => '<tr>' + pdfCols.map(h => `<td>${row[h] ?? '-'}</td>`).join('') + '</tr>').join('')}
     </tbody></table>
-    <p class="footer">Dicetak oleh sistem TMS v2.1 - ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
+    <p class="footer">Dicetak oleh HRIS Astra Motor Kalimantan Barat - ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</p>
     </body></html>`
     const w = window.open('', '_blank')
     if (w) { w.document.write(html); w.document.close(); w.print() }
@@ -178,6 +181,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   const cabangOpts = [...new Set(allRows.map(r => r['CABANG']))].sort()
   const statusOpts = [...new Set(allRows.map(r => r['Status']))].sort()
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
+  const deptOpts = [...new Set(allRows.map(r => r['DEPARTEMEN']).filter(d => d !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
   // Preview columns - hide some less important columns in preview for cleanliness
@@ -263,6 +267,11 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
             <NativeSelect value={filterPosisi} onChange={e => setFilterPosisi(e.target.value)} aria-label="Filter posisi" className={selectCls}>
               <option value="">Semua Posisi</option>
               {posisiOpts.map(p => <option key={p} value={p}>{p}</option>)}
+            </NativeSelect>
+
+            <NativeSelect value={filterDept} onChange={e => setFilterDept(e.target.value)} aria-label="Filter departemen" className={selectCls}>
+              <option value="">Semua Departemen</option>
+              {deptOpts.map(d => <option key={d} value={d}>{d}</option>)}
             </NativeSelect>
 
             {hasFilter && (

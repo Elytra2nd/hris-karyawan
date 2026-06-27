@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth-guard'
 import { createAuditLog } from '@/lib/audit'
 import { ok, fail, type ActionResult } from '@/lib/result'
+import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import { branchSchema } from '@/lib/validation'
 
@@ -45,6 +46,7 @@ export async function createBranch(data: Record<string, string | null>): Promise
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    if (isUniqueViolation(error)) return fail('Kode atau nama cabang sudah dipakai - gunakan yang berbeda', 'DUPLICATE')
     logger.error('createBranch failed', { error: String(error) })
     return fail('Kami belum bisa membuat cabang - coba kirim ulang', 'SERVER_ERROR')
   }
@@ -75,6 +77,7 @@ export async function updateBranch(id: string, data: Record<string, string | nul
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin - hubungi Admin', 'UNAUTHORIZED')
+    if (isUniqueViolation(error)) return fail('Kode atau nama cabang sudah dipakai - gunakan yang berbeda', 'DUPLICATE')
     logger.error('updateBranch failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang', 'SERVER_ERROR')
   }

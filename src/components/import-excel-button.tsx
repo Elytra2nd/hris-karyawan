@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Upload, MicrosoftExcelLogoIcon, WarningCircle, CheckCircle,
-  CircleNotch, Download, X, WarningIcon, CaretDown,
+  CircleNotch, Download, X, WarningIcon, CaretDown, MagnifyingGlass,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
 import { bulkImportEmployees, type ImportRow } from '@/app/actions/import'
+import { normalizeRow, REQUIRED_COLS } from '@/lib/import-utils'
+import { createEmployeeSchema } from '@/lib/validation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -21,8 +23,6 @@ interface PreviewRow {
   status: RowStatus
   error?: string
 }
-
-const REQUIRED_COLS = ['BA', 'BA CABANG', 'CABANG', 'NAMA LENGKAP', 'NO KTP', 'TGL LAHIR', 'NAMA IBU', 'NO HP', 'FORM CONSENT', 'POSISI', 'TRAINEE SEJAK']
 
 export function downloadTemplate() {
   const wb = XLSX.utils.book_new()
@@ -203,16 +203,17 @@ export function ImportExcelButton() {
     const reader = new FileReader()
     reader.onload = (ev) => {
       const data = new Uint8Array(ev.target!.result as ArrayBuffer)
-      const wb = XLSX.read(data, { type: 'array' })
+      // cellDates: sel tanggal Excel dibaca sebagai objek Date (bukan serial)
+      const wb = XLSX.read(data, { type: 'array', cellDates: true })
       const ws = wb.Sheets[wb.SheetNames[0]]
 
       // Read all rows as raw arrays to find the actual header row
-      const rawRows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+      const rawRows: (string | number | Date)[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
 
       // Find header row: the row containing REQUIRED_COLS keys (with or without ★/○ prefix)
       let headerIdx = -1
       for (let i = 0; i < Math.min(rawRows.length, 5); i++) {
-        const rowKeys = rawRows[i].map((c: string) =>
+        const rowKeys = rawRows[i].map((c) =>
           String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
         )
         // If this row contains at least 3 required columns, it's the header
@@ -229,7 +230,7 @@ export function ImportExcelButton() {
       }
 
       // Build header keys from the detected header row
-      const headerKeys = rawRows[headerIdx].map((c: string) =>
+      const headerKeys = rawRows[headerIdx].map((c) =>
         String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
       )
 
@@ -237,7 +238,7 @@ export function ImportExcelButton() {
       // Data starts after header + 1 (sub-header row, if it looks like format hints)
       let dataStart = headerIdx + 1
       if (dataStart < rawRows.length) {
-        const nextRow = rawRows[dataStart].map((c: string) => String(c).toLowerCase().trim())
+        const nextRow = rawRows[dataStart].map((c) => String(c).toLowerCase().trim())
         const looksLikeSubHeader = nextRow.some(v =>
           v.includes('wajib') || v.includes('opsional') || v.includes('dropdown') ||
           v.includes('maks') || v.includes('min ') || v.includes('dd.mm')
@@ -245,23 +246,35 @@ export function ImportExcelButton() {
         if (looksLikeSubHeader) dataStart++
       }
 
+      // Ubah sel ke teks. Sel tanggal (Date dari cellDates) → ISO yyyy-MM-dd.
+      const cellToText = (cell: unknown): string => {
+        if (cell instanceof Date && !isNaN(cell.getTime())) {
+          const yyyy = cell.getFullYear()
+          const mm = String(cell.getMonth() + 1).padStart(2, '0')
+          const dd = String(cell.getDate()).padStart(2, '0')
+          return `${yyyy}-${mm}-${dd}`
+        }
+        return String(cell ?? '').trim()
+      }
+
       // Map remaining rows to objects using header keys
       const dataRows = rawRows.slice(dataStart)
-      const normalized = dataRows
-        .filter(row => row.some((c: string) => String(c).trim() !== ''))  // skip blank rows
+      const normalizedRaw = dataRows
+        .filter(row => row.some((c) => String(c).trim() !== ''))  // skip blank rows
         .map(row => {
           const out: Record<string, string> = {}
           headerKeys.forEach((key, idx) => {
-            if (key) out[key] = String(row[idx] ?? '').trim()
+            if (key) out[key] = cellToText(row[idx])
           })
           return out
         })
 
-      const preview: PreviewRow[] = normalized.map((raw, i) => {
-        // Quick client-side check for missing required columns
-        const missing = REQUIRED_COLS.filter(col => !raw[col] || raw[col] === '-')
-        if (missing.length > 0) {
-          return { index: i, raw, status: 'error', error: `Kolom kosong: ${missing.slice(0, 3).join(', ')}` }
+      // Validasi preview memakai schema yang SAMA dengan server (lewat normalizeRow),
+      // sehingga baris yang tampil "Siap" pasti lolos saat diimpor (bukan cuma cek kolom kosong).
+      const preview: PreviewRow[] = normalizedRaw.map((raw, i) => {
+        const parsed = createEmployeeSchema.safeParse(normalizeRow(raw))
+        if (!parsed.success) {
+          return { index: i, raw, status: 'error', error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }
         }
         return { index: i, raw, status: 'pending' }
       })
@@ -276,6 +289,23 @@ export function ImportExcelButton() {
 
   const validRows = rows.filter(r => r.status !== 'error')
   const errorRows = rows.filter(r => r.status === 'error')
+
+  // Filter preview (memudahkan saat baris banyak): status + cari nama/KTP
+  const [rowFilter, setRowFilter] = useState<'all' | 'ok' | 'error'>('all')
+  const [rowSearch, setRowSearch] = useState('')
+  const displayedRows = useMemo(() => {
+    const q = rowSearch.trim().toLowerCase()
+    return rows.filter(r => {
+      const matchStatus =
+        rowFilter === 'all' ? true
+          : rowFilter === 'error' ? r.status === 'error'
+            : r.status !== 'error'
+      const matchSearch = !q
+        || (r.raw['NAMA LENGKAP'] ?? '').toLowerCase().includes(q)
+        || (r.raw['NO KTP'] ?? '').includes(rowSearch.trim())
+      return matchStatus && matchSearch
+    })
+  }, [rows, rowFilter, rowSearch])
 
   const handleImport = async () => {
     if (validRows.length === 0) return
@@ -314,6 +344,8 @@ export function ImportExcelButton() {
     setRows([])
     setFileName('')
     setDone(null)
+    setRowFilter('all')
+    setRowSearch('')
     setOpen(false)
   }
 
@@ -412,6 +444,46 @@ export function ImportExcelButton() {
             </button>
           </div>
 
+          {/* Filter bar - memudahkan menelusuri baris saat data banyak */}
+          {rows.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 px-6 py-2 border-b border-border/60 bg-card">
+              <div className="relative">
+                <MagnifyingGlass size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none" />
+                <input
+                  value={rowSearch}
+                  onChange={e => setRowSearch(e.target.value)}
+                  placeholder="Cari nama / No KTP..."
+                  aria-label="Cari baris import"
+                  className="h-8 pl-7 pr-3 w-52 text-base sm:text-xs border border-border/80 rounded-lg bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
+                />
+              </div>
+              <div className="flex items-center gap-1 ml-auto">
+                {([
+                  ['all', `Semua (${rows.length})`],
+                  ['ok', `Siap (${validRows.length})`],
+                  ['error', `Error (${errorRows.length})`],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setRowFilter(key)}
+                    className={cn(
+                      'h-8 px-3 text-xs font-semibold rounded-lg border transition-colors',
+                      rowFilter === key
+                        ? key === 'error'
+                          ? 'bg-red-500/10 border-red-300 text-red-600'
+                          : key === 'ok'
+                            ? 'bg-emerald-500/10 border-emerald-300 text-emerald-700'
+                            : 'bg-primary/10 border-primary/30 text-primary'
+                        : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           <div className="flex-1 overflow-auto">
             <table className="w-full border-collapse text-xs">
@@ -428,9 +500,16 @@ export function ImportExcelButton() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, i) => (
+                {displayedRows.length === 0 && (
+                  <tr>
+                    <td colSpan={displayCols.length + 3} className="px-3 py-8 text-center text-muted-foreground">
+                      Tidak ada baris yang cocok dengan filter
+                    </td>
+                  </tr>
+                )}
+                {displayedRows.map((row, i) => (
                   <tr
-                    key={i}
+                    key={row.index}
                     className={cn(
                       'border-b border-border/60',
                       row.status === 'error' ? 'bg-red-50' : row.status === 'ok' ? 'bg-green-50' : i % 2 === 0 ? 'bg-card' : 'bg-muted/60'

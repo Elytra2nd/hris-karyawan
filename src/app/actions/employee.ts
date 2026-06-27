@@ -12,6 +12,7 @@ import {
   createContractSchema,
 } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
+import { isUniqueViolation, isForeignKeyViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
@@ -20,19 +21,6 @@ function calculateEndDate(posisi: string, startDate: Date): Date {
   return posisi.toLowerCase().includes('admin')
     ? addMonths(startDate, 3)
     : addMonths(startDate, 6)
-}
-
-// Prisma P2002 = unique constraint violation. Cek apakah menyangkut field noKtp.
-function isUniqueKtpError(error: unknown): boolean {
-  const e = error as { code?: string; meta?: { target?: unknown } }
-  if (e?.code !== 'P2002') return false
-  const target = e.meta?.target
-  return Array.isArray(target) ? target.includes('noKtp') : String(target ?? '').includes('noKtp')
-}
-
-// Prisma P2003 = foreign key constraint. Untuk Employee, FK satu-satunya adalah cabang -> Branch.code.
-function isCabangFkError(error: unknown): boolean {
-  return (error as { code?: string })?.code === 'P2003'
 }
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
@@ -75,11 +63,11 @@ export async function createEmployee(data: Record<string, string | null>) {
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
-    if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE')
+    if (isUniqueViolation(error, 'noKtp')) {
+      return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE', { noKtp: 'No KTP ini sudah terdaftar' })
     }
-    if (isCabangFkError(error)) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
+    if (isForeignKeyViolation(error, 'cabang')) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('createEmployee failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan data - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -134,11 +122,11 @@ export async function updateEmployee(id: string, data: Record<string, string | n
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
-    if (isUniqueKtpError(error)) {
-      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE')
+    if (isUniqueViolation(error, 'noKtp')) {
+      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai karyawan lain' })
     }
-    if (isCabangFkError(error)) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION')
+    if (isForeignKeyViolation(error, 'cabang')) {
+      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -296,6 +284,35 @@ function buildContractWhere(contractFilter: string, today: Date) {
   }
 }
 
+type SortableEmployee = {
+  namaLengkap: string
+  nik: string | null
+  cabang: string
+  contracts: { posisi: string; traineeSelesai: Date }[]
+}
+
+// Sort lintas seluruh dataset (bukan hanya halaman aktif). Kolom posisi/traineeSelesai
+// diturunkan dari kontrak terbaru, jadi sort dilakukan di server setelah fetch-all.
+function sortEmployeeRows<T extends SortableEmployee>(rows: T[], sortBy: string, sortDir: 'asc' | 'desc'): T[] {
+  const dir = sortDir === 'desc' ? -1 : 1
+  const getVal = (r: T): string => {
+    switch (sortBy) {
+      case 'nik':            return r.nik ?? ''
+      case 'cabang':         return r.cabang
+      case 'posisi':         return r.contracts[0]?.posisi ?? ''
+      case 'traineeSelesai': return r.contracts[0]?.traineeSelesai ? new Date(r.contracts[0].traineeSelesai).toISOString() : ''
+      default:               return r.namaLengkap
+    }
+  }
+  return [...rows].sort((a, b) => {
+    const va = getVal(a).toLowerCase()
+    const vb = getVal(b).toLowerCase()
+    if (va < vb) return -1 * dir
+    if (va > vb) return 1 * dir
+    return 0
+  })
+}
+
 export async function getEmployees({
   search = '',
   cabang = '',
@@ -305,6 +322,8 @@ export async function getEmployees({
   departmentId = '',
   page = 1,
   perPage = PER_PAGE,
+  sortBy = '',
+  sortDir = 'asc',
 }: {
   search?: string
   cabang?: string
@@ -314,12 +333,14 @@ export async function getEmployees({
   departmentId?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
 } = {}) {
   try {
     const today = new Date()
     const where = {
       AND: [
-        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
         status ? { status } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
@@ -328,16 +349,16 @@ export async function getEmployees({
       ],
     }
 
-    const [employees, total] = await prisma.$transaction([
-      prisma.employee.findMany({
-        where,
-        include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
-        orderBy: { namaLengkap: 'asc' },
-        take: perPage,
-        skip: (page - 1) * perPage,
-      }),
-      prisma.employee.count({ where }),
-    ])
+    // Fetch seluruh hasil filter agar sort berlaku global (bukan per halaman),
+    // lalu paginate di memori. Skala data HRIS ini kecil sehingga aman.
+    const all = await prisma.employee.findMany({
+      where,
+      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
+    })
+
+    const sorted = sortEmployeeRows(all, sortBy, sortDir)
+    const total = sorted.length
+    const employees = sorted.slice((page - 1) * perPage, page * perPage)
 
     return { employees, total }
   } catch (error) {
@@ -364,17 +385,26 @@ export async function getDistinctCabang(): Promise<string[]> {
 export async function getEmployeeStats({
   search = '',
   cabang = '',
+  departmentId = '',
+  posisi = '',
 }: {
   search?: string
   cabang?: string
+  departmentId?: string
+  posisi?: string
 } = {}) {
   try {
     const today = startOfDay(new Date())
 
+    // Scope statistik mengikuti filter populasi (search/cabang/dept/posisi) agar
+    // angka kartu konsisten dengan tabel. Filter status & kontrak TIDAK diterapkan
+    // di sini karena justru itu yang dipecah oleh kartu-kartu ini.
     const baseWhere = {
       AND: [
-        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] },
+        { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
+        departmentId ? { departmentId } : {},
+        posisi ? { contracts: { some: { posisi } } } : {},
       ],
     }
 

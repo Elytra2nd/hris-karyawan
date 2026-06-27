@@ -25,6 +25,8 @@ export async function getContracts({
   posisi = '',
   page = 1,
   perPage = 15,
+  sortBy = '',
+  sortDir = 'asc',
 }: {
   search?: string
   cabang?: string
@@ -33,6 +35,8 @@ export async function getContracts({
   posisi?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
 } = {}): Promise<{ contracts: ContractRow[]; total: number }> {
   try {
     const today = startOfDay(new Date())
@@ -83,8 +87,26 @@ export async function getContracts({
     // Filter by contract status
     const filtered = status ? rows.filter(r => r.contractStatus === status) : rows
 
-    // Sort: expired first, then by days ascending
-    filtered.sort((a, b) => a.daysLeft - b.daysLeft)
+    // Sort lintas seluruh dataset (bukan per halaman). Default: paling mendesak dulu.
+    if (sortBy) {
+      const dir = sortDir === 'desc' ? -1 : 1
+      filtered.sort((a, b) => {
+        let va: string, vb: string
+        if (sortBy === 'traineeSelesai') {
+          va = new Date(a.traineeSelesai).toISOString()
+          vb = new Date(b.traineeSelesai).toISOString()
+        } else {
+          va = String((a as Record<string, unknown>)[sortBy] ?? '')
+          vb = String((b as Record<string, unknown>)[sortBy] ?? '')
+        }
+        va = va.toLowerCase(); vb = vb.toLowerCase()
+        if (va < vb) return -1 * dir
+        if (va > vb) return 1 * dir
+        return 0
+      })
+    } else {
+      filtered.sort((a, b) => a.daysLeft - b.daysLeft)
+    }
 
     const total = filtered.length
     const paginated = filtered.slice((page - 1) * perPage, page * perPage)
