@@ -50,10 +50,9 @@ export type AppRole = (typeof ROLE_VALID)[number]
 
 // ─── Employee Schema (Create) ─────────────────────────────────────────────────
 export const createEmployeeSchema = z.object({
-  ba: reqString(z.string().min(1, 'Kode BA wajib diisi').max(20)),
-  baCabang: reqString(z.string().min(1, 'BA Cabang wajib diisi').max(100)),
-  // Cabang divalidasi terhadap tabel Branch (dinamis), bukan daftar statis.
-  // Keberadaan kode cabang dijamin oleh foreign key Employee.cabang -> Branch.code.
+  // BA & BA Cabang tidak lagi diinput manual - diturunkan otomatis dari Cabang
+  // (Branch.code & Branch.label) di server. Lihat actions/employee.ts.
+  // Cabang divalidasi terhadap tabel Branch (dinamis).
   cabang: reqString(z.string().min(1, 'Cabang wajib dipilih').max(20)),
   namaLengkap: reqString(z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang')),
   nik: z.string().max(20).optional().nullable(),
@@ -70,11 +69,11 @@ export const createEmployeeSchema = z.object({
     .regex(/^08\d+$/, 'No HP harus diawali 08')),
   noJamsostek: z.string().max(30).optional().nullable(),
   formConsent: z.enum(['ADA', 'TIDAK ADA'] as const, { message: 'Form consent tidak valid' }),
-  posisi: z.enum(POSISI_VALID, { message: 'Jabatan tidak valid' }),
+  // Posisi divalidasi terhadap tabel Position (dinamis), bukan enum statis.
+  posisi: reqString(z.string().min(1, 'Posisi wajib dipilih').max(100)),
   traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid')),
-  departmentId: z.string().min(1).optional().nullable(),
 })
 
 // ─── Employee Schema (Update - tanpa posisi + traineeSejak, tambah status) ────
@@ -86,7 +85,7 @@ export const updateEmployeeSchema = createEmployeeSchema
 
 // ─── Contract Schema ──────────────────────────────────────────────────────────
 export const createContractSchema = z.object({
-  posisi: z.enum(POSISI_VALID, { message: 'Pilih salah satu jabatan yang tersedia' }),
+  posisi: reqString(z.string().min(1, 'Pilih salah satu jabatan yang tersedia').max(100)),
   traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai kontrak wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih')),
@@ -108,10 +107,10 @@ export const createUserSchema = z.object({
   role: z.enum(ROLE_VALID, { message: 'Role tidak valid' }),
 })
 
-// ─── Department Schema ────────────────────────────────────────────────────────
-export const departmentSchema = z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter').max(100),
-  code: z.string().min(1, 'Kode wajib diisi').max(20).regex(/^[A-Z0-9_-]+$/, 'Kode hanya huruf kapital, angka, dan strip'),
+// ─── Position Schema ──────────────────────────────────────────────────────────
+export const positionSchema = z.object({
+  name: z.string().min(2, 'Nama posisi minimal 2 karakter').max(100),
+  contractMonths: z.coerce.number().int('Durasi harus angka').min(1, 'Durasi minimal 1 bulan').max(24, 'Durasi maksimal 24 bulan'),
 })
 
 // ─── Branch Schema ────────────────────────────────────────────────────────────

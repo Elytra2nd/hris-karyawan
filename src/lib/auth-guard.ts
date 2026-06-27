@@ -24,8 +24,8 @@ const PERMISSIONS = {
   // Audit log
   audit_read:           ['ADMIN', 'HR_MANAGER'],
 
-  // Department management
-  department_manage:    ['ADMIN'],
+  // Position management
+  position_manage:      ['ADMIN', 'HR_MANAGER'],
 
   // Export / import
   export_data:          ['ADMIN', 'HR_MANAGER'],

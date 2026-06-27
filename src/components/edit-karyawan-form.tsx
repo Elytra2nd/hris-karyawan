@@ -15,35 +15,33 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { updateEmployeeSchema } from '@/lib/validation'
-import type { EmployeeWithoutContracts, Department } from '@/types'
+import type { EmployeeWithoutContracts } from '@/types'
 import { useRouter } from 'next/navigation'
 
 interface Branch { code: string; label: string }
 
 interface EditKaryawanFormProps {
   employee: EmployeeWithoutContracts
-  updateAction: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
-  departments?: Department[]
+  updateAction: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
   branches?: Branch[]
 }
 
-export function EditKaryawanForm({ employee, updateAction, departments = [], branches = [] }: EditKaryawanFormProps) {
+export function EditKaryawanForm({ employee, updateAction, branches = [] }: EditKaryawanFormProps) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Kunci sinkron anti double-submit
   const submittingRef = useRef(false)
   const [statusValue, setStatusValue] = useState(employee.status)
-  // State untuk semua custom components (SelectCombobox, DatePicker)
-  // agar nilai perubahan user selalu tersimpan saat submit
+  const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  // Controlled state untuk field non-native (SelectCombobox/DatePicker).
+  // Tanpa ini, value={...} tanpa onValueChange membuat field "macet" di nilai awal.
   const [cabangValue, setCabangValue] = useState(employee.cabang)
+  const [formConsentValue, setFormConsentValue] = useState(employee.formConsent)
   const [tglLahirValue, setTglLahirValue] = useState(
     employee.tglLahir ? new Date(employee.tglLahir).toISOString().slice(0, 10) : ''
   )
-  const [formConsentValue, setFormConsentValue] = useState(employee.formConsent)
-  const [departmentIdValue, setDepartmentIdValue] = useState(employee.departmentId ?? '')
-  const [showNonAktifDialog, setShowNonAktifDialog] = useState(false)
-  const [isDirty, setIsDirty] = useState(false)
 
   // Field non-native tidak memicu onChange form, jadi tandai dirty manual
   const markDirty = () => setIsDirty(true)
@@ -82,25 +80,17 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     e.preventDefault()
     // Cegah double-submit secara sinkron sebelum apa pun berjalan
     if (submittingRef.current) return
-    // Kumpulkan nilai dari DOM form (native inputs + hidden inputs dari SelectCombobox/DatePicker)
+    // Buat FormData dari DOM form secara synchronous — ini menjamin
+    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
     const formData = new FormData(e.currentTarget)
 
-    // Bangun plain object — dikirim sebagai JSON ke server action
-    // agar tidak di-intercept oleh OpenLiteSpeed (bug multipart stripping)
-    const data: Record<string, string | null> = {}
+    const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      data[k] = s === '' ? null : s
+      raw[k] = s === '' ? null : s
     })
-    // Override dengan state React — ini memastikan nilai custom components
-    // (SelectCombobox, DatePicker) selalu tersimpan meski FormData DOM ada isu
-    data['cabang'] = cabangValue || null
-    data['tglLahir'] = tglLahirValue || null
-    data['formConsent'] = formConsentValue || null
-    data['status'] = statusValue || null
-    data['departmentId'] = departmentIdValue || null
 
-    const parsed = updateEmployeeSchema.safeParse(data)
+    const parsed = updateEmployeeSchema.safeParse(raw)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -119,7 +109,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
     setIsPending(true)
     let navigated = false
     try {
-      const res = await updateAction(data)
+      const res = await updateAction(formData)
       if (res && res.success === false) {
         // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
         if (res.fields && Object.keys(res.fields).length > 0) {
@@ -166,22 +156,8 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                 <Buildings size={16} className="text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">Data Operasional</h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="ba" className="form-label">
-                    BA (Branch Code) <span className="text-red-500">*</span>
-                  </Label>
-                  <Input id="ba" name="ba" defaultValue={employee.ba} required nativeInput size="sm" aria-invalid={!!errors.ba} aria-describedby={errors.ba ? 'ba-error' : undefined} className={errors.ba ? 'border-destructive' : ''} onBlur={(e) => blurField('ba', e.target.value)} />
-                  <FieldError id="ba-error" message={errors.ba} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="baCabang" className="form-label">
-                    BA Cabang <span className="text-red-500">*</span>
-                  </Label>
-                  <Input id="baCabang" name="baCabang" defaultValue={employee.baCabang} required nativeInput size="sm" aria-invalid={!!errors.baCabang} aria-describedby={errors.baCabang ? 'baCabang-error' : undefined} className={errors.baCabang ? 'border-destructive' : ''} onBlur={(e) => blurField('baCabang', e.target.value)} />
-                  <FieldError id="baCabang-error" message={errors.baCabang} />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="cabang" className="form-label">
                     Cabang <span className="text-red-500">*</span>
                   </Label>
@@ -196,6 +172,7 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     placeholder="Pilih cabang..."
                   />
                   <FieldError id="cabang-error" message={errors.cabang} />
+                  <p className="text-xs text-muted-foreground">Kode BA &amp; nama cabang terisi otomatis dari pilihan ini.</p>
                 </div>
               </div>
             </section>
@@ -339,30 +316,6 @@ export function EditKaryawanForm({ employee, updateAction, departments = [], bra
                     Ubah ke Non-Aktif jika karyawan sudah keluar atau kontrak tidak dilanjutkan.
                   </p>
                 </div>
-
-                {/* Departemen */}
-                {departments.length > 0 && (
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="departmentId" className="form-label">
-                      Departemen
-                      <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opsional)</span>
-                    </Label>
-                    <div className="max-w-xs">
-                    <SelectCombobox
-                        id="departmentId"
-                        name="departmentId"
-                        size="sm"
-                        value={departmentIdValue}
-                        onValueChange={(v) => { setDepartmentIdValue(v); markDirty() }}
-                        options={[
-                          { value: '', label: 'Tidak ditugaskan' },
-                          ...departments.map((d: Department) => ({ value: d.id, label: `${d.name} - ${d.code}` })),
-                        ]}
-                        placeholder="Pilih departemen..."
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
             </section>
 

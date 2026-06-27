@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { addMonths, format } from 'date-fns'
+import { addMonths, subDays, format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SelectCombobox } from '@/components/ui/select-combobox'
@@ -13,23 +13,17 @@ import { CircleNotch, Info, CalendarCheck, FileText } from '@phosphor-icons/reac
 import { toast } from 'sonner'
 import { createContractSchema } from '@/lib/validation'
 
-const POSISI_OPTIONS = [
-  { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
-  { value: 'SALESGIRL', label: 'Salesgirl', months: 6 },
-  { value: 'COUNTER SALES', label: 'Counter Sales', months: 6 },
-  { value: 'MECHANIC', label: 'Mechanic', months: 6 },
-  { value: 'TEAM LEADER', label: 'Team Leader', months: 6 },
-  { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
-]
-
 import type { ActionResult } from '@/lib/result'
+
+interface Position { name: string; contractMonths: number }
 
 interface ContractFormProps {
   employeeId: string
-  action: (id: string, data: Record<string, string | null>) => Promise<ActionResult<{ employeeId: string }>>
+  action: (id: string, formData: FormData) => Promise<ActionResult<{ employeeId: string }>>
+  positions?: Position[]
 }
 
-export function ContractForm({ employeeId, action }: ContractFormProps) {
+export function ContractForm({ employeeId, action, positions = [] }: ContractFormProps) {
   const router = useRouter()
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -54,31 +48,28 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
 
   useEffect(() => {
     if (posisi && tglMulai) {
-      const opt = POSISI_OPTIONS.find(p => p.value === posisi)
-      const months = opt?.months ?? 6
-      setTglSelesai(format(addMonths(new Date(tglMulai), months), 'yyyy-MM-dd'))
+      const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
+      // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
+      setTglSelesai(format(subDays(addMonths(new Date(tglMulai), months), 1), 'yyyy-MM-dd'))
     }
-  }, [posisi, tglMulai])
+  }, [posisi, tglMulai, positions])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     // Cegah double-submit secara sinkron sebelum apa pun berjalan
     if (submittingRef.current) return
-    // Kumpulkan nilai dari DOM form
+    // Buat FormData dari DOM form secara synchronous — menjamin semua
+    // input (SelectCombobox hidden input, DatePicker) terkumpul.
     const formData = new FormData(e.currentTarget)
 
-    // Bangun plain object — dikirim sebagai JSON (menghindari OpenLiteSpeed multipart bug)
-    const data: Record<string, string | null> = {}
+    // Client-side Zod validation
+    const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      data[k] = s === '' ? null : s
+      raw[k] = s === '' ? null : s
     })
-    // Pastikan nilai state React selalu tersimpan
-    if (posisi) data['posisi'] = posisi
-    if (tglMulai) data['traineeSejak'] = tglMulai
 
-    // Client-side Zod validation
-    const parsed = createContractSchema.safeParse(data)
+    const parsed = createContractSchema.safeParse(raw)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -97,7 +88,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     setIsPending(true)
     let navigated = false
     try {
-      const result = await action(employeeId, data)
+      const result = await action(employeeId, formData)
       if (result.success) {
         toast.success(result.message ?? 'Kontrak berhasil diterbitkan')
         navigated = true
@@ -130,7 +121,7 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
     }
   }
 
-  const selectedOpt = POSISI_OPTIONS.find(p => p.value === posisi)
+  const selectedPosition = positions.find(p => p.name === posisi)
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -153,10 +144,10 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
             setErrors(prev => { const n = { ...prev }; delete n.posisi; return n })
             blurField('posisi', v)
           }}
-          options={POSISI_OPTIONS.map(p => ({
-            value: p.value,
-            label: p.label,
-            hint: `${p.months} bln`,
+          options={positions.map(p => ({
+            value: p.name,
+            label: p.name,
+            hint: `${p.contractMonths} bln`,
           }))}
           placeholder="Pilih jabatan..."
         />
@@ -214,8 +205,8 @@ export function ContractForm({ employeeId, action }: ContractFormProps) {
           <div role="note" className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-3">
             <Info size={16} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-blue-700">
-              Jabatan <strong>{selectedOpt?.label}</strong> mendapat kontrak{' '}
-              <strong>{selectedOpt?.months} bulan</strong> dari tanggal mulai.
+              Jabatan <strong>{posisi}</strong> mendapat kontrak{' '}
+              <strong>{selectedPosition?.contractMonths ?? 6} bulan</strong> dari tanggal mulai.
             </p>
           </div>
         ) : (

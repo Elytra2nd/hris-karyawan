@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { addMonths, format } from 'date-fns'
+import { addMonths, subDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -13,25 +13,16 @@ import { FieldError } from '@/components/ui/field-error'
 import { createEmployeeSchema } from '@/lib/validation'
 import { useRouter } from 'next/navigation'
 
-const POSISI_OPTIONS = [
-  { value: 'SALES EXECUTIVE', label: 'Sales Executive', months: 6 },
-  { value: 'SALESGIRL', label: 'Salesgirl', months: 6 },
-  { value: 'COUNTER SALES', label: 'Counter Sales', months: 6 },
-  { value: 'MECHANIC', label: 'Mechanic', months: 6 },
-  { value: 'TEAM LEADER', label: 'Team Leader', months: 6 },
-  { value: 'ADMINISTRATOR', label: 'Administrator', months: 3 },
-]
-
 interface Branch { code: string; label: string }
-interface Department { id: string; name: string; code: string }
+interface Position { name: string; contractMonths: number }
 
 export function EmployeeForm({
   action,
-  departments = [],
+  positions = [],
   branches = [],
 }: {
-  action: (data: Record<string, string | null>) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
-  departments?: Department[]
+  action: (formData: FormData) => Promise<{ success: boolean; error?: string; message?: string; code?: string; fields?: Record<string, string> }>
+  positions?: Position[]
   branches?: Branch[]
 }) {
   const router = useRouter()
@@ -42,6 +33,8 @@ export function EmployeeForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Kunci sinkron anti double-submit (disabled={isPending} tidak instan karena state async)
   const submittingRef = useRef(false)
+
+  const selectedPosition = positions.find(p => p.name === posisi)
 
   // On-blur per-field validation pakai Zod schema shape
   const blurField = (name: keyof typeof createEmployeeSchema.shape, value: string) => {
@@ -58,32 +51,28 @@ export function EmployeeForm({
 
   useEffect(() => {
     if (posisi && tglMulai) {
-      const opt = POSISI_OPTIONS.find(p => p.value === posisi)
-      const months = opt?.months ?? 6
-      setTglSelesai(format(addMonths(new Date(tglMulai), months), 'yyyy-MM-dd'))
+      const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
+      // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
+      setTglSelesai(format(subDays(addMonths(new Date(tglMulai), months), 1), 'yyyy-MM-dd'))
     }
-  }, [posisi, tglMulai])
+  }, [posisi, tglMulai, positions])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     // Cegah double-submit secara sinkron sebelum apa pun berjalan
     if (submittingRef.current) return
-    // Kumpulkan nilai dari DOM form (native inputs + hidden inputs dari SelectCombobox/DatePicker)
+    // Buat FormData dari DOM form secara synchronous — ini menjamin
+    // semua <input> (termasuk yang dibungkus wrapper component) terkumpul.
     const formData = new FormData(e.currentTarget)
 
-    // Bangun plain object — dikirim sebagai JSON ke server action
-    // agar tidak di-intercept oleh OpenLiteSpeed (bug multipart stripping)
-    const data: Record<string, string | null> = {}
+    // Client-side validation - instant feedback before round-trip
+    const raw: Record<string, string | null> = {}
     formData.forEach((v, k) => {
       const s = v.toString().trim()
-      data[k] = s === '' ? null : s
+      raw[k] = s === '' ? null : s
     })
-    // Pastikan nilai dari state React (posisi, tglMulai) selalu tersimpan
-    if (posisi) data['posisi'] = posisi
-    if (tglMulai) data['traineeSejak'] = tglMulai
 
-    // Client-side validation - instant feedback before round-trip
-    const parsed = createEmployeeSchema.safeParse(data)
+    const parsed = createEmployeeSchema.safeParse(raw)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach(e => {
@@ -106,7 +95,7 @@ export function EmployeeForm({
     setIsPending(true)
     let navigated = false
     try {
-      const res = await action(data)
+      const res = await action(formData)
       if (res && res.success === false) {
         // Sorot + fokus field yang ditolak server (mis. No KTP duplikat)
         if (res.fields && Object.keys(res.fields).length > 0) {
@@ -143,44 +132,21 @@ export function EmployeeForm({
           title="Data Operasional"
           color="blue"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField id="ba" label="BA (Branch Code)" name="ba" placeholder="Contoh: H730" required error={errors.ba} onBlur={v => blurField('ba', v)} />
-          <FormField id="baCabang" label="BA Cabang" name="baCabang" placeholder="Contoh: SAMBAS" required error={errors.baCabang} onBlur={v => blurField('baCabang', v)} />
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="cabang" className="form-label">
-              Cabang <span className="text-red-500">*</span>
-            </Label>
-            <SelectCombobox
-              id="cabang"
-              name="cabang"
-              required
-              size="sm"
-              options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
-              placeholder="Pilih cabang..."
-            />
-            <FieldError message={errors.cabang} />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="cabang" className="form-label">
+            Cabang <span className="text-red-500">*</span>
+          </Label>
+          <SelectCombobox
+            id="cabang"
+            name="cabang"
+            required
+            size="sm"
+            options={branches.map(b => ({ value: b.code, label: `${b.code} - ${b.label}` }))}
+            placeholder="Pilih cabang..."
+          />
+          <FieldError message={errors.cabang} />
+          <p className="text-xs text-muted-foreground">Kode BA &amp; nama cabang terisi otomatis dari pilihan ini.</p>
         </div>
-
-        {/* Departemen - tampil hanya jika ada data */}
-        {departments.length > 0 && (
-          <div className="space-y-2">
-            <Label htmlFor="departmentId" className="form-label">
-              Departemen
-              <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opsional)</span>
-            </Label>
-            <SelectCombobox
-              id="departmentId"
-              name="departmentId"
-              size="sm"
-              options={[
-                { value: '', label: 'Tidak ditugaskan' },
-                ...departments.map(d => ({ value: d.id, label: `${d.name} - ${d.code}` })),
-              ]}
-              placeholder="Pilih departemen..."
-            />
-          </div>
-        )}
       </section>
 
       {/* ─── B. Identitas Karyawan ─── */}
@@ -277,10 +243,10 @@ export function EmployeeForm({
             size="sm"
             value={posisi}
             onValueChange={setPosisi}
-            options={POSISI_OPTIONS.map(p => ({
-              value: p.value,
-              label: p.label,
-              hint: `${p.months} bln`,
+            options={positions.map(p => ({
+              value: p.name,
+              label: p.name,
+              hint: `${p.contractMonths} bln`,
             }))}
             placeholder="Pilih jabatan..."
           />
@@ -328,7 +294,7 @@ export function EmployeeForm({
             <Info size={16} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
               Jabatan <strong>{posisi}</strong> otomatis mendapat kontrak{' '}
-              <strong>{POSISI_OPTIONS.find(p => p.value === posisi)?.months} bulan</strong>{' '}
+              <strong>{selectedPosition?.contractMonths ?? 6} bulan</strong>{' '}
               dari tanggal mulai.
             </p>
           </div>

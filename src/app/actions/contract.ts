@@ -21,7 +21,6 @@ export async function getContracts({
   search = '',
   cabang = '',
   status = '',
-  departmentId = '',
   posisi = '',
   page = 1,
   perPage = 15,
@@ -31,7 +30,6 @@ export async function getContracts({
   search?: string
   cabang?: string
   status?: string // expired | critical | warning | safe | ''
-  departmentId?: string
   posisi?: string
   page?: number
   perPage?: number
@@ -50,7 +48,6 @@ export async function getContracts({
           AND: [
             search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
             cabang ? { cabang } : {},
-            departmentId ? { departmentId } : {},
           ],
         },
       },
@@ -121,12 +118,10 @@ export async function getContracts({
 export async function getContractStats({
   search = '',
   cabang = '',
-  departmentId = '',
   posisi = '',
 }: {
   search?: string
   cabang?: string
-  departmentId?: string
   posisi?: string
 } = {}) {
   try {
@@ -139,7 +134,6 @@ export async function getContractStats({
           AND: [
             search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
             cabang ? { cabang } : {},
-            departmentId ? { departmentId } : {},
           ],
         },
       },

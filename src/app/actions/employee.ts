@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { addMonths, differenceInDays, startOfDay } from 'date-fns'
+import { addMonths, subDays, differenceInDays, startOfDay } from 'date-fns'
 import { createAuditLog } from '@/lib/audit'
 import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import {
@@ -12,15 +12,24 @@ import {
   createContractSchema,
 } from '@/lib/validation'
 import { ok, fail, ActionResult } from '@/lib/result'
-import { isUniqueViolation, isForeignKeyViolation } from '@/lib/prisma-error'
+import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
 // ─── Business Rule: hitung tanggal selesai ────────────────────────────────────
-function calculateEndDate(posisi: string, startDate: Date): Date {
-  return posisi.toLowerCase().includes('admin')
-    ? addMonths(startDate, 3)
-    : addMonths(startDate, 6)
+// Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari.
+// mis. mulai 01 Jul, 6 bln -> 31 Des (bukan 01 Jan).
+function calculateEndDate(startDate: Date, months: number): Date {
+  return subDays(addMonths(startDate, months), 1)
+}
+
+// Durasi kontrak (bulan) dari tabel Position. null = posisi tak terdaftar.
+async function getPositionMonths(posisi: string): Promise<number | null> {
+  const pos = await prisma.position.findUnique({
+    where: { name: posisi.toUpperCase() },
+    select: { contractMonths: true },
+  })
+  return pos?.contractMonths ?? null
 }
 
 // ─── Create Employee ──────────────────────────────────────────────────────────
@@ -37,37 +46,42 @@ export async function createEmployee(data: Record<string, string | null>) {
   }
 
   const {
-    ba, baCabang, cabang, namaLengkap,
+    cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
-    departmentId: deptId,
   } = parsed.data
+
+  // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
+  const branch = await prisma.branch.findUnique({ where: { code: cabang.toUpperCase() } })
+  if (!branch) {
+    return fail(`Cabang "${cabang}" tidak terdaftar - pilih dari daftar atau tambahkan di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak terdaftar' })
+  }
+  // Durasi kontrak dari tabel Position
+  const months = await getPositionMonths(posisi)
+  if (months === null) {
+    return fail(`Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi`, 'VALIDATION', { posisi: 'Posisi tidak terdaftar' })
+  }
 
   // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
   const tglLahir = new Date(tglLahirRaw)
   const traineeSejak = new Date(traineeSejakRaw)
-  const traineeSelesai = calculateEndDate(posisi, traineeSejak)
-  const departmentId = deptId ?? null
+  const traineeSelesai = calculateEndDate(traineeSejak, months)
 
   let newEmployee
   try {
     newEmployee = await prisma.employee.create({
       data: {
-        ba, baCabang, cabang, namaLengkap,
+        ba: branch.code, baCabang: branch.label, cabang: branch.code, namaLengkap,
         status: 'AKTIF',
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
-        departmentId,
         contracts: { create: { posisi, traineeSejak, traineeSelesai } },
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
     if (isUniqueViolation(error, 'noKtp')) {
       return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE', { noKtp: 'No KTP ini sudah terdaftar' })
-    }
-    if (isForeignKeyViolation(error, 'cabang')) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('createEmployee failed', { error: String(error) })
     return fail('Kami belum bisa menyimpan data - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -100,33 +114,33 @@ export async function updateEmployee(id: string, data: Record<string, string | n
   }
 
   const {
-    ba, baCabang, cabang, namaLengkap,
+    cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, status,
-    departmentId: deptId,
   } = parsed.data
+
+  // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
+  const branch = await prisma.branch.findUnique({ where: { code: cabang.toUpperCase() } })
+  if (!branch) {
+    return fail(`Cabang "${cabang}" tidak terdaftar - pilih dari daftar atau tambahkan di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak terdaftar' })
+  }
 
   // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
   const tglLahir = new Date(tglLahirRaw)
-  const departmentId = deptId ?? null
 
   try {
     await prisma.employee.update({
       where: { id },
       data: {
-        ba, baCabang, cabang, namaLengkap, status,
+        ba: branch.code, baCabang: branch.label, cabang: branch.code, namaLengkap, status,
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
-        departmentId,
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
     if (isUniqueViolation(error, 'noKtp')) {
       return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai karyawan lain' })
-    }
-    if (isForeignKeyViolation(error, 'cabang')) {
-      return fail(`Cabang "${cabang}" tidak ditemukan - pilih cabang dari daftar atau tambahkan dulu di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak ditemukan' })
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -159,8 +173,12 @@ export async function createContract(employeeId: string, data: Record<string, st
     }
 
     const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
+    const months = await getPositionMonths(posisi)
+    if (months === null) {
+      return fail(`Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi`, 'VALIDATION', { posisi: 'Posisi tidak terdaftar' })
+    }
     const traineeSejak = new Date(traineeSejakRaw)
-    const traineeSelesai = calculateEndDate(posisi, traineeSejak)
+    const traineeSelesai = calculateEndDate(traineeSejak, months)
 
     const newContract = await prisma.contract.create({
       data: { posisi, traineeSejak, traineeSelesai, employeeId },
@@ -237,30 +255,20 @@ type EmployeeExportItem = {
   noHp: string
   formConsent: string
   contracts: { posisi: string; traineeSejak: Date; traineeSelesai: Date }[]
-  department: { name: string; code: string } | null
 }
 
 export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> {
   await requireAuth()
 
   try {
-    // Fetch employees and departments separately to avoid Prisma cache issues with include
-    const [employees, departments] = await Promise.all([
-      prisma.employee.findMany({
-        include: {
-          contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
-        },
-        orderBy: { namaLengkap: 'asc' },
-      }),
-      prisma.department.findMany({ select: { id: true, name: true, code: true } }),
-    ])
+    const employees = await prisma.employee.findMany({
+      include: {
+        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
+      },
+      orderBy: { namaLengkap: 'asc' },
+    })
 
-    const deptMap = new Map(departments.map(d => [d.id, { name: d.name, code: d.code }]))
-
-    return employees.map(emp => ({
-      ...emp,
-      department: emp.departmentId ? deptMap.get(emp.departmentId) ?? null : null,
-    })) as unknown as EmployeeExportItem[]
+    return employees as unknown as EmployeeExportItem[]
   } catch (error) {
     logger.error('getAllEmployeesForExport failed', { error: String(error) })
     return []
@@ -319,7 +327,6 @@ export async function getEmployees({
   status = '',
   contractFilter = '',
   posisi = '',
-  departmentId = '',
   page = 1,
   perPage = PER_PAGE,
   sortBy = '',
@@ -330,7 +337,6 @@ export async function getEmployees({
   status?: string
   contractFilter?: string
   posisi?: string
-  departmentId?: string
   page?: number
   perPage?: number
   sortBy?: string
@@ -344,7 +350,6 @@ export async function getEmployees({
         cabang ? { cabang } : {},
         status ? { status } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
-        departmentId ? { departmentId } : {},
         buildContractWhere(contractFilter, today),
       ],
     }
@@ -353,7 +358,7 @@ export async function getEmployees({
     // lalu paginate di memori. Skala data HRIS ini kecil sehingga aman.
     const all = await prisma.employee.findMany({
       where,
-      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 }, department: true },
+      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
     })
 
     const sorted = sortEmployeeRows(all, sortBy, sortDir)
@@ -385,25 +390,22 @@ export async function getDistinctCabang(): Promise<string[]> {
 export async function getEmployeeStats({
   search = '',
   cabang = '',
-  departmentId = '',
   posisi = '',
 }: {
   search?: string
   cabang?: string
-  departmentId?: string
   posisi?: string
 } = {}) {
   try {
     const today = startOfDay(new Date())
 
-    // Scope statistik mengikuti filter populasi (search/cabang/dept/posisi) agar
+    // Scope statistik mengikuti filter populasi (search/cabang/posisi) agar
     // angka kartu konsisten dengan tabel. Filter status & kontrak TIDAK diterapkan
     // di sini karena justru itu yang dipecah oleh kartu-kartu ini.
     const baseWhere = {
       AND: [
         { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
-        departmentId ? { departmentId } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
       ],
     }
@@ -519,38 +521,3 @@ export async function getDashboardKPI() {
   }
 }
 
-// ─── Read: Statistik per departemen untuk dashboard ──────────────────────────
-export async function getDepartmentStats() {
-  try {
-    const result = await prisma.employee.groupBy({
-      by: ['departmentId'],
-      where: { status: 'AKTIF' },
-      _count: { departmentId: true },
-      orderBy: { _count: { departmentId: 'desc' } },
-    })
-
-    // Fetch department names
-    const deptIds = result
-      .map(r => r.departmentId)
-      .filter((id): id is string => id !== null)
-
-    const departments = deptIds.length > 0
-      ? await prisma.department.findMany({
-          where: { id: { in: deptIds } },
-          select: { id: true, name: true, code: true },
-        })
-      : []
-
-    const deptMap = new Map(departments.map(d => [d.id, d]))
-
-    return result.map(r => ({
-      departmentId: r.departmentId,
-      name: r.departmentId ? deptMap.get(r.departmentId)?.name ?? 'Unknown' : 'Belum Ditugaskan',
-      code: r.departmentId ? deptMap.get(r.departmentId)?.code ?? '-' : '-',
-      count: r._count.departmentId,
-    }))
-  } catch (error) {
-    logger.error('getDepartmentStats failed', { error: String(error) })
-    return []
-  }
-}

@@ -1,6 +1,7 @@
 import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { createContract } from '@/app/actions/employee'
+import { getPositions } from '@/app/actions/position'
 import { ContractForm } from '@/components/contract-form'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -17,15 +18,18 @@ export default async function TambahKontrakPage({
   await requirePermission('contract_create')
 
   const { id } = await params
-  const employee = await prisma.employee.findUnique({
-    where: { id },
-    select: {
-      namaLengkap: true,
-      cabang: true,
-      status: true,
-      contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
-    },
-  })
+  const [employee, positions] = await Promise.all([
+    prisma.employee.findUnique({
+      where: { id },
+      select: {
+        namaLengkap: true,
+        cabang: true,
+        status: true,
+        contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
+      },
+    }),
+    getPositions(),
+  ])
   if (!employee) notFound()
 
   const latestContract = employee.contracts[0]
@@ -114,7 +118,7 @@ export default async function TambahKontrakPage({
           <p className="text-xs text-muted-foreground mb-6">
             Kolom bertanda <span className="text-red-500 font-semibold">*</span> wajib diisi
           </p>
-          <ContractForm employeeId={id} action={createContract} />
+          <ContractForm employeeId={id} action={createContract} positions={positions} />
         </div>
 
         {/* ─── Aturan Kontrak ─── */}

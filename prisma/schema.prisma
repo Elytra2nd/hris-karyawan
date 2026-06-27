@@ -18,15 +18,13 @@ model Branch {
   @@map("branch")
 }
 
-model Department {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  code      String     @unique
-  createdAt DateTime   @default(now())
-  employees Employee[]
+model Position {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  contractMonths Int     @default(6)
+  createdAt     DateTime @default(now())
 
-  @@index([code])
-  @@map("department")
+  @@map("position")
 }
 
 model Contract {
@@ -65,8 +63,6 @@ model Employee {
   image        String?
   kkPath       String?
   ktpPath      String?
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   branch       Branch?     @relation(fields: [cabang], references: [code], onDelete: Restrict)
   contracts    Contract[]
 
@@ -74,7 +70,6 @@ model Employee {
   @@index([cabang])
   @@index([status, cabang])
   @@index([namaLengkap])
-  @@index([departmentId])
   @@map("employee")
 }
 

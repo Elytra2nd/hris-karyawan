@@ -2,11 +2,11 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { addMonths } from 'date-fns'
+import { addMonths, subDays } from 'date-fns'
 import { requirePermission } from "@/lib/auth-guard"
 import { createAuditLog } from '@/lib/audit'
 import { logger } from '@/lib/logger'
-import { isUniqueViolation, isForeignKeyViolation } from '@/lib/prisma-error'
+import { isUniqueViolation } from '@/lib/prisma-error'
 import { createEmployeeSchema } from '@/lib/validation'
 import { normalizeRow } from '@/lib/import-utils'
 
@@ -57,12 +57,13 @@ export async function bulkImportEmployees(
   // Lacak KTP duplikat di dalam file yang sama juga.
   const seenInBatch = new Set<string>()
 
-  // Pre-fetch semua departemen untuk resolve kode → ID
-  const allDepartments = await prisma.department.findMany({
-    select: { id: true, code: true, name: true },
-  })
-  const deptByCode = new Map(allDepartments.map(d => [d.code.toUpperCase(), d.id]))
-  const deptByName = new Map(allDepartments.map(d => [d.name.toUpperCase(), d.id]))
+  // Pre-fetch Branch (untuk derive BA/BA Cabang + validasi cabang) & Position (durasi)
+  const [allBranches, allPositions] = await Promise.all([
+    prisma.branch.findMany({ select: { code: true, label: true } }),
+    prisma.position.findMany({ select: { name: true, contractMonths: true } }),
+  ])
+  const branchByCode = new Map(allBranches.map(b => [b.code.toUpperCase(), b]))
+  const monthsByPosisi = new Map(allPositions.map(p => [p.name.toUpperCase(), p.contractMonths]))
 
   for (const { index, raw } of rows) {
     const normalized = normalizeRow(raw)
@@ -76,10 +77,25 @@ export async function bulkImportEmployees(
     }
 
     const {
-      ba, baCabang, cabang, namaLengkap,
+      cabang, namaLengkap,
       nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
       noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
     } = parsed.data
+
+    // Validasi cabang + derive BA/BA Cabang dari Branch
+    const branch = branchByCode.get(cabang.toUpperCase())
+    if (!branch) {
+      result.errors.push({ row: index + 1, message: `Cabang "${cabang}" tidak terdaftar - tambahkan dulu di Kelola Cabang` })
+      result.skipped++
+      continue
+    }
+    // Validasi posisi terhadap tabel Position
+    const months = monthsByPosisi.get(posisi.toUpperCase())
+    if (months === undefined) {
+      result.errors.push({ row: index + 1, message: `Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi` })
+      result.skipped++
+      continue
+    }
 
     // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
     const tglLahir = new Date(tglLahirRaw)
@@ -93,26 +109,17 @@ export async function bulkImportEmployees(
     seenInBatch.add(noKtp)
 
     const traineeSejak = new Date(traineeSejakRaw)
-    const traineeSelesai = posisi.toLowerCase().includes('admin')
-      ? addMonths(traineeSejak, 3)
-      : addMonths(traineeSejak, 6)
+    // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
+    const traineeSelesai = subDays(addMonths(traineeSejak, months), 1)
 
     try {
-      // Resolve departmentCode (bisa berupa kode atau nama departemen)
-      const deptCode = normalized.departmentCode?.toString().toUpperCase() ?? ''
-      let departmentId: string | null = null
-      if (deptCode) {
-        departmentId = deptByCode.get(deptCode) ?? deptByName.get(deptCode) ?? null
-      }
-
       const emp = await prisma.employee.create({
         data: {
-          ba, baCabang, cabang, namaLengkap,
+          ba: branch.code, baCabang: branch.label, cabang: branch.code, namaLengkap,
           status: 'AKTIF',
           nik: nik ?? null,
           noJamsostek: noJamsostek ?? null,
           noKtp, tglLahir, namaIbu, noHp, formConsent,
-          departmentId,
           contracts: { create: { posisi, traineeSejak, traineeSelesai } },
         },
       })
@@ -123,14 +130,13 @@ export async function bulkImportEmployees(
         'CREATE',
         'employee',
         emp.id,
-        { source: 'bulk_import', nama: namaLengkap, cabang, posisi }
+        { source: 'bulk_import', nama: namaLengkap, cabang: branch.code, posisi }
       )
 
       result.created++
     } catch (error) {
       let message = 'Kami belum bisa menyimpan baris ini - coba impor ulang'
       if (isUniqueViolation(error, 'noKtp')) message = `No KTP ${noKtp} sudah terdaftar - baris dilewati`
-      else if (isForeignKeyViolation(error, 'cabang')) message = `Cabang "${cabang}" tidak terdaftar - tambahkan dulu di Kelola Cabang`
       else logger.error('bulkImport row failed', { row: index + 1, error: String(error) })
       result.errors.push({ row: index + 1, message })
       result.skipped++
