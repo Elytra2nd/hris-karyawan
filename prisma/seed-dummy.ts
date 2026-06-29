@@ -37,8 +37,9 @@ function randomPhone(): string {
   return pick(prefixes) + Array.from({ length: 8 }, () => randInt(0, 9)).join('')
 }
 
+// Format KTP Kalbar: diawali kode wilayah KTP Kalbar, misal Kubu Raya 6112, Pontianak 6171, dll.
 function randomKtp(regionCode: string): string {
-  return regionCode + Array.from({ length: 10 }, () => randInt(0, 9)).join('')
+  return regionCode + Array.from({ length: 12 }, () => randInt(0, 9)).join('')
 }
 
 // ── Data Pools ──────────────────────────────────────────
@@ -81,34 +82,27 @@ const CABANG_DATA = [
   { cabang: 'LANDAK',          region: 'KALIMANTAN BARAT', ba: 'H730', baCabang: 'H730J', ktp: '6110' },
 ]
 
-const POSISI = [
-  'SALES EXECUTIVE', 'SALES EXECUTIVE', 'SALES EXECUTIVE',  // Higher weight
-  'SALESGIRL', 'SALESGIRL',
-  'COUNTER SALES', 'COUNTER SALES',
-  'MECHANIC', 'MECHANIC', 'MECHANIC',
-  'TEAM LEADER',
-  'ADMINISTRATOR',
+const POSISI_DATA = [
+  { name: 'SALES EXECUTIVE', contractMonths: 6 },
+  { name: 'SALESGIRL',       contractMonths: 6 },
+  { name: 'COUNTER SALES',   contractMonths: 6 },
+  { name: 'MECHANIC',        contractMonths: 6 },
+  { name: 'TEAM LEADER',     contractMonths: 6 },
+  { name: 'ADMINISTRATOR',   contractMonths: 3 },
 ]
 
-const STATUS = ['AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'TIDAK AKTIF'] // 87.5% aktif
+const POSISI = POSISI_DATA.map(p => p.name)
 
-const DEPARTMENTS = [
-  { name: 'Sales & Marketing',   code: 'SM' },
-  { name: 'Service & Aftersales', code: 'SA' },
-  { name: 'Parts & Sparepart',   code: 'PS' },
-  { name: 'Finance & Accounting', code: 'FA' },
-  { name: 'HRD & GA',            code: 'HR' },
-  { name: 'IT & Digital',        code: 'IT' },
-]
+const STATUS = ['AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'AKTIF', 'NON-AKTIF'] // 87.5% aktif
 
 // ── Main ────────────────────────────────────────────────
 async function main() {
   console.log('🗑️  Membersihkan data lama...')
   await prisma.contract.deleteMany()
   await prisma.employee.deleteMany()
-  await prisma.department.deleteMany()
   await prisma.auditLog.deleteMany()
-  // Keep existing users, just ensure admin exists
+  await prisma.position.deleteMany()
+  await prisma.branch.deleteMany()
 
   // 1. Users
   console.log('👤 Setup users...')
@@ -128,21 +122,24 @@ async function main() {
   console.log('  ✅ admin / admin123  (ADMIN)')
   console.log('  ✅ viewer / viewer123 (VIEWER)')
 
-  // 2. Departments
-  console.log('🏢 Setup departments...')
-  const deptMap: Record<string, string> = {}
-  for (const dept of DEPARTMENTS) {
-    const created = await prisma.department.create({ data: dept })
-    deptMap[dept.code] = created.id
-    console.log(`  ✅ ${dept.name} (${dept.code})`)
+  // 2. Branches
+  console.log('🏛️ Setup branches...')
+  for (const cab of CABANG_DATA) {
+    await prisma.branch.upsert({
+      where: { code: cab.cabang },
+      update: {},
+      create: {
+        code: cab.cabang,
+        label: `Astra Motor ${cab.cabang}`,
+      },
+    })
   }
 
-  // Map posisi → department code
-  const posisiToDept: Record<string, string> = {
-    'SALES EXECUTIVE': 'SM', 'SALESGIRL': 'SM', 'COUNTER SALES': 'SM',
-    'MECHANIC': 'SA',
-    'TEAM LEADER': 'SM',
-    'ADMINISTRATOR': 'FA',
+  // 2.5 Positions
+  console.log('💼 Setup positions...')
+  for (const pos of POSISI_DATA) {
+    await prisma.position.create({ data: pos })
+    console.log(`  ✅ ${pos.name} (${pos.contractMonths} bln)`)
   }
 
   // 3. Employees + Contracts
@@ -157,8 +154,6 @@ async function main() {
     const cab = pick(CABANG_DATA)
     const posisi = pick(POSISI)
     const status = pick(STATUS)
-    const deptCode = posisiToDept[posisi] ?? 'HR'
-    const departmentId = deptMap[deptCode]
 
     // Tanggal lahir: 1985-2003
     const tglLahir = new Date(randomDate(1985, 2003))
@@ -234,7 +229,6 @@ async function main() {
         namaIbu: pick(NAMA_IBU),
         noHp: randomPhone(),
         formConsent,
-        departmentId,
         contracts: {
           create: contracts.map(c => ({
             posisi: c.posisi,
@@ -253,13 +247,13 @@ async function main() {
   const totalEmp = await prisma.employee.count()
   const totalContract = await prisma.contract.count()
   const totalAktif = await prisma.employee.count({ where: { status: 'AKTIF' } })
-  const totalDept = await prisma.department.count()
+  const totalPos = await prisma.position.count()
 
   console.log('\n' + '─'.repeat(60))
   console.log('📊 RINGKASAN SEED DATA:')
   console.log(`   👷 Karyawan  : ${totalEmp} (${totalAktif} aktif, ${totalEmp - totalAktif} tidak aktif)`)
   console.log(`   📄 Kontrak   : ${totalContract}`)
-  console.log(`   🏢 Department: ${totalDept}`)
+  console.log(`   💼 Posisi    : ${totalPos}`)
   console.log(`   👤 Users     : admin (ADMIN), viewer (VIEWER)`)
   console.log('─'.repeat(60))
   console.log('✅ Seed selesai!\n')

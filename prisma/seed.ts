@@ -30,6 +30,24 @@ async function main() {
 
   console.log('✅ Akun Admin siap!');
 
+  // 1.2 Setup Positions
+  console.log('💼 Membuat data posisi...');
+  const posisiData = [
+    { name: 'SALESMAN', contractMonths: 6 },
+    { name: 'ADMIN', contractMonths: 3 },
+    { name: 'STAFF IT', contractMonths: 6 },
+    { name: 'DRIVER', contractMonths: 6 },
+    { name: 'ACCOUNTING', contractMonths: 6 },
+    { name: 'SECURITY', contractMonths: 6 },
+  ];
+  for (const p of posisiData) {
+    await prisma.position.upsert({
+      where: { name: p.name },
+      update: { contractMonths: p.contractMonths },
+      create: p,
+    });
+  }
+
   // 1.5 Setup Branches
   console.log('🏛️ Membuat data cabang...');
   const cabangDummies = ['PONTIANAK', 'JAKARTA', 'MEDAN', 'SURABAYA', 'MAKASSAR', 'BALIKPAPAN'];

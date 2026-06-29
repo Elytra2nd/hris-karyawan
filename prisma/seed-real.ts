@@ -35,7 +35,7 @@ async function main() {
   await prisma.auditLog.deleteMany();
   await prisma.user.deleteMany();
   await prisma.branch.deleteMany();
-  await prisma.department.deleteMany();
+  await prisma.position.deleteMany();
 
   // ============ 0. SETUP BRANCHES ============
   console.log('🏛️  Membuat data cabang Astra Motor Kalbar...');
@@ -56,6 +56,22 @@ async function main() {
     await prisma.branch.upsert({ where: { code: b.code }, update: {}, create: b });
   }
   console.log(`  ✅ ${realBranches.length} cabang dibuat`);
+
+  // ============ 0.5. SETUP POSITIONS ============
+  console.log('💼  Membuat data posisi...');
+  const realPositions = [
+    { name: 'SALESMAN', contractMonths: 6 },
+    { name: 'SALESGIRL', contractMonths: 6 },
+    { name: 'MEKANIK', contractMonths: 6 },
+    { name: 'TEAM LEADER', contractMonths: 6 },
+    { name: 'SALES EXECUTIVE', contractMonths: 6 },
+    { name: 'COUNTER SALES', contractMonths: 6 },
+    { name: 'ADMINISTRATOR', contractMonths: 3 },
+  ];
+  for (const p of realPositions) {
+    await prisma.position.upsert({ where: { name: p.name }, update: {}, create: p });
+  }
+  console.log(`  ✅ ${realPositions.length} posisi dibuat`);
 
   // ============ 1. SETUP USERS ============
   console.log('👤 Membuat akun pengguna...');
