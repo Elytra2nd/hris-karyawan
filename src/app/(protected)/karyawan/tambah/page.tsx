@@ -25,12 +25,12 @@ export default async function TambahKaryawanPage() {
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
       >
         <CaretLeft size={16} />
-        Kembali ke Data Karyawan
+        Kembali ke Data Trainee
       </Link>
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Tambah Karyawan Baru</h1>
+        <h1 className="text-2xl font-bold text-foreground">Tambah Trainee Baru</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Input identitas diri dan masa kontrak awal sesuai aturan jabatan.
         </p>

@@ -143,7 +143,7 @@ export async function updateEmployee(id: string, data: Record<string, string | n
     })
   } catch (error) {
     if (isUniqueViolation(error, 'noKtp')) {
-      return fail(`No KTP ${noKtp} sudah digunakan karyawan lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai karyawan lain' })
+      return fail(`No KTP ${noKtp} sudah digunakan trainee lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai trainee lain' })
     }
     logger.error('updateEmployee failed', { id, error: String(error) })
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
@@ -218,7 +218,7 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
     })
 
     if (!employee) {
-      return fail('Data karyawan tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
+      return fail('Data trainee tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     }
 
     await prisma.employee.delete({ where: { id } })
@@ -243,7 +243,7 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
   }
 }
 
-// ─── Read: Semua karyawan untuk export ───────────────────────────────────────
+// ─── Read: Semua trainee untuk export ───────────────────────────────────────
 type EmployeeExportItem = {
   ba: string
   baCabang: string
@@ -279,7 +279,7 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
   }
 }
 
-// ─── Read: Filter karyawan (server-side pagination + contractFilter) ──────────
+// ─── Read: Filter trainee (server-side pagination + contractFilter) ──────────
 const PER_PAGE = 10
 
 function addDays(date: Date, n: number): Date {
@@ -391,7 +391,7 @@ export async function getDistinctCabang(): Promise<string[]> {
   }
 }
 
-// ─── Read: Aggregate stats untuk dashboard karyawan ──────────────────────────
+// ─── Read: Aggregate stats untuk dashboard trainee ──────────────────────────
 export async function getEmployeeStats({
   search = '',
   cabang = '',
@@ -494,10 +494,10 @@ export async function getDashboardKPI() {
       }
     })
 
-    // Karyawan AKTIF tanpa kontrak sama sekali
+    // Trainee AKTIF tanpa kontrak sama sekali
     const noContract = totalAktif - latestContracts.length
 
-    // Persentase kontrak valid dari total karyawan aktif
+    // Persentase kontrak valid dari total trainee aktif
     const validPercent = totalAktif > 0 ? Math.round((contractValid / totalAktif) * 100) : 0
 
     return {

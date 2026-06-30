@@ -79,7 +79,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="font-bold text-foreground/80">NIK</TableHead>
-              <TableHead className="font-bold text-foreground/80">Nama Karyawan</TableHead>
+              <TableHead className="font-bold text-foreground/80">Nama Trainee</TableHead>
               <TableHead className="font-bold text-foreground/80">Cabang</TableHead>
               <TableHead className="font-bold text-foreground/80">Posisi</TableHead>
               <TableHead className="font-bold text-foreground/80">Total Tenur</TableHead>
@@ -92,7 +92,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
             {data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center h-32 text-muted-foreground">
-                  Belum ada data karyawan. Silakan tambah data baru.
+                  Belum ada data trainee. Silakan tambah data baru.
                 </TableCell>
               </TableRow>
             ) : (
@@ -177,7 +177,7 @@ export default function EmployeeTable({ data, currentPage, totalPages }: Employe
                           </Tooltip>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Hapus Data Karyawan?</AlertDialogTitle>
+                              <AlertDialogTitle>Hapus Data Trainee?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 Tindakan ini tidak dapat dibatalkan. Menghapus data <span className="font-bold text-foreground">{emp.namaLengkap}</span> akan menghapus seluruh riwayat kontrak terkait secara permanen.
                               </AlertDialogDescription>

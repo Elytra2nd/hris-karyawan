@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 
 const ROLE_OPTIONS = [
   { value: 'ADMIN', label: 'Admin', desc: 'Akses penuh ke seluruh sistem' },
-  { value: 'HR_MANAGER', label: 'HR Manager', desc: 'CRUD karyawan & kontrak' },
+  { value: 'HR_MANAGER', label: 'HR Manager', desc: 'CRUD trainee & kontrak' },
   { value: 'HR_STAFF', label: 'HR Staff', desc: 'Tambah & edit karyawan' },
   { value: 'VIEWER', label: 'Pemirsa', desc: 'Hanya lihat data' },
 ]

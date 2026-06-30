@@ -54,13 +54,13 @@
 :root {
   /* ─── Base ─────────────────────────────────────────── */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.115 0 0);
 
   /* ─── Card & Popover ───────────────────────────────── */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.115 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.115 0 0);
 
   /* ─── Primary - Astra Blue #1e40af ───────────────── */
   --primary: oklch(0.379 0.191 264);
@@ -68,11 +68,11 @@
 
   /* ─── Secondary - Neutral ─────────────────────────── */
   --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.145 0 0);
+  --secondary-foreground: oklch(0.115 0 0);
 
   /* ─── Muted ────────────────────────────────────────── */
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.48 0 0);
+  --muted-foreground: oklch(0.40 0 0);
 
   /* ─── Accent - Biru-50 #eff6ff (hover bg) ─────────── */
   --accent: oklch(0.951 0.026 264);

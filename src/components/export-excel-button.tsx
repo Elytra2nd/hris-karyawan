@@ -108,7 +108,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     try {
       const raw = await getAllEmployeesForExport()
       if (raw.length === 0) {
-        toast.info('Belum ada data karyawan untuk diekspor')
+        toast.info('Belum ada data trainee untuk diekspor')
         return
       }
       setAllRows(toRows(raw))
@@ -162,7 +162,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       tr:nth-child(even){background:#f9f9f9}
       .footer{margin-top:16px;font-size:8px;color:#999;text-align:right}
     </style></head><body>
-    <h2>Laporan Data Karyawan - Astra Motor Kalimantan Barat</h2>
+    <h2>Laporan Data Trainee - Astra Motor Kalimantan Barat</h2>
     <p class="meta">Tanggal: ${format(new Date(), 'dd MMMM yyyy, HH:mm')} | Total: ${filtered.length} data${filterCabang ? ` | Cabang: ${filterCabang}` : ''}${filterStatus ? ` | Status: ${filterStatus}` : ''}${filterPosisi ? ` | Posisi: ${filterPosisi}` : ''}</p>
     <table><thead><tr>${pdfCols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
     ${filtered.map(row => '<tr>' + pdfCols.map(h => `<td>${row[h] ?? '-'}</td>`).join('') + '</tr>').join('')}
@@ -220,10 +220,10 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10">
                     <MicrosoftExcelLogoIcon size={20} className="text-emerald-600" />
                   </div>
-                  Export Data Karyawan
+                  Export Data Trainee
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-1.5 ml-10">
-                  Preview dan filter data sebelum mengunduh. Semua {allRows.length} karyawan tersedia.
+                  Preview dan filter data sebelum mengunduh. Semua {allRows.length} trainee tersedia.
                 </DialogDescription>
               </div>
             </div>

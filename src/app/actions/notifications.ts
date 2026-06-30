@@ -27,10 +27,10 @@ export async function getNotifications(): Promise<NotificationSummary> {
 
   const now = startOfDay(new Date())
 
-  // Ambil kontrak TERBARU (traineeSelesai paling akhir) per karyawan AKTIF.
+  // Ambil kontrak TERBARU (traineeSelesai paling akhir) per trainee AKTIF.
   // distinct + orderBy desc = baris dengan tanggal selesai terbesar per employeeId.
   // Status alert dihitung dari kontrak terbaru ini — konsisten dengan seluruh app,
-  // mencegah false-positive saat karyawan sudah diperpanjang lebih awal.
+  // mencegah false-positive saat trainee sudah diperpanjang lebih awal.
   const latestContracts = await prisma.contract.findMany({
     where: { employee: { status: 'AKTIF' } },
     orderBy: { traineeSelesai: 'desc' },

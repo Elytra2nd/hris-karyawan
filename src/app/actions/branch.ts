@@ -93,7 +93,7 @@ export async function deleteBranch(id: string): Promise<ActionResult<{ id: strin
     })
     if (!branch) return fail('Cabang tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
     if (branch._count.employees > 0) {
-      return fail(`Cabang ini masih memiliki ${branch._count.employees} karyawan - pindahkan mereka terlebih dahulu`, 'VALIDATION')
+      return fail(`Cabang ini masih memiliki ${branch._count.employees} trainee - pindahkan mereka terlebih dahulu`, 'VALIDATION')
     }
 
     await prisma.branch.delete({ where: { id } })

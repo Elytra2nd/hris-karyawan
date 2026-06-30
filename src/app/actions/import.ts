@@ -21,7 +21,7 @@ export interface ImportRow {
 }
 
 export interface ImportResult {
-  created: number          // jumlah karyawan baru dibuat
+  created: number          // jumlah trainee baru dibuat
   contractsAdded: number   // jumlah periode kontrak ditambahkan
   skipped: number          // jumlah baris dilewati karena error
   errors: { row: number; message: string }[]
@@ -31,7 +31,7 @@ export interface ImportResult {
 interface PreparedRow {
   index: number
   ktp: string
-  // identitas karyawan (konstan per KTP)
+  // identitas trainee (konstan per KTP)
   cabang: string
   baCabang: string
   region: string | null
@@ -56,7 +56,7 @@ const contractKey = (posisi: string, traineeSejak: Date) =>
 
 // ─── Bulk Import Server Action ────────────────────────────────────────────────
 // Data sumber = SATU BARIS PER PERIODE KONTRAK (No KTP berulang untuk
-// perpanjangan). Maka baris dikelompokkan per KTP: 1 karyawan + banyak kontrak.
+// perpanjangan). Maka baris dikelompokkan per KTP: 1 trainee + banyak kontrak.
 export async function bulkImportEmployees(
   rows: ImportRow[]
 ): Promise<ImportResult> {
@@ -174,7 +174,7 @@ export async function bulkImportEmployees(
     else groups.set(p.ktp, [p])
   }
 
-  // Pre-fetch karyawan yang sudah ada (+ kontraknya) untuk dedupe.
+  // Pre-fetch trainee yang sudah ada (+ kontraknya) untuk dedupe.
   const existing = await prisma.employee.findMany({
     where: { noKtp: { in: [...groups.keys()] } },
     select: { id: true, noKtp: true, contracts: { select: { posisi: true, traineeSejak: true } } },
@@ -188,7 +188,7 @@ export async function bulkImportEmployees(
     return g[0][key]
   }
 
-  // ── Tahap 3: buat/lengkapi karyawan + kontrak per grup ──
+  // ── Tahap 3: buat/lengkapi trainee + kontrak per grup ──
   for (const [ktp, g] of groups) {
     const head = g[0]
     const existingEmp = existingByKtp.get(ktp)
@@ -208,7 +208,7 @@ export async function bulkImportEmployees(
 
     try {
       if (existingEmp) {
-        // Karyawan sudah ada → cukup tambah periode kontrak baru.
+        // Trainee sudah ada → cukup tambah periode kontrak baru.
         if (newContracts.length > 0) {
           await prisma.contract.createMany({
             data: newContracts.map(c => ({ ...c, employeeId: existingEmp.id })),
@@ -220,7 +220,7 @@ export async function bulkImportEmployees(
           )
         }
       } else {
-        // Karyawan baru → buat identitas + semua kontraknya sekaligus (atomik).
+        // Trainee baru → buat identitas + semua kontraknya sekaligus (atomik).
         const emp = await prisma.employee.create({
           data: {
             ba: head.cabang, baCabang: head.baCabang, region: firstNonNull(g, 'region'),

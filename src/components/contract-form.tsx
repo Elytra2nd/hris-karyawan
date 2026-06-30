@@ -106,7 +106,7 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
         const errorMessages: Record<string, string> = {
           UNAUTHORIZED: 'Anda tidak memiliki izin — hubungi Admin untuk akses',
           VALIDATION: result.error ?? 'Ada isian yang perlu diperbaiki — periksa kolom yang ditandai',
-          NOT_FOUND: 'Data karyawan tidak ditemukan — mungkin sudah dihapus',
+          NOT_FOUND: 'Data trainee tidak ditemukan — mungkin sudah dihapus',
           DUPLICATE: result.error ?? 'Data duplikat terdeteksi',
           SERVER_ERROR: result.error ?? 'Terjadi gangguan server — coba beberapa saat lagi',
         }

@@ -46,7 +46,7 @@ export default async function TambahKontrakPage({
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
       >
         <CaretLeft size={16} />
-        Kembali ke Detail Karyawan
+        Kembali ke Detail Trainee
       </Link>
 
       {/* ─── Page Header ─── */}

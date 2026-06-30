@@ -20,7 +20,7 @@ export default function KaryawanError({
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-foreground">Gagal Memuat Data</h1>
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Tidak dapat memuat data karyawan. Silakan coba lagi.'}
+            {error.message || 'Tidak dapat memuat data trainee. Silakan coba lagi.'}
           </p>
         </div>
 

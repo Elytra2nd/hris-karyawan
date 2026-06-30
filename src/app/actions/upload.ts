@@ -77,7 +77,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
       select: { image: true },
     })
     if (!employee) {
-      return { success: false, message: 'Data karyawan tidak ditemukan - mungkin sudah dihapus' }
+      return { success: false, message: 'Data trainee tidak ditemukan - mungkin sudah dihapus' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'profiles')
@@ -149,7 +149,7 @@ export async function uploadEmployeeDocument(formData: FormData, employeeId: str
       select: { ktpPath: true, kkPath: true },
     })
     if (!employee) {
-      return { success: false, message: 'Data karyawan tidak ditemukan - mungkin sudah dihapus' }
+      return { success: false, message: 'Data trainee tidak ditemukan - mungkin sudah dihapus' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'documents')

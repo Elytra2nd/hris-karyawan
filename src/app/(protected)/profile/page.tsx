@@ -9,22 +9,22 @@ const ROLE_LABELS: Record<string, { label: string; color: string; description: s
   ADMIN: {
     label: 'Administrator',
     color: 'bg-red-500/10 text-red-600 border-red-200',
-    description: 'Akses penuh - kelola pengguna, departemen, cabang, karyawan, dan log aktivitas',
+    description: 'Akses penuh - kelola pengguna, departemen, cabang, trainee, dan log aktivitas',
   },
   HR_MANAGER: {
     label: 'HR Manager',
     color: 'bg-blue-500/10 text-blue-600 border-blue-200',
-    description: 'Kelola data karyawan, kontrak, dan lihat log aktivitas',
+    description: 'Kelola data trainee, kontrak, dan lihat log aktivitas',
   },
   HR_STAFF: {
     label: 'HR Staff',
     color: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
-    description: 'Input dan edit data karyawan serta kontrak',
+    description: 'Input dan edit data trainee serta kontrak',
   },
   VIEWER: {
     label: 'Pemirsa',
     color: 'bg-gray-500/10 text-gray-600 border-gray-200',
-    description: 'Hanya bisa melihat data karyawan (baca saja)',
+    description: 'Hanya bisa melihat data trainee (baca saja)',
   },
 }
 

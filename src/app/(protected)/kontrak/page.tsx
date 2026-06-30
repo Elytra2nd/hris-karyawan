@@ -166,7 +166,7 @@ export default function ManajemenKontrakPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Manajemen Kontrak</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Monitoring status kontrak seluruh karyawan aktif
+          Monitoring status kontrak seluruh trainee aktif
         </p>
       </div>
 
@@ -269,7 +269,7 @@ export default function ManajemenKontrakPage() {
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Cari nama atau NIK karyawan..."
+              placeholder="Cari nama atau NIK trainee..."
               aria-label="Cari kontrak"
               className="w-full h-8 pl-8 pr-4 text-base sm:text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/70"
             />
@@ -296,7 +296,7 @@ export default function ManajemenKontrakPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               {[
-                { key: 'employeeName', label: 'Nama Karyawan' },
+                { key: 'employeeName', label: 'Nama Trainee' },
                 { key: 'posisi', label: 'Posisi' },
                 { key: 'employeeCabang', label: 'Cabang' },
                 { key: 'traineeSelesai', label: 'Tanggal Selesai' },
@@ -388,7 +388,7 @@ export default function ManajemenKontrakPage() {
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('employeeName')}
                 >
-                  Karyawan <SortIcon col="employeeName" sortCol={sortCol} sortDir={sortDir} />
+                  Trainee <SortIcon col="employeeName" sortCol={sortCol} sortDir={sortDir} />
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
@@ -436,7 +436,7 @@ export default function ManajemenKontrakPage() {
                   colSpan={7}
                   icon={searchInput || status || hasActiveFilters ? MagnifyingGlass : FileText}
                   title={searchInput || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
-                  description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+                  description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah trainee ditambahkan'}
                 />
               ) : (
                 rows.map((row) => (
@@ -554,7 +554,7 @@ export default function ManajemenKontrakPage() {
           <EmptyState
             icon={searchInput || status || hasActiveFilters ? MagnifyingGlass : FileText}
             title={searchInput || status || hasActiveFilters ? 'Tidak ada kontrak ditemukan' : 'Belum ada data kontrak'}
-            description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah karyawan ditambahkan'}
+            description={searchInput || status || hasActiveFilters ? 'Coba ubah filter atau kata kunci' : 'Kontrak akan muncul setelah trainee ditambahkan'}
           />
         ) : (
           <div className="divide-y divide-border/60">

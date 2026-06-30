@@ -193,7 +193,7 @@ export function BranchManager({ branches: initial, createAction, deleteAction, u
               <tr>
                 <th className="th-standard text-left">Kode</th>
                 <th className="th-standard text-left">Nama Cabang</th>
-                <th className="th-standard text-center">Karyawan</th>
+                <th className="th-standard text-center">Trainee</th>
                 <th className="th-standard text-center">Aksi</th>
               </tr>
             </thead>

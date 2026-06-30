@@ -107,7 +107,7 @@ export function EmployeeForm({
         toast.error(res.error)
         return
       }
-      toast.success('Data karyawan berhasil disimpan')
+      toast.success('Data trainee berhasil disimpan')
       navigated = true
       router.push('/karyawan')
     } catch {
@@ -150,12 +150,12 @@ export function EmployeeForm({
         </div>
       </section>
 
-      {/* ─── B. Identitas Karyawan ─── */}
+      {/* ─── B. Identitas Trainee ─── */}
       <section className="space-y-4">
         <SectionHeader
           icon={<User size={16} className="text-green-600" />}
           letter="B"
-          title="Identitas Karyawan"
+          title="Identitas Trainee"
           color="green"
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -167,7 +167,7 @@ export function EmployeeForm({
             onBlur={v => blurField('namaLengkap', v)}
           />
           <FormField
-            id="nik" label="NIK Karyawan"
+            id="nik" label="NIK Trainee"
             name="nik" placeholder="Diisi oleh HO"
             hint="Bisa dikosongkan dan diisi nanti"
             error={errors.nik}
@@ -355,7 +355,7 @@ export function EmployeeForm({
           {isPending ? (
             <><CircleNotch size={16} className="animate-spin" /> Menyimpan...</>
           ) : (
-            'Simpan Data Karyawan'
+            'Simpan Data Trainee'
           )}
         </button>
       </div>

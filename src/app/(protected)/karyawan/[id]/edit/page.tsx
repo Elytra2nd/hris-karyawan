@@ -32,11 +32,11 @@ export default async function EditKaryawanPage({
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-fit"
       >
         <CaretLeft size={16} />
-        Kembali ke Detail Karyawan
+        Kembali ke Detail Trainee
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Edit Karyawan</h1>
+        <h1 className="text-2xl font-bold text-foreground">Edit Trainee</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Perbarui data <span className="font-semibold text-foreground">{employee.namaLengkap}</span>
         </p>

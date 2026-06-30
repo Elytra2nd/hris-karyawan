@@ -19,9 +19,9 @@ interface BreadcrumbLabel {
 }
 
 const LABEL_MAP: Record<string, string> = {
-  karyawan: 'Data Karyawan',
-  tambah: 'Tambah Karyawan',
-  edit: 'Edit Karyawan',
+  karyawan: 'Data Trainee',
+  tambah: 'Tambah Trainee',
+  edit: 'Edit Trainee',
   kontrak: 'Manajemen Kontrak',
   admin: 'Administrasi',
   users: 'Manajemen Pengguna',
@@ -61,9 +61,9 @@ function getBreadcrumbs(pathname: string): BreadcrumbLabel[] {
         const isLastSegment = i === segments.length - 1
 
         if (isLastSegment) {
-          breadcrumbs.push({ label: 'Detail Karyawan' })
+          breadcrumbs.push({ label: 'Detail Trainee' })
         } else {
-          breadcrumbs.push({ label: 'Detail Karyawan', href: currentPath })
+          breadcrumbs.push({ label: 'Detail Trainee', href: currentPath })
         }
       }
     } else {

@@ -12,6 +12,7 @@ import {
   type ExpiringContract,
 } from '@/app/actions/notifications'
 import { cn } from '@/lib/utils'
+import { OPEN_NOTIFICATIONS_EVENT } from '@/components/open-notifications-button'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
@@ -128,6 +129,26 @@ export function NotificationBell() {
     [allItems, seenIds],
   )
   const hasUrgent = unseenCount > 0
+
+  // Buka panel saat dipicu dari banner dashboard (event global).
+  useEffect(() => {
+    const handler = () => { loadNotifications(); setOpen(true) }
+    window.addEventListener(OPEN_NOTIFICATIONS_EVENT, handler)
+    return () => window.removeEventListener(OPEN_NOTIFICATIONS_EVENT, handler)
+  }, [loadNotifications])
+
+  // Auto-buka SEKALI per sesi (≈ tiap login) bila ada notifikasi mendesak —
+  // memaksa user menyadari kontrak yang perlu tindakan. sessionStorage mencegah
+  // panel terbuka berulang saat refresh/navigasi dalam sesi yang sama.
+  useEffect(() => {
+    if (loading || !hasUrgent) return
+    try {
+      if (!sessionStorage.getItem('tms-notif-autoopened')) {
+        sessionStorage.setItem('tms-notif-autoopened', '1')
+        setOpen(true)
+      }
+    } catch { /* ignore */ }
+  }, [loading, hasUrgent])
 
   /* ──────────────────────────────────────────────
    * Fix #1: Removed Tooltip wrapper — Radix Tooltip's
@@ -268,7 +289,7 @@ export function NotificationBell() {
               href="/karyawan?filter=expiring90"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded py-0.5"
-              aria-label="Lihat semua kontrak yang perlu tindakan di halaman karyawan"
+              aria-label="Lihat semua kontrak yang perlu tindakan di halaman trainee"
             >
               Lihat semua kontrak perlu tindakan
               <CaretRight size={12} aria-hidden="true" />

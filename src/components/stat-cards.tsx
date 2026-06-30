@@ -57,7 +57,7 @@ export function StatCards({ user, type }: StatCardsProps) {
                   className="h-8 w-full px-4 gap-2 text-xs font-semibold shadow-sm transition-all active:scale-95 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <UserPlus className="h-4 w-4" />
-                  <span>Tambah Karyawan</span>
+                  <span>Tambah Trainee</span>
                 </Button>
               </Link>
 

@@ -40,7 +40,7 @@ export function ContractList({
         <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
           <ClockCounterClockwise size={32} className="text-muted-foreground/50" />
           <p className="text-sm font-semibold text-muted-foreground">Belum ada riwayat kontrak</p>
-          <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama karyawan ini</p>
+          <p className="text-xs text-muted-foreground">Tambahkan kontrak pertama trainee ini</p>
           <Button asChild size="sm" className="mt-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
             <Link href={`/karyawan/${employee.id}/kontrak`}>
               <Plus size={12} />
@@ -78,7 +78,7 @@ export function ContractList({
 
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full min-w-[600px]" aria-label="Riwayat kontrak karyawan">
+        <table className="w-full min-w-[600px]" aria-label="Riwayat kontrak trainee">
           <thead>
             <tr className="border-b border-border bg-accent/60">
               <th scope="col" className="px-5 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider w-6">No</th>

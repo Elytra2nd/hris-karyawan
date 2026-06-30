@@ -74,7 +74,7 @@ export const ContractPDF = ({ employee, contract }: { employee: Employee; contra
         </View>
         <View style={styles.sigBox}>
           <Text>Pihak Kedua,</Text>
-          <Text style={{ fontSize: 9, marginTop: 2 }}>(Karyawan)</Text>
+          <Text style={{ fontSize: 9, marginTop: 2 }}>(Trainee)</Text>
           <Text style={styles.sigName}>{employee.namaLengkap.toUpperCase()}</Text>
         </View>
       </View>

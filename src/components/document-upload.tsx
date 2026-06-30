@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CircleNotch, CloudArrowUp, CheckCircle, XCircle, Eye, ArrowsClockwise } from '@phosphor-icons/react'
-import { uploadEmployeeDocument } from '@/app/actions/upload'
+import { uploadEmployeeDocument, uploadEmployeePhoto } from '@/app/actions/upload'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ export function DocumentUpload({
   canUpload,
 }: {
   employeeId: string
-  kind: 'ktp' | 'kk'
+  kind: 'ktp' | 'kk' | 'foto'
   label: string
   icon: React.ReactNode
   currentPath?: string | null
@@ -28,6 +28,10 @@ export function DocumentUpload({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const available = !!currentPath
+  // Foto = khusus gambar (maks 2MB). KTP/KK = gambar atau PDF (maks 5MB).
+  const isFoto = kind === 'foto'
+  const accept = isFoto ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,application/pdf'
+  const formatHint = isFoto ? 'JPG, PNG, atau WebP · Maks 2MB' : 'JPG, PNG, atau PDF · Maks 5MB'
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -36,7 +40,9 @@ export function DocumentUpload({
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const result = await uploadEmployeeDocument(formData, employeeId, kind)
+      const result = isFoto
+        ? await uploadEmployeePhoto(formData, employeeId)
+        : await uploadEmployeeDocument(formData, employeeId, kind)
       if (result.success) {
         toast.success(`${label} berhasil diunggah`)
         router.refresh()
@@ -82,7 +88,7 @@ export function DocumentUpload({
             <input
               type="file"
               className="hidden"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
+              accept={accept}
               onChange={handleFileChange}
               disabled={loading}
             />
@@ -115,7 +121,7 @@ export function DocumentUpload({
       )}
 
       {canUpload && !available && (
-        <p className="text-[10px] text-muted-foreground/80 leading-tight">JPG, PNG, atau PDF · Maks 5MB</p>
+        <p className="text-[10px] text-muted-foreground/80 leading-tight">{formatHint}</p>
       )}
     </div>
   )

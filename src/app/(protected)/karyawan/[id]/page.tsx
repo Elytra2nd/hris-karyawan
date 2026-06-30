@@ -180,7 +180,7 @@ export default async function DetailKaryawanPage({
                 : `Kontrak berakhir dalam ${daysToExpiry} hari`}
             </p>
             <p className={cn('text-sm mt-0.5', isKritis ? 'text-red-600' : 'text-amber-600')}>
-              Segera koordinasikan perpanjangan atau penyelesaian kontrak dengan karyawan.
+              Segera koordinasikan perpanjangan atau penyelesaian kontrak dengan trainee.
             </p>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default async function DetailKaryawanPage({
           </div>
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Nama Lengkap" value={employee.namaLengkap} />
-            <InfoItem label="NIK Karyawan" value={employee.nik || '-'} mono />
+            <InfoItem label="NIK Trainee" value={employee.nik || '-'} mono />
             <InfoItem label="No KTP" value={employee.noKtp} mono />
             <InfoItem
               label="Tanggal Lahir"
@@ -217,7 +217,7 @@ export default async function DetailKaryawanPage({
             <InfoItem label="No HP / WhatsApp" value={employee.noHp || '-'} />
             <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
             <InfoItem
-              label="Status Karyawan"
+              label="Status Trainee"
               value={
                 employee.status === 'AKTIF'
                   ? <span className="chip-aktif">Aktif</span>
@@ -277,11 +277,13 @@ export default async function DetailKaryawanPage({
           <h2 className="text-base font-bold text-foreground">Dokumen</h2>
         </div>
         <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <DocCard
-            label="Foto Karyawan"
+          <DocumentUpload
+            employeeId={employee.id}
+            kind="foto"
+            label="Foto Trainee"
             icon={<FileImage size={22} className="text-blue-400" />}
-            available={!!employee.image}
-            href={employee.image || undefined}
+            currentPath={employee.image}
+            canUpload={canUpload}
           />
           <DocumentUpload
             employeeId={employee.id}

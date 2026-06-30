@@ -145,7 +145,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
           <div className="px-6 py-4 border-b border-border/60">
             <h2 className="text-base font-bold text-foreground">Formulir Pembaruan Data</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Ubah informasi operasional dan identitas pribadi karyawan.
+              Ubah informasi operasional dan identitas pribadi trainee.
             </p>
           </div>
 
@@ -179,12 +179,12 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
               </div>
             </section>
 
-            {/* ─── B. Identitas Karyawan ─── */}
+            {/* ─── B. Identitas Trainee ─── */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-green-100">
                 <span className="h-6 w-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">B</span>
                 <User size={16} className="text-green-600" />
-                <h3 className="text-sm font-semibold text-foreground">Identitas Karyawan</h3>
+                <h3 className="text-sm font-semibold text-foreground">Identitas Trainee</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -202,7 +202,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
                   <FieldError id="namaLengkap-error" message={errors.namaLengkap} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="nik" className="form-label">NIK Karyawan</Label>
+                  <Label htmlFor="nik" className="form-label">NIK Trainee</Label>
                   <Input
                     id="nik" name="nik"
                     defaultValue={employee.nik || ''}
@@ -317,7 +317,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
                 {/* Status - hanya di edit form */}
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="status" className="form-label">
-                    Status Karyawan <span className="text-red-500">*</span>
+                    Status Trainee <span className="text-red-500">*</span>
                   </Label>
                   <div className="max-w-[240px]">
                     <SelectCombobox
@@ -332,7 +332,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Ubah ke Non-Aktif jika karyawan sudah keluar atau kontrak tidak dilanjutkan.
+                    Ubah ke Non-Aktif jika trainee sudah keluar atau kontrak tidak dilanjutkan.
                   </p>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
               <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center">
                 <UserCircleIcon className="h-4 w-4 text-primary" />
               </div>
-              <h2 className="text-base font-bold text-foreground">Foto Karyawan</h2>
+              <h2 className="text-base font-bold text-foreground">Foto Trainee</h2>
             </div>
             <div className="px-5 py-6 flex flex-col items-center">
               <ImageUpload
@@ -426,8 +426,8 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
               Ubah Status ke Non-Aktif?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Karyawan <strong>{employee.namaLengkap}</strong> akan ditandai sebagai Non-Aktif.
-              Aksi ini menghentikan tracking kontrak dan karyawan tidak akan muncul di laporan aktif.
+              Trainee <strong>{employee.namaLengkap}</strong> akan ditandai sebagai Non-Aktif.
+              Aksi ini menghentikan tracking kontrak dan trainee tidak akan muncul di laporan aktif.
               Anda masih bisa mengubahnya kembali ke Aktif kapan saja.
             </AlertDialogDescription>
           </AlertDialogHeader>

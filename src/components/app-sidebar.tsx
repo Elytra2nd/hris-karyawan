@@ -120,10 +120,10 @@ export function AppSidebar() {
           </nav>
         </div>
 
-        {/* ── Karyawan ── */}
+        {/* ── Trainee ── */}
         <div>
           <SectionHeader
-            label="Karyawan"
+            label="Trainee"
             open={openSections.karyawan}
             onToggle={() => toggle('karyawan')}
           />
@@ -132,14 +132,14 @@ export function AppSidebar() {
               <NavItem
                 href="/karyawan"
                 icon={<Users size={16} />}
-                label="Data Karyawan"
+                label="Data Trainee"
                 active={isActive('/karyawan') && !pathname.includes('tambah')}
               />
               {canManageHR && (
                 <NavItem
                   href="/karyawan/tambah"
                   icon={<UserPlus size={16} />}
-                  label="Tambah Karyawan"
+                  label="Tambah Trainee"
                   active={isActive('/karyawan/tambah')}
                 />
               )}

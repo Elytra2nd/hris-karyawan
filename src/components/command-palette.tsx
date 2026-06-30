@@ -41,15 +41,15 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
     },
     {
       id: 'employees',
-      title: 'Data Karyawan',
+      title: 'Data Trainee',
       description: 'Lihat daftar semua karyawan',
       icon: <Users size={16} />,
       action: () => router.push('/karyawan'),
     },
     ...(canManageHR ? [{
       id: 'add-employee',
-      title: 'Tambah Karyawan',
-      description: 'Buat data karyawan baru',
+      title: 'Tambah Trainee',
+      description: 'Buat data trainee baru',
       icon: <UserPlus size={16} />,
       action: () => router.push('/karyawan/tambah'),
     }] : []),

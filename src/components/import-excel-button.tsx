@@ -36,7 +36,7 @@ export function downloadTemplate(
   const wb = XLSX.utils.book_new()
 
   // ═══════════════════════════════════════════════════════════════════════
-  // SHEET 1: Data Karyawan (main template)
+  // SHEET 1: Data Trainee (main template)
   // ═══════════════════════════════════════════════════════════════════════
 
   const legend = ['★ = Wajib diisi  |  ○ = Opsional  |  Isi data mulai baris 4  |  Jangan ubah nama kolom']
@@ -65,7 +65,7 @@ export function downloadTemplate(
   const sampleIbu = ['Siti Aminah', 'Nur Hasanah', 'Kartini']
   const sampleHp = ['081234567890', '085298765432', '082112345678']
   const examples = exB.map((b, i) => [
-    b.code, b.label, b.code, sampleNames[i] ?? 'Nama Karyawan',
+    b.code, b.label, b.code, sampleNames[i] ?? 'Nama Trainee',
     i === 1 ? '' : `${1234 + i}`, sampleKtp[i] ?? '', sampleBirth[i] ?? '',
     sampleIbu[i] ?? '', sampleHp[i] ?? '', i === 1 ? '' : `JST${10234567 + i}`,
     i === 1 ? 'TIDAK ADA' : 'ADA', exP[i % exP.length], `0${i + 1}.07.2024`,
@@ -111,7 +111,7 @@ export function downloadTemplate(
   })
   ws['!dataValidations'] = { list: validations }
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Data Karyawan')
+  XLSX.utils.book_append_sheet(wb, ws, 'Data Trainee')
 
   // ═══════════════════════════════════════════════════════════════════════
   // SHEET 2: Petunjuk Pengisian
@@ -129,15 +129,15 @@ export function downloadTemplate(
     ['2. JANGAN mengubah nama kolom di baris 2'],
     ['3. Kolom bertanda ★ wajib diisi, kolom bertanda ○ opsional'],
     ['4. Maksimal 5000 baris per import'],
-    ['5. No KTP yang sama di banyak baris = 1 karyawan dengan banyak riwayat kontrak (perpanjangan)'],
+    ['5. No KTP yang sama di banyak baris = 1 trainee dengan banyak riwayat kontrak (perpanjangan)'],
     ['6. Tanggal boleh format dd.MM.yyyy, dd/MM/yyyy, atau 01-Mei-2022 (nama bulan)'],
     [''],
     ['KOLOM', 'WAJIB', 'FORMAT', 'KETERANGAN'],
     ['BA', 'Ya', 'Teks', 'Kode Business Area / kode cabang'],
     ['BA CABANG', 'Ya', 'Teks', 'Nama cabang (otomatis dicocokkan ke sistem)'],
     ['CABANG', 'Ya', 'Dropdown', 'Kode cabang yang terdaftar di sistem'],
-    ['NAMA LENGKAP', 'Ya', 'Teks (2-100 karakter)', 'Nama lengkap karyawan sesuai KTP'],
-    ['NIK', 'Tidak', 'Teks (maks 20 karakter)', 'Nomor Induk Karyawan internal, boleh kosong'],
+    ['NAMA LENGKAP', 'Ya', 'Teks (2-100 karakter)', 'Nama lengkap trainee sesuai KTP'],
+    ['NIK', 'Tidak', 'Teks (maks 20 karakter)', 'Nomor Induk Trainee internal, boleh kosong'],
     ['NO KTP', 'Ya', 'Angka (tepat 16 digit)', 'Nomor KTP / NIK nasional, harus unik'],
     ['TGL LAHIR', 'Tidak', 'dd.MM.yyyy', 'Tanggal lahir. Boleh kosong, dilengkapi nanti'],
     ['NAMA IBU', 'Ya', 'Teks (2-100 karakter)', 'Nama ibu kandung'],
@@ -168,7 +168,7 @@ export function downloadTemplate(
 
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Petunjuk')
 
-  XLSX.writeFile(wb, 'Template_Import_Karyawan_ATMS.xlsx')
+  XLSX.writeFile(wb, 'Template_Import_Trainee_ATMS.xlsx')
 }
 
 export function ImportExcelButton() {
@@ -311,7 +311,7 @@ export function ImportExcelButton() {
 
   const validRows = rows.filter(r => r.status !== 'error')
   const errorRows = rows.filter(r => r.status === 'error')
-  // Estimasi jumlah karyawan = KTP unik di antara baris siap (1 KTP = 1 karyawan,
+  // Estimasi jumlah trainee = KTP unik di antara baris siap (1 KTP = 1 trainee,
   // banyak baris = banyak kontrak). Memberi gambaran hasil grouping di server.
   const employeeCount = useMemo(
     () => new Set(validRows.map(r => r.norm.noKtp).filter(Boolean)).size,
@@ -356,7 +356,7 @@ export function ImportExcelButton() {
       setDone({ created: result.created, contractsAdded: result.contractsAdded, skipped: result.skipped })
 
       if (result.created > 0 || result.contractsAdded > 0) {
-        toast.success(`${result.created} karyawan baru, ${result.contractsAdded} kontrak diimport`)
+        toast.success(`${result.created} trainee baru, ${result.contractsAdded} kontrak diimport`)
       }
       if (result.skipped > 0) {
         toast.warning(`${result.skipped} baris dilewati (cek error di tabel)`)
@@ -428,7 +428,7 @@ export function ImportExcelButton() {
                 <Upload size={16} className="text-primary shrink-0" />
                 <div>
                   <p className="font-semibold">Import File Excel</p>
-                  <p className="text-xs text-muted-foreground">Upload data karyawan (.xlsx)</p>
+                  <p className="text-xs text-muted-foreground">Upload data trainee (.xlsx)</p>
                 </div>
               </button>
               <div className="mx-3 my-1 border-t border-border/60" />
@@ -452,7 +452,7 @@ export function ImportExcelButton() {
           <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
             <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
               <MicrosoftExcelLogoIcon size={20} className="text-primary" />
-              Import Data Karyawan
+              Import Data Trainee
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               {fileName && <span className="font-medium">{fileName}</span>} - {rows.length} baris terdeteksi
@@ -463,14 +463,14 @@ export function ImportExcelButton() {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 sm:px-6 py-2 bg-muted/50 border-b border-border/60 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-green-700">
               <CheckCircle size={12} /> {validRows.length} baris siap
-              {employeeCount > 0 && <span className="text-green-700/70 font-normal">≈ {employeeCount} karyawan</span>}
+              {employeeCount > 0 && <span className="text-green-700/70 font-normal">≈ {employeeCount} trainee</span>}
             </span>
             <span className="flex items-center gap-1.5 text-red-600">
               <WarningCircle size={12} /> {errorRows.length} error
             </span>
             {done && (
               <span className="flex items-center gap-1.5 text-primary">
-                <CheckCircle size={12} /> Selesai: {done.created} karyawan, {done.contractsAdded} kontrak, {done.skipped} dilewati
+                <CheckCircle size={12} /> Selesai: {done.created} trainee, {done.contractsAdded} kontrak, {done.skipped} dilewati
               </span>
             )}
             <button

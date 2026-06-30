@@ -24,9 +24,11 @@ interface Props {
   warning: number
   critical: number
   expired: number
+  /** Tinggi area donut. Default 200. */
+  height?: number
 }
 
-export function ContractStatusChart({ safe, warning, critical, expired }: Props) {
+export function ContractStatusChart({ safe, warning, critical, expired, height = 200 }: Props) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -52,7 +54,7 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
 
   return (
     <div className="relative">
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={height}>
         {/* C2: Legend dihapus — SummaryRow di bawah sudah berisi info yang sama persis */}
         <PieChart style={{ cursor: 'pointer' }}>
           <Pie

@@ -102,7 +102,7 @@ export default async function UserManagementPage({
         <Info size={16} className="text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-foreground/80">
           <strong>Admin</strong> punya akses penuh.{' '}
-          <strong>HR Manager</strong> bisa CRUD karyawan.{' '}
+          <strong>HR Manager</strong> bisa CRUD trainee.{' '}
           <strong>HR Staff</strong> bisa tambah & edit.{' '}
           <strong>Pemirsa</strong> hanya bisa lihat data.
         </p>

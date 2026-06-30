@@ -7,12 +7,14 @@ import { ChartTooltip } from '@/components/chart-tooltip'
 
 interface Props {
   data: [posisi: string, count: number][]
+  /** Tinggi chart. Default: self-size (jumlah baris × 46 + 24). */
+  height?: number | `${number}%`
 }
 
 // Bar chart HORIZONTAL (layout vertical) — nama posisi di kiri kebaca penuh
 // (tidak terpotong seperti versi vertikal), dan tinggi chart menyesuaikan jumlah
 // baris sehingga card tidak menyisakan ruang kosong di bawah.
-export function EmployeeChart({ data }: Props) {
+export function EmployeeChart({ data, height: heightProp }: Props) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -32,8 +34,8 @@ export function EmployeeChart({ data }: Props) {
     )
   }
 
-  // Tinggi self-size: tiap baris ~46px + padding atas/bawah.
-  const height = chartData.length * 46 + 24
+  // Tinggi self-size: tiap baris ~46px + padding atas/bawah. Bisa di-override.
+  const height = heightProp ?? chartData.length * 46 + 24
 
   return (
     <ResponsiveContainer width="100%" height={height}>
