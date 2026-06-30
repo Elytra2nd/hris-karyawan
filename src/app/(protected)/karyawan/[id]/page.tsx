@@ -207,6 +207,10 @@ export default async function DetailKaryawanPage({
               }
             />
             <InfoItem label="Nama Ibu Kandung" value={employee.namaIbu} />
+            <InfoItem
+              label="Jenis Kelamin"
+              value={employee.gender === 'L' ? 'Laki-laki' : employee.gender === 'P' ? 'Perempuan' : '-'}
+            />
             <InfoItem label="No HP / WhatsApp" value={employee.noHp || '-'} />
             <InfoItem label="No Jamsostek" value={employee.noJamsostek || '-'} mono />
             <InfoItem

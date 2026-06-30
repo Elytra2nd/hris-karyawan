@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Upload, MicrosoftExcelLogoIcon, WarningCircle, CheckCircle,
@@ -11,109 +11,104 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
 import { bulkImportEmployees, type ImportRow } from '@/app/actions/import'
-import { normalizeRow, REQUIRED_COLS } from '@/lib/import-utils'
-import { createEmployeeSchema } from '@/lib/validation'
+import { getBranches } from '@/app/actions/branch'
+import { getPositions } from '@/app/actions/position'
+import { normalizeRow, COL_MAP } from '@/lib/import-utils'
+import { importEmployeeSchema } from '@/lib/validation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 type RowStatus = 'pending' | 'ok' | 'error'
 interface PreviewRow {
   index: number
-  raw: Record<string, string>
+  raw: Record<string, string>            // sesuai header asli (dikirim ke server)
+  norm: Record<string, string | null>    // ter-normalisasi (untuk tampilan preview)
   status: RowStatus
   error?: string
 }
 
-export function downloadTemplate() {
+// Template DIGENERATE dari data DB asli (branch & posisi) supaya dropdown dan
+// daftar di petunjuk selalu sinkron dengan sistem - bukan nilai hardcode lama.
+export function downloadTemplate(
+  branches: { code: string; label: string }[] = [],
+  positions: { name: string; contractMonths: number }[] = [],
+) {
   const wb = XLSX.utils.book_new()
 
   // ═══════════════════════════════════════════════════════════════════════
   // SHEET 1: Data Karyawan (main template)
   // ═══════════════════════════════════════════════════════════════════════
 
-  // Legenda baris 1
   const legend = ['★ = Wajib diisi  |  ○ = Opsional  |  Isi data mulai baris 4  |  Jangan ubah nama kolom']
 
-  // Header dengan simbol wajib/opsional
+  // Header (urutan = urutan kolom). ★ wajib, ○ opsional (mengikuti importer).
   const headers = [
     '★ BA', '★ BA CABANG', '★ CABANG', '★ NAMA LENGKAP', '○ NIK',
-    '★ NO KTP', '★ TGL LAHIR', '★ NAMA IBU', '★ NO HP',
-    '○ NO JAMSOSTEK', '★ FORM CONSENT', '★ POSISI', '★ TRAINEE SEJAK',
+    '★ NO KTP', '○ TGL LAHIR', '★ NAMA IBU', '○ NO HP',
+    '○ NO JAMSOSTEK', '○ FORM CONSENT', '★ POSISI', '★ TRAINEE SEJAK',
+    '○ TRAINEE SELESAI', '○ GENDER', '○ NO PERJANJIAN',
   ]
 
-  // Keterangan format di baris ke-3
   const subHeaders = [
-    'maks 20 char', 'maks 100 char', 'dropdown', 'min 2 char', 'maks 20 char',
-    '16 digit angka', 'dd.MM.yyyy', 'min 2 char', '08xxx (10-15 digit)',
+    'kode cabang', 'nama cabang', 'dropdown', 'min 2 char', 'maks 20 char',
+    '16 digit angka', 'dd.MM.yyyy', 'min 2 char', '08xxx (opsional)',
     'maks 30 char', 'dropdown', 'dropdown', 'dd.MM.yyyy',
+    'dd.MM.yyyy (opsional)', 'L / P', 'opsional',
   ]
 
-  // 3 baris contoh data realistis
-  const examples = [
-    ['H720', 'REGION PONTIANAK', 'H720', 'Budi Santoso', '1234', '6171012345670001', '15.03.1998', 'Siti Aminah', '081234567890', 'JST10234567', 'ADA', 'SALES EXECUTIVE', '01.07.2024'],
-    ['H721', 'KETAPANG', 'H721', 'Dewi Lestari', '', '6104034567890002', '22.08.2000', 'Nur Hasanah', '085298765432', '', 'TIDAK ADA', 'COUNTER SALES', '15.08.2024'],
-    ['H723', 'SINGKAWANG', 'H723', 'Ahmad Wijaya', '5678', '6172056789010003', '10.11.1995', 'Kartini', '082112345678', 'JST20345678', 'ADA', 'MECHANIC', '01.09.2024'],
-  ]
+  // Contoh data dari branch & posisi NYATA di sistem.
+  const exB = branches.length ? branches.slice(0, 3) : [{ code: 'KETAPANG', label: 'KETAPANG' }]
+  const exP = positions.length ? positions.map(p => p.name) : ['SALES EXECUTIVE']
+  const sampleNames = ['Budi Santoso', 'Dewi Lestari', 'Ahmad Wijaya']
+  const sampleKtp = ['6171012345670001', '6104034567890002', '6172056789010003']
+  const sampleBirth = ['15.03.1998', '22.08.2000', '10.11.1995']
+  const sampleIbu = ['Siti Aminah', 'Nur Hasanah', 'Kartini']
+  const sampleHp = ['081234567890', '085298765432', '082112345678']
+  const examples = exB.map((b, i) => [
+    b.code, b.label, b.code, sampleNames[i] ?? 'Nama Karyawan',
+    i === 1 ? '' : `${1234 + i}`, sampleKtp[i] ?? '', sampleBirth[i] ?? '',
+    sampleIbu[i] ?? '', sampleHp[i] ?? '', i === 1 ? '' : `JST${10234567 + i}`,
+    i === 1 ? 'TIDAK ADA' : 'ADA', exP[i % exP.length], `0${i + 1}.07.2024`,
+    '', i === 1 ? 'P' : 'L', i === 1 ? '' : `LO.PERJ/HRD/00${i + 1}/VII/2024`,
+  ])
 
-  const wsData = [legend, headers, subHeaders, ...examples]
-  const ws = XLSX.utils.aoa_to_sheet(wsData)
-
-  // Merge legend row
-  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }]
-
-  // Column widths
+  const ws = XLSX.utils.aoa_to_sheet([legend, headers, subHeaders, ...examples])
+  const lastCol = headers.length - 1
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } }]
   ws['!cols'] = [
-    { wch: 8 },   // BA
-    { wch: 22 },  // BA CABANG
-    { wch: 10 },  // CABANG
-    { wch: 25 },  // NAMA LENGKAP
-    { wch: 10 },  // NIK
-    { wch: 20 },  // NO KTP
-    { wch: 14 },  // TGL LAHIR
-    { wch: 20 },  // NAMA IBU
-    { wch: 16 },  // NO HP
-    { wch: 16 },  // NO JAMSOSTEK
-    { wch: 14 },  // FORM CONSENT
-    { wch: 20 },  // POSISI
-    { wch: 16 },  // TRAINEE SEJAK
+    { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 10 },
+    { wch: 20 }, { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 16 },
+    { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 9 }, { wch: 26 },
   ]
-
-  // Freeze first 3 rows (legend + header + sub-header)
   ws['!freeze'] = { xSplit: 0, ySplit: 3 }
 
-  // Data validation for dropdown columns (rows 3-1002)
+  // Dropdown validations - daftar dari DB asli.
+  const branchCodes = branches.map(b => b.code).join(',')
+  const positionNames = positions.map(p => p.name).join(',')
   const validations: Array<{
     type: string; sqref: string; formulas: string[];
     showErrorMessage: boolean; errorTitle: string; error: string;
-  }> = [
-    // CABANG (column C = index 2)
-    {
-      type: 'list',
-      sqref: 'C4:C1002',
-      formulas: ['H720,H721,H722,H723,H724,H725,H726,H727,H728,H729,H730'],
-      showErrorMessage: true,
-      errorTitle: 'Cabang Tidak Valid',
-      error: 'Pilih kode cabang yang tersedia: H720-H730',
-    },
-    // FORM CONSENT (column K = index 10)
-    {
-      type: 'list',
-      sqref: 'K4:K1002',
-      formulas: ['ADA,TIDAK ADA'],
-      showErrorMessage: true,
-      errorTitle: 'Form Consent Tidak Valid',
-      error: 'Pilih: ADA atau TIDAK ADA',
-    },
-    // POSISI (column L = index 11)
-    {
-      type: 'list',
-      sqref: 'L4:L1002',
-      formulas: ['SALES EXECUTIVE,SALESGIRL,COUNTER SALES,MECHANIC,TEAM LEADER,ADMINISTRATOR'],
-      showErrorMessage: true,
-      errorTitle: 'Posisi Tidak Valid',
-      error: 'Pilih posisi yang tersedia dari dropdown',
-    },
-  ]
+  }> = []
+  if (branchCodes) validations.push({
+    type: 'list', sqref: 'C4:C5002', formulas: [branchCodes],
+    showErrorMessage: true, errorTitle: 'Cabang Tidak Valid',
+    error: 'Pilih kode cabang yang tersedia di sistem',
+  })
+  validations.push({
+    type: 'list', sqref: 'K4:K5002', formulas: ['ADA,TIDAK ADA'],
+    showErrorMessage: true, errorTitle: 'Form Consent Tidak Valid',
+    error: 'Pilih: ADA atau TIDAK ADA',
+  })
+  if (positionNames) validations.push({
+    type: 'list', sqref: 'L4:L5002', formulas: [positionNames],
+    showErrorMessage: true, errorTitle: 'Posisi Tidak Valid',
+    error: 'Pilih posisi yang tersedia dari dropdown',
+  })
+  validations.push({
+    type: 'list', sqref: 'O4:O5002', formulas: ['L,P'],
+    showErrorMessage: true, errorTitle: 'Gender Tidak Valid',
+    error: 'Pilih: L atau P',
+  })
   ws['!dataValidations'] = { list: validations }
 
   XLSX.utils.book_append_sheet(wb, ws, 'Data Karyawan')
@@ -121,7 +116,11 @@ export function downloadTemplate() {
   // ═══════════════════════════════════════════════════════════════════════
   // SHEET 2: Petunjuk Pengisian
   // ═══════════════════════════════════════════════════════════════════════
-  const guideData = [
+  const positionListStr = positions.length
+    ? positions.map(p => p.name).join(', ')
+    : '(belum ada posisi - tambahkan di Kelola Posisi)'
+
+  const guideData: (string | number)[][] = [
     ['PETUNJUK PENGISIAN TEMPLATE IMPORT KARYAWAN'],
     ['Astra Trainee Monitoring System (ATMS) - Astra Motor Kalimantan Barat'],
     [''],
@@ -129,53 +128,39 @@ export function downloadTemplate() {
     ['1. Isi data mulai dari baris ke-4 (baris 1 = legenda, baris 2 = header, baris 3 = keterangan format)'],
     ['2. JANGAN mengubah nama kolom di baris 2'],
     ['3. Kolom bertanda ★ wajib diisi, kolom bertanda ○ opsional'],
-    ['4. Maksimal 1000 baris per import'],
-    ['5. No KTP yang sudah terdaftar akan otomatis dilewati (tidak duplikat)'],
+    ['4. Maksimal 5000 baris per import'],
+    ['5. No KTP yang sama di banyak baris = 1 karyawan dengan banyak riwayat kontrak (perpanjangan)'],
+    ['6. Tanggal boleh format dd.MM.yyyy, dd/MM/yyyy, atau 01-Mei-2022 (nama bulan)'],
     [''],
     ['KOLOM', 'WAJIB', 'FORMAT', 'KETERANGAN'],
-    ['BA', 'Ya', 'Teks (maks 20 karakter)', 'Kode Business Area, contoh: H720'],
-    ['BA CABANG', 'Ya', 'Teks (maks 100 karakter)', 'Nama lengkap cabang, contoh: REGION PONTIANAK'],
-    ['CABANG', 'Ya', 'Kode cabang (dropdown)', 'H720, H721, H722, H723, H724, H725, H726, H727, H728, H729, H730'],
+    ['BA', 'Ya', 'Teks', 'Kode Business Area / kode cabang'],
+    ['BA CABANG', 'Ya', 'Teks', 'Nama cabang (otomatis dicocokkan ke sistem)'],
+    ['CABANG', 'Ya', 'Dropdown', 'Kode cabang yang terdaftar di sistem'],
     ['NAMA LENGKAP', 'Ya', 'Teks (2-100 karakter)', 'Nama lengkap karyawan sesuai KTP'],
     ['NIK', 'Tidak', 'Teks (maks 20 karakter)', 'Nomor Induk Karyawan internal, boleh kosong'],
     ['NO KTP', 'Ya', 'Angka (tepat 16 digit)', 'Nomor KTP / NIK nasional, harus unik'],
-    ['TGL LAHIR', 'Ya', 'dd.MM.yyyy', 'Tanggal lahir. Contoh: 15.03.1998 atau 15/03/1998'],
+    ['TGL LAHIR', 'Tidak', 'dd.MM.yyyy', 'Tanggal lahir. Boleh kosong, dilengkapi nanti'],
     ['NAMA IBU', 'Ya', 'Teks (2-100 karakter)', 'Nama ibu kandung'],
-    ['NO HP', 'Ya', 'Angka (08xxx, 10-15 digit)', 'Nomor HP aktif, harus diawali 08'],
+    ['NO HP', 'Tidak', 'Angka (08xxx)', 'Nomor HP aktif. Boleh kosong'],
     ['NO JAMSOSTEK', 'Tidak', 'Teks (maks 30 karakter)', 'Nomor BPJS Ketenagakerjaan, boleh kosong'],
-    ['FORM CONSENT', 'Ya', 'ADA / TIDAK ADA', 'Status form consent karyawan'],
-    ['POSISI', 'Ya', 'Pilih dari dropdown', 'SALES EXECUTIVE, SALESGIRL, COUNTER SALES, MECHANIC, TEAM LEADER, ADMINISTRATOR'],
-    ['TRAINEE SEJAK', 'Ya', 'dd.MM.yyyy', 'Tanggal mulai kontrak. Selesai kontrak dihitung otomatis oleh sistem.'],
+    ['FORM CONSENT', 'Tidak', 'ADA / TIDAK ADA', 'Status form consent. Boleh kosong'],
+    ['POSISI', 'Ya', 'Pilih dari dropdown', positionListStr],
+    ['TRAINEE SEJAK', 'Ya', 'dd.MM.yyyy', 'Tanggal mulai kontrak'],
+    ['TRAINEE SELESAI', 'Tidak', 'dd.MM.yyyy', 'Tanggal selesai. Kosong = dihitung otomatis dari durasi posisi'],
+    ['GENDER', 'Tidak', 'L / P', 'Jenis kelamin (L = Laki-laki, P = Perempuan)'],
+    ['NO PERJANJIAN', 'Tidak', 'Teks', 'Nomor surat perjanjian kontrak'],
     [''],
-    ['KODE CABANG'],
+    ['KODE CABANG TERSEDIA'],
     ['Kode', 'Nama Cabang'],
-    ['H720', 'REGION PONTIANAK'],
-    ['H721', 'KETAPANG'],
-    ['H722', 'PATTIMURA'],
-    ['H723', 'SINGKAWANG'],
-    ['H724', 'SANGGAU'],
-    ['H725', 'IMAM BONJOL'],
-    ['H726', 'NDS.AYANI'],
-    ['H727', 'BENUA KAYONG'],
-    ['H728', 'SINTANG'],
-    ['H729', 'PUTUSSIBAU'],
-    ['H730', 'SAMBAS'],
+    ...branches.map(b => [b.code, b.label]),
     [''],
-    ['PERHITUNGAN KONTRAK OTOMATIS'],
+    ['PERHITUNGAN KONTRAK OTOMATIS (jika TRAINEE SELESAI kosong)'],
     ['Posisi', 'Durasi Kontrak'],
-    ['ADMINISTRATOR', '3 bulan dari Trainee Sejak'],
-    ['Posisi lainnya', '6 bulan dari Trainee Sejak'],
+    ...positions.map(p => [p.name, `${p.contractMonths} bulan dari Trainee Sejak`]),
   ]
 
   const wsGuide = XLSX.utils.aoa_to_sheet(guideData)
-  wsGuide['!cols'] = [
-    { wch: 20 },
-    { wch: 15 },
-    { wch: 28 },
-    { wch: 65 },
-  ]
-
-  // Merge title row
+  wsGuide['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 28 }, { wch: 65 }]
   wsGuide['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
     { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
@@ -191,8 +176,16 @@ export function ImportExcelButton() {
   const [rows, setRows] = useState<PreviewRow[]>([])
   const [fileName, setFileName] = useState('')
   const [importing, setImporting] = useState(false)
-  const [done, setDone] = useState<{ created: number; skipped: number } | null>(null)
+  const [done, setDone] = useState<{ created: number; contractsAdded: number; skipped: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Branch & posisi dari DB - untuk men-generate template yang sinkron sistem.
+  const [branches, setBranches] = useState<{ code: string; label: string }[]>([])
+  const [positions, setPositions] = useState<{ name: string; contractMonths: number }[]>([])
+  useEffect(() => {
+    getBranches().then(bs => setBranches(bs.map(b => ({ code: b.code, label: b.label }))))
+    getPositions().then(ps => setPositions(ps.map(p => ({ name: p.name, contractMonths: p.contractMonths }))))
+  }, [])
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -210,15 +203,17 @@ export function ImportExcelButton() {
       // Read all rows as raw arrays to find the actual header row
       const rawRows: (string | number | Date)[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
 
-      // Find header row: the row containing REQUIRED_COLS keys (with or without ★/○ prefix)
+      // Find header row: baris yang sel-selnya dikenali sebagai kolom (lewat
+      // COL_MAP, jadi header Bahasa Indonesia template MAUPUN Bahasa Inggris
+      // sistem lama sama-sama terdeteksi). Dianggap header bila ≥3 kolom dikenal.
       let headerIdx = -1
       for (let i = 0; i < Math.min(rawRows.length, 5); i++) {
-        const rowKeys = rawRows[i].map((c) =>
-          String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()
+        const recognized = new Set(
+          rawRows[i]
+            .map((c) => COL_MAP[String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()])
+            .filter(Boolean)
         )
-        // If this row contains at least 3 required columns, it's the header
-        const matches = REQUIRED_COLS.filter(col => rowKeys.includes(col))
-        if (matches.length >= 3) {
+        if (recognized.size >= 3) {
           headerIdx = i
           break
         }
@@ -269,14 +264,41 @@ export function ImportExcelButton() {
           return out
         })
 
+      // Cross-check master data (cabang & posisi) MIRROR server, supaya baris
+      // "Siap" benar-benar akan lolos saat impor - bukan cuma lolos schema.
+      const branchByCode = new Map(branches.map(b => [b.code.toUpperCase(), b]))
+      const branchByLabel = new Map(branches.map(b => [b.label.toUpperCase(), b]))
+      const resolveBranchLocal = (...cands: (string | null | undefined)[]) => {
+        for (const c of cands) {
+          if (!c) continue
+          const up = c.toUpperCase().trim()
+          if (branchByCode.get(up) ?? branchByLabel.get(up)) return true
+        }
+        return false
+      }
+      const posSet = new Set(positions.map(p => p.name.toUpperCase()))
+
       // Validasi preview memakai schema yang SAMA dengan server (lewat normalizeRow),
       // sehingga baris yang tampil "Siap" pasti lolos saat diimpor (bukan cuma cek kolom kosong).
       const preview: PreviewRow[] = normalizedRaw.map((raw, i) => {
-        const parsed = createEmployeeSchema.safeParse(normalizeRow(raw))
+        const norm = normalizeRow(raw)
+        const parsed = importEmployeeSchema.safeParse(norm)
         if (!parsed.success) {
-          return { index: i, raw, status: 'error', error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }
+          return { index: i, raw, norm, status: 'error', error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }
         }
-        return { index: i, raw, status: 'pending' }
+        // Cek cabang (kalau master data sudah termuat)
+        if (branches.length && !resolveBranchLocal(norm.cabang, norm.ba, norm.baCabang)) {
+          return { index: i, raw, norm, status: 'error', error: `Cabang "${norm.cabang ?? '-'}" tidak terdaftar di sistem` }
+        }
+        // Cek posisi
+        if (positions.length && norm.posisi && !posSet.has(norm.posisi.toUpperCase())) {
+          return { index: i, raw, norm, status: 'error', error: `Posisi "${norm.posisi}" tidak terdaftar di sistem` }
+        }
+        // Cek tanggal selesai tidak mendahului mulai
+        if (norm.traineeSelesai && norm.traineeSejak && new Date(norm.traineeSelesai) < new Date(norm.traineeSejak)) {
+          return { index: i, raw, norm, status: 'error', error: `Tanggal selesai lebih awal dari tanggal mulai` }
+        }
+        return { index: i, raw, norm, status: 'pending' }
       })
 
       setRows(preview)
@@ -289,6 +311,12 @@ export function ImportExcelButton() {
 
   const validRows = rows.filter(r => r.status !== 'error')
   const errorRows = rows.filter(r => r.status === 'error')
+  // Estimasi jumlah karyawan = KTP unik di antara baris siap (1 KTP = 1 karyawan,
+  // banyak baris = banyak kontrak). Memberi gambaran hasil grouping di server.
+  const employeeCount = useMemo(
+    () => new Set(validRows.map(r => r.norm.noKtp).filter(Boolean)).size,
+    [validRows],
+  )
 
   // Filter preview (memudahkan saat baris banyak): status + cari nama/KTP
   const [rowFilter, setRowFilter] = useState<'all' | 'ok' | 'error'>('all')
@@ -301,8 +329,8 @@ export function ImportExcelButton() {
           : rowFilter === 'error' ? r.status === 'error'
             : r.status !== 'error'
       const matchSearch = !q
-        || (r.raw['NAMA LENGKAP'] ?? '').toLowerCase().includes(q)
-        || (r.raw['NO KTP'] ?? '').includes(rowSearch.trim())
+        || (r.norm.namaLengkap ?? '').toLowerCase().includes(q)
+        || (r.norm.noKtp ?? '').includes(rowSearch.trim())
       return matchStatus && matchSearch
     })
   }, [rows, rowFilter, rowSearch])
@@ -325,10 +353,10 @@ export function ImportExcelButton() {
         return { ...r, status: 'ok' }
       }))
 
-      setDone({ created: result.created, skipped: result.skipped })
+      setDone({ created: result.created, contractsAdded: result.contractsAdded, skipped: result.skipped })
 
-      if (result.created > 0) {
-        toast.success(`${result.created} karyawan berhasil diimport`)
+      if (result.created > 0 || result.contractsAdded > 0) {
+        toast.success(`${result.created} karyawan baru, ${result.contractsAdded} kontrak diimport`)
       }
       if (result.skipped > 0) {
         toast.warning(`${result.skipped} baris dilewati (cek error di tabel)`)
@@ -349,7 +377,15 @@ export function ImportExcelButton() {
     setOpen(false)
   }
 
-  const displayCols = ['NAMA LENGKAP', 'NO KTP', 'CABANG', 'POSISI', 'TRAINEE SEJAK']
+  // Tampilkan dari data ter-normalisasi (field kanonik) agar terbaca apa pun
+  // bahasa header file sumber (template Indonesia / export Inggris).
+  const displayCols: { key: string; label: string }[] = [
+    { key: 'namaLengkap', label: 'NAMA LENGKAP' },
+    { key: 'noKtp', label: 'NO KTP' },
+    { key: 'cabang', label: 'CABANG' },
+    { key: 'posisi', label: 'POSISI' },
+    { key: 'traineeSejak', label: 'TRAINEE SEJAK' },
+  ]
 
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -397,7 +433,7 @@ export function ImportExcelButton() {
               </button>
               <div className="mx-3 my-1 border-t border-border/60" />
               <button
-                onClick={() => { downloadTemplate(); setMenuOpen(false) }}
+                onClick={() => { downloadTemplate(branches, positions); setMenuOpen(false) }}
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors text-left"
               >
                 <Download size={16} className="text-green-600 shrink-0" />
@@ -426,18 +462,19 @@ export function ImportExcelButton() {
           {/* Summary bar */}
           <div className="flex items-center gap-4 px-6 py-2 bg-muted/50 border-b border-border/60 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-green-700">
-              <CheckCircle size={12} /> {validRows.length} siap import
+              <CheckCircle size={12} /> {validRows.length} baris siap
+              {employeeCount > 0 && <span className="text-green-700/70 font-normal">≈ {employeeCount} karyawan</span>}
             </span>
             <span className="flex items-center gap-1.5 text-red-600">
               <WarningCircle size={12} /> {errorRows.length} error
             </span>
             {done && (
               <span className="ml-auto flex items-center gap-1.5 text-primary">
-                <CheckCircle size={12} /> Selesai: {done.created} dibuat, {done.skipped} dilewati
+                <CheckCircle size={12} /> Selesai: {done.created} karyawan, {done.contractsAdded} kontrak, {done.skipped} dilewati
               </span>
             )}
             <button
-              onClick={downloadTemplate}
+              onClick={() => downloadTemplate(branches, positions)}
               className="ml-auto flex items-center gap-1 text-muted-foreground/70 hover:text-foreground/80 transition-colors font-medium"
             >
               <Download size={12} /> Download Template
@@ -492,8 +529,8 @@ export function ImportExcelButton() {
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white w-10">#</th>
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white w-20">Status</th>
                   {displayCols.map(c => (
-                    <th key={c} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white whitespace-nowrap">
-                      {c}
+                    <th key={c.key} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                      {c.label}
                     </th>
                   ))}
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-white">Keterangan</th>
@@ -522,8 +559,8 @@ export function ImportExcelButton() {
                       {row.status === 'pending' && <span className="text-muted-foreground/70">Siap</span>}
                     </td>
                     {displayCols.map(c => (
-                      <td key={c} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[160px] truncate">
-                        {row.raw[c] || <span className="text-muted-foreground/50">-</span>}
+                      <td key={c.key} className="px-3 py-2 text-foreground/80 whitespace-nowrap max-w-[160px] truncate">
+                        {row.norm[c.key] || <span className="text-muted-foreground/50">-</span>}
                       </td>
                     ))}
                     <td className="px-3 py-2 text-red-600 text-xs">{row.error || ''}</td>
@@ -559,7 +596,7 @@ export function ImportExcelButton() {
                 >
                   {importing
                     ? <><CircleNotch size={12} className="animate-spin" /> Mengimport...</>
-                    : <><Upload size={12} /> Import {validRows.length} Karyawan</>}
+                    : <><Upload size={12} /> Import {validRows.length} Baris</>}
                 </Button>
               )}
             </div>

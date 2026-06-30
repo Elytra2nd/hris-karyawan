@@ -46,7 +46,9 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
     'Nama Ibu': emp.namaIbu,
     'Trainee Sejak': emp.contracts[0] ? safeDateFormat(emp.contracts[0].traineeSejak) : '-',
     'Trainee Selesai': emp.contracts[0] ? safeDateFormat(emp.contracts[0].traineeSelesai) : '-',
+    'No Perjanjian': emp.contracts[0]?.contractNumber ?? '-',
     'Posisi': emp.contracts[0]?.posisi ?? '-',
+    'Gender': emp.gender ?? '-',
     'No HP': emp.noHp ?? '-',
     'Form Consent': emp.formConsent ?? '-',
   }))

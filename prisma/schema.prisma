@@ -33,6 +33,7 @@ model Contract {
   posisi         String
   traineeSejak   DateTime @db.Date
   traineeSelesai DateTime @db.Date
+  contractNumber String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   contractPath   String?
@@ -54,10 +55,11 @@ model Employee {
   nik          String?
   noJamsostek  String?
   noKtp        String      @unique
-  tglLahir     DateTime    @db.Date
+  tglLahir     DateTime?   @db.Date
   namaIbu      String
-  noHp         String
-  formConsent  String
+  noHp         String?
+  formConsent  String?
+  gender       String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   image        String?

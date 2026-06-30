@@ -18,21 +18,22 @@ export const POSISI_VALID = [
   'ADMINISTRATOR',
 ] as const
 
+// Daftar cabang resmi Astra Motor Kalbar (BA H721-H730). Sumber kebenaran ada
+// di tabel Branch (dinamis); konstanta ini hanya referensi/dokumentasi.
 export const CABANG_OPTIONS = [
-  { code: 'H720', label: 'REGION PONTIANAK' },
   { code: 'H721', label: 'KETAPANG' },
   { code: 'H722', label: 'PATTIMURA' },
   { code: 'H723', label: 'SINGKAWANG' },
   { code: 'H724', label: 'SANGGAU' },
   { code: 'H725', label: 'IMAM BONJOL' },
-  { code: 'H726', label: 'NDS.AYANI' },
+  { code: 'H726', label: 'NDS AYANI' },
   { code: 'H727', label: 'BENUA KAYONG' },
   { code: 'H728', label: 'SINTANG' },
   { code: 'H729', label: 'PUTUSSIBAU' },
   { code: 'H730', label: 'SAMBAS' },
 ] as const
 
-export const CABANG_VALID = ['H720', 'H721', 'H722', 'H723', 'H724', 'H725', 'H726', 'H727', 'H728', 'H729', 'H730'] as const
+export const CABANG_VALID = ['H721', 'H722', 'H723', 'H724', 'H725', 'H726', 'H727', 'H728', 'H729', 'H730'] as const
 export const STATUS_VALID = ['AKTIF', 'NON-AKTIF'] as const
 
 // Helper: get label dari kode cabang
@@ -69,11 +70,65 @@ export const createEmployeeSchema = z.object({
     .regex(/^08\d+$/, 'No HP harus diawali 08')),
   noJamsostek: z.string().max(30).optional().nullable(),
   formConsent: z.enum(['ADA', 'TIDAK ADA'] as const, { message: 'Form consent tidak valid' }),
+  gender: z.enum(['L', 'P'] as const, { message: 'Pilih L atau P' }).optional().nullable(),
   // Posisi divalidasi terhadap tabel Position (dinamis), bukan enum statis.
   posisi: reqString(z.string().min(1, 'Posisi wajib dipilih').max(100)),
   traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid')),
+})
+
+// ─── Employee Schema (Bulk Import) ────────────────────────────────────────────
+// Lebih longgar dari createEmployeeSchema: data historis dari sistem lama sering
+// tidak punya No HP / Tgl Lahir / Form Consent. Field tsb dibuat opsional (DB
+// kolomnya nullable). Form input manual TETAP memakai createEmployeeSchema yang
+// strict. Tambahan: traineeSelesai (pakai tanggal asli dari file) & region.
+const optionalDate = (msg: string) =>
+  z.preprocess(
+    (v) => (v == null || v === '' ? null : v),
+    z.string().refine((d) => !isNaN(Date.parse(d)), msg).nullable(),
+  )
+
+export const importEmployeeSchema = z.object({
+  cabang: reqString(z.string().min(1, 'Cabang wajib diisi').max(20)),
+  // Sebagian file historis menaruh kode cabang (H721) di kolom BA, nama cabang
+  // di kolom BA CABANG, dan region/kota di kolom CABANG. Tampung BA & BA CABANG
+  // sebagai kandidat cadangan supaya cabang tetap bisa di-resolve di server
+  // (kode internal sistem kini berbasis nama cabang, mis. KETAPANG).
+  ba: z.string().max(100).optional().nullable(),
+  baCabang: z.string().max(100).optional().nullable(),
+  region: z.string().max(100).optional().nullable(),
+  namaLengkap: reqString(z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama terlalu panjang')),
+  nik: z.string().max(20).optional().nullable(),
+  noKtp: reqString(z.string()
+    .length(16, 'No KTP harus 16 digit')
+    .regex(/^\d+$/, 'No KTP hanya boleh angka')),
+  // Opsional untuk data historis
+  tglLahir: optionalDate('Format tanggal lahir tidak valid'),
+  namaIbu: reqString(z.string().min(2, 'Nama ibu minimal 2 karakter').max(100)),
+  noHp: z.preprocess(
+    (v) => (v == null || v === '' ? null : v),
+    z.string().min(8, 'No HP minimal 8 digit').max(15, 'No HP maksimal 15 digit')
+      .regex(/^\d+$/, 'No HP hanya boleh angka').nullable(),
+  ),
+  noJamsostek: z.string().max(30).optional().nullable(),
+  formConsent: z.preprocess(
+    (v) => (v == null || v === '' ? null : v),
+    z.enum(['ADA', 'TIDAK ADA'] as const, { message: 'Form consent harus ADA / TIDAK ADA' }).nullable(),
+  ),
+  posisi: reqString(z.string().min(1, 'Posisi wajib diisi').max(100)),
+  traineeSejak: reqString(z.string()
+    .min(1, 'Tanggal mulai wajib diisi')
+    .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal mulai tidak valid')),
+  // Tanggal selesai opsional: kalau ada di file dipakai apa adanya, kalau
+  // kosong dihitung otomatis dari durasi posisi di server.
+  traineeSelesai: optionalDate('Format tanggal selesai tidak valid'),
+  // Gender (L/P) & No. Perjanjian — opsional, data historis.
+  gender: z.preprocess(
+    (v) => (v == null || v === '' ? null : v),
+    z.enum(['L', 'P'] as const, { message: 'Gender harus L / P' }).nullable(),
+  ),
+  contractNumber: z.string().max(100).optional().nullable(),
 })
 
 // ─── Employee Schema (Update - tanpa posisi + traineeSejak, tambah status) ────
@@ -89,6 +144,7 @@ export const createContractSchema = z.object({
   traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai kontrak wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih')),
+  contractNumber: z.string().max(100).optional().nullable(),
 })
 
 // ─── User Schema ──────────────────────────────────────────────────────────────

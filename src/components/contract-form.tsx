@@ -200,6 +200,22 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
         </div>
       </div>
 
+      {/* No. Perjanjian */}
+      <div className="space-y-2">
+        <Label htmlFor="contractNumber" className="form-label">
+          No. Perjanjian
+        </Label>
+        <Input
+          id="contractNumber"
+          name="contractNumber"
+          nativeInput
+          size="sm"
+          placeholder="cth: LO.PERJ/HRD/H721/025/VIII/2021 (opsional)"
+          className="font-mono"
+        />
+        <FieldError message={errors.contractNumber} />
+      </div>
+
       {/* Info tip */}
       <div aria-live="polite" aria-atomic="true">
         {posisi ? (

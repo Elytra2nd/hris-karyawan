@@ -131,6 +131,11 @@ export function ContractList({
                         {contract.posisi}
                       </span>
                     </div>
+                    {contract.contractNumber && (
+                      <p className="text-xs text-muted-foreground/80 font-mono mt-0.5 ml-4">
+                        No. {contract.contractNumber}
+                      </p>
+                    )}
                     {isActive && (
                       <div className="flex items-center gap-2 mt-1 ml-4">
                         <p className="text-xs text-muted-foreground">Kontrak berjalan</p>
@@ -274,6 +279,11 @@ export function ContractList({
                   {' → '}
                   {format(new Date(contract.traineeSelesai), 'dd MMM yyyy', { locale: localeID })}
                 </p>
+                {contract.contractNumber && (
+                  <p className="text-xs text-muted-foreground/80 font-mono mt-0.5">
+                    No. {contract.contractNumber}
+                  </p>
+                )}
                 <div className="flex items-center gap-4 mt-2">
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {durationMonths} bulan

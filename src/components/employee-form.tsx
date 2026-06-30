@@ -221,6 +221,22 @@ export function EmployeeForm({
             />
             <FieldError message={errors.formConsent} />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="gender" className="form-label">
+              Jenis Kelamin
+            </Label>
+            <SelectCombobox
+              id="gender"
+              name="gender"
+              size="sm"
+              options={[
+                { value: 'L', label: 'L (Laki-laki)' },
+                { value: 'P', label: 'P (Perempuan)' },
+              ]}
+              placeholder="Pilih (opsional)..."
+            />
+            <FieldError message={errors.gender} />
+          </div>
         </div>
       </section>
 

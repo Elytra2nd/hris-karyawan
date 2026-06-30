@@ -38,7 +38,8 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
   // Controlled state untuk field non-native (SelectCombobox/DatePicker).
   // Tanpa ini, value={...} tanpa onValueChange membuat field "macet" di nilai awal.
   const [cabangValue, setCabangValue] = useState(employee.cabang)
-  const [formConsentValue, setFormConsentValue] = useState(employee.formConsent)
+  const [formConsentValue, setFormConsentValue] = useState(employee.formConsent ?? '')
+  const [genderValue, setGenderValue] = useState(employee.gender ?? '')
   const [tglLahirValue, setTglLahirValue] = useState(
     employee.tglLahir ? new Date(employee.tglLahir).toISOString().slice(0, 10) : ''
   )
@@ -261,7 +262,7 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
                   </Label>
                   <Input
                     id="noHp" name="noHp"
-                    defaultValue={employee.noHp}
+                    defaultValue={employee.noHp ?? ''}
                     required nativeInput size="sm" aria-invalid={!!errors.noHp}
                     aria-describedby={errors.noHp ? 'noHp-error' : undefined}
                     className={errors.noHp ? 'border-destructive' : ''}
@@ -294,6 +295,23 @@ export function EditKaryawanForm({ employee, updateAction, branches = [] }: Edit
                     onValueChange={(v) => { setFormConsentValue(v); markDirty() }}
                     options={['ADA', 'TIDAK ADA']}
                     placeholder="Pilih..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gender" className="form-label">
+                    Jenis Kelamin
+                  </Label>
+                  <SelectCombobox
+                    id="gender"
+                    name="gender"
+                    size="sm"
+                    value={genderValue}
+                    onValueChange={(v) => { setGenderValue(v); markDirty() }}
+                    options={[
+                      { value: 'L', label: 'L (Laki-laki)' },
+                      { value: 'P', label: 'P (Perempuan)' },
+                    ]}
+                    placeholder="Pilih (opsional)..."
                   />
                 </div>
                 {/* Status - hanya di edit form */}

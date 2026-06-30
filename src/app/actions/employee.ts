@@ -48,7 +48,7 @@ export async function createEmployee(data: Record<string, string | null>) {
   const {
     cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
-    noJamsostek, formConsent, posisi, traineeSejak: traineeSejakRaw,
+    noJamsostek, formConsent, gender, posisi, traineeSejak: traineeSejakRaw,
   } = parsed.data
 
   // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
@@ -76,6 +76,7 @@ export async function createEmployee(data: Record<string, string | null>) {
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
+        gender: gender ?? null,
         contracts: { create: { posisi, traineeSejak, traineeSelesai } },
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
@@ -116,7 +117,7 @@ export async function updateEmployee(id: string, data: Record<string, string | n
   const {
     cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
-    noJamsostek, formConsent, status,
+    noJamsostek, formConsent, gender, status,
   } = parsed.data
 
   // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
@@ -136,6 +137,7 @@ export async function updateEmployee(id: string, data: Record<string, string | n
         nik: nik ?? null,
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
+        gender: gender ?? null,
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
@@ -172,7 +174,7 @@ export async function createContract(employeeId: string, data: Record<string, st
       return fail(parsed.error.issues[0]?.message ?? 'Ada isian kontrak yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
-    const { posisi, traineeSejak: traineeSejakRaw } = parsed.data
+    const { posisi, traineeSejak: traineeSejakRaw, contractNumber } = parsed.data
     const months = await getPositionMonths(posisi)
     if (months === null) {
       return fail(`Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi`, 'VALIDATION', { posisi: 'Posisi tidak terdaftar' })
@@ -181,7 +183,7 @@ export async function createContract(employeeId: string, data: Record<string, st
     const traineeSelesai = calculateEndDate(traineeSejak, months)
 
     const newContract = await prisma.contract.create({
-      data: { posisi, traineeSejak, traineeSelesai, employeeId },
+      data: { posisi, traineeSejak, traineeSelesai, employeeId, contractNumber: contractNumber ?? null },
     })
 
     await createAuditLog(
@@ -250,11 +252,12 @@ type EmployeeExportItem = {
   nik: string | null
   noJamsostek: string | null
   noKtp: string
-  tglLahir: Date
+  tglLahir: Date | null
   namaIbu: string
-  noHp: string
-  formConsent: string
-  contracts: { posisi: string; traineeSejak: Date; traineeSelesai: Date }[]
+  noHp: string | null
+  formConsent: string | null
+  gender: string | null
+  contracts: { posisi: string; traineeSejak: Date; traineeSelesai: Date; contractNumber: string | null }[]
 }
 
 export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> {
