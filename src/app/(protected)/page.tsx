@@ -11,6 +11,8 @@ import {
 } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { hasPermission } from '@/lib/permissions'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { ContractStatusChart, EmployeeChart } from '@/components/dashboard-charts'
 import { LiveClock } from '@/components/live-clock'
 import { BranchTable } from '@/components/branch-table'
@@ -55,6 +57,25 @@ export default async function DashboardPage() {
   recentContracts.forEach(c => { cabangMap[c.employee.cabang] = (cabangMap[c.employee.cabang] || 0) + 1 })
   const statsCabang = Object.entries(cabangMap).sort((a, b) => b[1] - a[1]).slice(0, 8)
 
+  // Peta kode cabang → nama (baCabang) untuk label "H727 — BENUA KAYONG".
+  const branchLabelByCode = new Map(statsBranch.map(b => [b.cabang, b.baCabang]))
+
+  // Breakdown status kontrak per cabang (untuk stacked bar). Kategori sama dgn
+  // donut: aman >90h, perhatian 31–90h, kritis ≤30h, expired <0.
+  type CabangStatus = { aman: number; perhatian: number; kritis: number; expired: number; total: number }
+  const cabangStatus = new Map<string, CabangStatus>()
+  recentContracts.forEach(c => {
+    const code = c.employee.cabang
+    const s = cabangStatus.get(code) ?? { aman: 0, perhatian: 0, kritis: 0, expired: 0, total: 0 }
+    const d = differenceInDays(new Date(c.traineeSelesai), today)
+    if (d < 0) s.expired++
+    else if (d <= 30) s.kritis++
+    else if (d <= 90) s.perhatian++
+    else s.aman++
+    s.total++
+    cabangStatus.set(code, s)
+  })
+
   const urgentList = [...expiring14, ...expiring30.filter(c => !expiring14.includes(c))]
     .sort((a, b) => differenceInDays(new Date(a.traineeSelesai), today) - differenceInDays(new Date(b.traineeSelesai), today))
     .slice(0, 10)
@@ -63,7 +84,7 @@ export default async function DashboardPage() {
   const greeting = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam'
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-6">
 
       {/* ─── Page Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -77,14 +98,14 @@ export default async function DashboardPage() {
               {format(now, "EEEE, dd MMMM yyyy", { locale: localeID })}
             </p>
             <span className="text-muted-foreground/40 hidden sm:inline">·</span>
-            <p className="text-sm text-primary font-semibold flex items-center gap-2">
+            <p className="text-sm text-primary font-semibold hidden sm:flex items-center gap-2">
               <Clock size={12} aria-hidden="true" />
               <LiveClock />
             </p>
           </div>
         </div>
-        {user?.role === 'ADMIN' && (
-          <Link href="/karyawan/tambah">
+        {hasPermission(user?.role, 'employee_create') && (
+          <Link href="/karyawan/tambah" className="hidden sm:block">
             <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm">
               <PlusCircle size={16} aria-hidden="true" />
               Tambah Karyawan
@@ -93,69 +114,52 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* ─── Status Mismatch Alert ─── */}
-      {kpi.contractExpired > 0 && (
-        <div className="flex items-start gap-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-4" role="alert">
-          <ShieldWarning className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-orange-800">
-              {kpi.contractExpired} karyawan berstatus Aktif namun kontrak terakhirnya sudah berakhir
-            </p>
-            <p className="text-sm text-orange-600 mt-0.5">
-              Tindakan: Perpanjang kontrak atau ubah status ke Non-Aktif.
-            </p>
+      {/* ─── Alert prioritas: 1 banner utama (severity tertinggi) + chip sekunder ─── */}
+      {(() => {
+        const TONES = {
+          red:    { wrap: 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30', icon: 'text-red-600', text: 'text-red-800 dark:text-red-300', link: 'text-red-700 dark:text-red-400' },
+          orange: { wrap: 'border-orange-200 bg-orange-50 dark:border-orange-900/50 dark:bg-orange-950/30', icon: 'text-orange-600', text: 'text-orange-800 dark:text-orange-300', link: 'text-orange-700 dark:text-orange-400' },
+          amber:  { wrap: 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30', icon: 'text-amber-600', text: 'text-amber-800 dark:text-amber-300', link: 'text-amber-700 dark:text-amber-400' },
+        } as const
+        type Alert = { tone: keyof typeof TONES; Icon: typeof Warning; msg: string; href: string; short: string }
+        const alerts = ([
+          kpi.expiring14 > 0 && { tone: 'red', Icon: Warning, msg: `${kpi.expiring14} kontrak berakhir dalam 14 hari`, href: '/karyawan?filter=expiring14', short: `${kpi.expiring14} kritis ≤14 hari` },
+          kpi.contractExpired > 0 && { tone: 'orange', Icon: ShieldWarning, msg: `${kpi.contractExpired} karyawan aktif tapi kontrak sudah berakhir`, href: '/karyawan?filter=expired', short: `${kpi.contractExpired} expired` },
+          kpi.expiring30 > kpi.expiring14 && { tone: 'amber', Icon: Clock, msg: `${kpi.expiring30} kontrak berakhir dalam 30 hari`, href: '/karyawan?filter=expiring30', short: `${kpi.expiring30} ≤30 hari` },
+        ].filter(Boolean) as Alert[])
+        if (alerts.length === 0) return null
+        const [primary, ...others] = alerts
+        const t = TONES[primary.tone]
+        return (
+          <div className={cn('rounded-lg border px-4 py-3', t.wrap)} role="alert">
+            <Link href={primary.href} className="flex items-center gap-3">
+              <primary.Icon className={cn('h-5 w-5 shrink-0', t.icon)} aria-hidden="true" />
+              <p className={cn('flex-1 text-sm font-semibold min-w-0', t.text)}>{primary.msg}</p>
+              <span className={cn('hidden sm:flex items-center gap-1 text-sm font-semibold shrink-0', t.link)}>
+                Lihat <CaretRight size={16} aria-hidden="true" />
+              </span>
+              <CaretRight size={18} className={cn('sm:hidden shrink-0', t.link)} aria-hidden="true" />
+            </Link>
+            {others.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 pl-8">
+                {others.map(o => (
+                  <Link
+                    key={o.href}
+                    href={o.href}
+                    className={cn('text-xs font-medium px-2 py-0.5 rounded-full border border-current/20 bg-card/60 hover:bg-card transition-colors', TONES[o.tone].link)}
+                  >
+                    {o.short}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-          <Link
-            href="/karyawan?filter=expired"
-            className="text-sm font-semibold text-orange-700 hover:text-orange-800 flex items-center gap-1 shrink-0 mt-0.5"
-          >
-            Lihat <CaretRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-      )}
-
-      {/* ─── Alert Banner: Kontrak ≤14 hari ─── */}
-      {kpi.expiring14 > 0 && (
-        <div className="flex items-start gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-4" role="alert">
-          <Warning className="h-5 w-5 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-red-800">
-              {kpi.expiring14} kontrak berakhir dalam 14 hari ke depan
-            </p>
-            <p className="text-sm text-red-600 mt-0.5">
-              Segera ambil tindakan perpanjangan atau penghentian kontrak.
-            </p>
-          </div>
-          <Link
-            href="/karyawan?filter=expiring14"
-            className="text-sm font-semibold text-red-700 hover:text-red-800 flex items-center gap-1 shrink-0 mt-0.5"
-          >
-            Lihat <CaretRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-      )}
-
-      {kpi.expiring30 > 0 && kpi.expiring14 === 0 && (
-        <div className="flex items-start gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4" role="alert">
-          <Warning className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-800">
-              {kpi.expiring30} kontrak berakhir dalam 30 hari ke depan
-            </p>
-            <p className="text-sm text-amber-600 mt-0.5">Perlu perhatian tim HR.</p>
-          </div>
-          <Link
-            href="/karyawan?filter=expiring30"
-            className="text-sm font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 shrink-0 mt-0.5"
-          >
-            Lihat <CaretRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ─── KPI Stat Cards — derived from contract data ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/karyawan" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+        <Link href="/karyawan" className="group bg-card border border-border rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
           <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center shrink-0 group-hover:bg-accent/70 transition-colors">
             <Users className="h-6 w-6 text-primary" />
           </div>
@@ -165,7 +169,7 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/karyawan?status=AKTIF" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
+        <Link href="/karyawan?status=AKTIF" className="group bg-card border border-border rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
             <UserCheck className="h-6 w-6 text-emerald-600" />
           </div>
@@ -175,7 +179,7 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/karyawan?filter=expiring30" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
+        <Link href="/karyawan?filter=expiring30" className="group bg-card border border-border rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
             <Clock className="h-6 w-6 text-amber-600" />
           </div>
@@ -185,7 +189,7 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/karyawan?filter=expired" className="group bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
+        <Link href="/karyawan?filter=expired" className="group bg-card border border-border rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
           <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
             <UserMinusIcon className="h-6 w-6 text-rose-500" />
           </div>
@@ -197,7 +201,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ─── 2-Column: Kontrak Segera Habis + Ringkasan ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {/* Kontrak Segera Habis */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col">
@@ -211,7 +215,7 @@ export default async function DashboardPage() {
             <span className="text-xs text-muted-foreground">{expiring90.length} kontrak</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-border/40">
+          <div className="flex-1 divide-y divide-border/40 sm:overflow-y-auto sm:max-h-[400px]">
             {urgentList.length === 0 ? (
               <div className="flex items-center gap-4 px-6 py-6">
                 <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
@@ -301,10 +305,11 @@ export default async function DashboardPage() {
           </div>
 
           <div className="px-6 py-2 divide-y divide-gray-50 border-t border-border/60 mt-1">
-            <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={kpi.safe} dotColor="bg-green-500" valueColor="text-green-700" />
-            <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={kpi.warningRange} dotColor="bg-amber-400" valueColor="text-amber-700" />
-            <SummaryRow label="Kritis" sub="≤ 30 hari" value={kpi.expiring30} dotColor="bg-red-500" valueColor="text-red-700" />
-            <SummaryRow label="Sudah Berakhir" sub="Expired" value={kpi.contractExpired} dotColor="bg-muted-foreground/40" valueColor="text-muted-foreground" />
+            {/* Legend disinkronkan dengan donut (opsi B): aktif = ramp biru, hanya Expired merah */}
+            <SummaryRow label="Kontrak Aman" sub="> 90 hari" value={kpi.safe} dotColor="bg-blue-700" valueColor="text-foreground" />
+            <SummaryRow label="Perlu Perhatian" sub="31–90 hari" value={kpi.warningRange} dotColor="bg-blue-500" valueColor="text-foreground" />
+            <SummaryRow label="Kritis" sub="≤ 30 hari" value={kpi.expiring30} dotColor="bg-blue-400" valueColor="text-foreground" />
+            <SummaryRow label="Sudah Berakhir" sub="Expired" value={kpi.contractExpired} dotColor="bg-red-400" valueColor="text-red-600" />
           </div>
 
           <div className="px-6 pt-4 pb-4 border-t border-border/60 space-y-2">
@@ -331,7 +336,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ─── 2-Column Charts: Distribusi Posisi + Sebaran Cabang ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {/* Distribusi Posisi */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
@@ -355,30 +360,76 @@ export default async function DashboardPage() {
 
         {/* Sebaran per Cabang */}
         <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2 px-6 py-4 border-b border-border/60">
-            <div className="h-8 w-8 rounded-md bg-green-50 flex items-center justify-center">
-              <Buildings className="h-4 w-4 text-green-600" aria-hidden="true" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-foreground">Sebaran per Cabang</h2>
-              <p className="text-xs text-muted-foreground">Karyawan aktif per lokasi</p>
+          <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-border/60">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-md bg-green-50 dark:bg-green-950 flex items-center justify-center">
+                <Buildings className="h-4 w-4 text-green-600" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Sebaran per Cabang</h2>
+                <p className="text-xs text-muted-foreground">Komposisi status kontrak per lokasi</p>
+              </div>
             </div>
           </div>
-          <div className="divide-y divide-gray-50">
+
+          {/* Legend status (warna sama dgn donut) */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-2 border-b border-border/40 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-700" /> Aman</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500" /> Perhatian</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-400" /> Kritis</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" /> Expired</span>
+          </div>
+
+          <div className="divide-y divide-gray-50 dark:divide-border/40">
             {statsCabang.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6 px-6">Tidak ada data</p>
-            ) : statsCabang.map(([cabang, count], i) => {
+            ) : statsCabang.map(([cabang, count]) => {
               const pct = kpi.totalAktif > 0 ? Math.round((count / kpi.totalAktif) * 100) : 0
-              const dotColors = [
-                'bg-blue-500', 'bg-emerald-500', 'bg-orange-400', 'bg-red-400',
-                'bg-violet-500', 'bg-pink-400', 'bg-teal-500', 'bg-lime-500',
+              const label = branchLabelByCode.get(cabang)
+              const st = cabangStatus.get(cabang) ?? { aman: 0, perhatian: 0, kritis: 0, expired: 0, total: count }
+              const total = st.total || 1
+              // Tiap bar = komposisi status cabang itu (lebar segmen ∝ proporsi).
+              const segments = [
+                { key: 'aman', n: st.aman, cls: 'bg-blue-700', label: 'Aman' },
+                { key: 'perhatian', n: st.perhatian, cls: 'bg-blue-500', label: 'Perlu Perhatian' },
+                { key: 'kritis', n: st.kritis, cls: 'bg-blue-400', label: 'Kritis' },
+                { key: 'expired', n: st.expired, cls: 'bg-red-400', label: 'Expired' },
               ]
               return (
-                <div key={cabang} className="flex items-center gap-4 px-6 py-4">
-                  <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', dotColors[i % dotColors.length])} aria-hidden="true" />
-                  <span className="text-sm font-medium text-foreground/80 flex-1 truncate">{cabang}</span>
-                  <span className="text-sm font-bold text-foreground">{count}</span>
-                  <span className="text-xs text-muted-foreground w-8 text-right">{pct}%</span>
+                <div key={cabang} className="px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex-1 min-w-0 truncate text-sm">
+                      <span className="font-bold text-foreground font-mono">{cabang}</span>
+                      {label && <span className="text-foreground/70 font-medium"> · {label}</span>}
+                    </span>
+                    <span className="text-sm font-bold text-foreground tabular-nums">{count}</span>
+                    <span className="text-xs text-muted-foreground w-8 text-right tabular-nums">{pct}%</span>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="mt-1.5 h-2 w-full rounded-full bg-muted overflow-hidden flex cursor-default">
+                        {segments.map(s => s.n > 0 && (
+                          <div key={s.key} className={s.cls} style={{ width: `${(s.n / total) * 100}%` }} />
+                        ))}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="flex-col items-stretch gap-1 px-3 py-2 min-w-[10rem] bg-popover text-popover-foreground border border-border shadow-md [&>svg]:fill-popover">
+                      <p className="font-semibold text-foreground mb-0.5">
+                        {cabang}{label ? ` · ${label}` : ''}
+                      </p>
+                      {segments.map(s => (
+                        <div key={s.key} className="flex items-center gap-2">
+                          <span className={cn('h-2.5 w-2.5 shrink-0 rounded-[3px]', s.cls)} />
+                          <span className="text-muted-foreground">{s.label}</span>
+                          <span className="ml-auto pl-3 font-mono tabular-nums text-foreground">{s.n}</span>
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-2 border-t border-border mt-0.5 pt-1">
+                        <span className="text-muted-foreground font-medium">Total</span>
+                        <span className="ml-auto font-mono tabular-nums font-semibold text-foreground">{st.total}</span>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               )
             })}
@@ -396,6 +447,17 @@ export default async function DashboardPage() {
         }))}
         totalEmployees={kpi.totalAll}
       />
+
+      {/* ─── FAB Tambah Karyawan (mobile only) ─── */}
+      {hasPermission(user?.role, 'employee_create') && (
+        <Link
+          href="/karyawan/tambah"
+          aria-label="Tambah Karyawan"
+          className="sm:hidden fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          <PlusCircle size={26} weight="bold" />
+        </Link>
+      )}
 
     </div>
   )

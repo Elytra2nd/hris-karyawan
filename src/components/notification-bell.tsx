@@ -160,7 +160,7 @@ export function NotificationBell() {
                 aria-live="polite"
                 className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white px-1 ring-2 ring-background"
               >
-                {unseenCount > 99 ? '99+' : unseenCount}
+                {unseenCount > 9 ? '9+' : unseenCount}
               </span>
             )}
           </button>

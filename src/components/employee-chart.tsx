@@ -3,11 +3,15 @@
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
+import { ChartTooltip } from '@/components/chart-tooltip'
 
 interface Props {
   data: [posisi: string, count: number][]
 }
 
+// Bar chart HORIZONTAL (layout vertical) — nama posisi di kiri kebaca penuh
+// (tidak terpotong seperti versi vertikal), dan tinggi chart menyesuaikan jumlah
+// baris sehingga card tidak menyisakan ruang kosong di bawah.
 export function EmployeeChart({ data }: Props) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
@@ -15,12 +19,10 @@ export function EmployeeChart({ data }: Props) {
   const chartData = data.map(([posisi, jumlah]) => ({ posisi, jumlah }))
 
   // A1: single Astra Blue — warna hanya encode "ini data", bukan dekorasi per-bar
-  const barColor     = isDark ? '#3b82f6' : '#1d4ed8'
-  const gridColor    = isDark ? '#334155' : '#e2e8f0'  // B4: slate-200 (tetap mundur)
-  const tickColor    = isDark ? '#94a3b8' : '#475569'  // B3: slate-600 (lebih gelap)
-  const tooltipBg    = isDark ? '#1e293b' : '#ffffff'
-  const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
-  const cursorColor  = isDark ? '#334155' : '#f1f5f9'
+  const barColor    = isDark ? '#60a5fa' : '#2563eb'
+  const gridColor   = isDark ? '#334155' : '#e2e8f0'
+  const tickColor   = isDark ? '#cbd5e1' : '#334155'
+  const cursorColor = isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.15)'
 
   if (chartData.length === 0) {
     return (
@@ -30,47 +32,48 @@ export function EmployeeChart({ data }: Props) {
     )
   }
 
+  // Tinggi self-size: tiap baris ~46px + padding atas/bawah.
+  const height = chartData.length * 46 + 24
+
   return (
-    <ResponsiveContainer width="100%" height="100%" minHeight={240}>
+    <ResponsiveContainer width="100%" height={height}>
       <BarChart
         data={chartData}
-        margin={{ top: 22, right: 4, left: -20, bottom: 0 }}
+        layout="vertical"
+        margin={{ top: 4, right: 40, left: 4, bottom: 4 }}
         style={{ cursor: 'pointer' }}
+        barCategoryGap="22%"
       >
-        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={gridColor} />
-        <XAxis
-          dataKey="posisi"
-          tick={{ fontSize: 12, fill: tickColor }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={v => v.length > 9 ? v.slice(0, 9) + '…' : v}
-        />
+        <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke={gridColor} />
+        <XAxis type="number" hide allowDecimals={false} />
         <YAxis
+          type="category"
+          dataKey="posisi"
+          width={118}
           tick={{ fontSize: 12, fill: tickColor }}
           tickLine={false}
           axisLine={false}
-          allowDecimals={false}
+          interval={0}
         />
         <Tooltip
-          formatter={(value) => [`${value} orang`, 'Jumlah']}
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
           cursor={{ fill: cursorColor }}
-          labelFormatter={(label) => `${label} - klik untuk filter`}
+          content={<ChartTooltip valueSuffix=" orang" hint="Klik untuk filter" />}
         />
         <Bar
           dataKey="jumlah"
-          radius={[4, 4, 0, 0]}
-          maxBarSize={48}
+          name="Jumlah"
+          radius={[0, 4, 4, 0]}
+          maxBarSize={26}
           onClick={(_data, index) => {
             const posisi = chartData[index]?.posisi
             if (posisi) router.push(`/karyawan?posisi=${encodeURIComponent(posisi)}`)
           }}
         >
-          {/* C3: direct label di atas tiap bar — tidak perlu hover untuk baca nilai */}
+          {/* Direct label di ujung kanan tiap bar — nilai kebaca tanpa hover */}
           <LabelList
             dataKey="jumlah"
-            position="top"
-            style={{ fontSize: 11, fill: tickColor, fontWeight: 700 }}
+            position="right"
+            style={{ fontSize: 12, fill: tickColor, fontWeight: 700 }}
           />
           {chartData.map((entry, i) => (
             <Cell

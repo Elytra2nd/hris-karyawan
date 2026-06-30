@@ -12,8 +12,10 @@ import {
 import { ContractList } from '@/components/contract-list'
 import { ActivityTimeline } from '@/components/activity-timeline'
 import { EmployeeDetailActions } from '@/components/employee-detail-actions'
+import { DocumentUpload } from '@/components/document-upload'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { hasPermission } from '@/lib/permissions'
 
 export default async function DetailKaryawanPage({
   params,
@@ -24,6 +26,7 @@ export default async function DetailKaryawanPage({
   const { id } = await params
   const isAdmin = session?.role === 'ADMIN'
   const canCreateContract = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(session?.role ?? '')
+  const canUpload = hasPermission(session?.role, 'upload_photo')
 
   const employee = await prisma.employee.findUnique({
     where: { id },
@@ -56,7 +59,7 @@ export default async function DetailKaryawanPage({
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="space-y-5">
 
       {/* ─── Actions ─── */}
       <div className="flex items-center justify-end">
@@ -245,6 +248,11 @@ export default async function DetailKaryawanPage({
               }
             />
             <InfoItem
+              label="No. Perjanjian Terakhir"
+              value={latestContract?.contractNumber || '-'}
+              mono
+            />
+            <InfoItem
               label="Total Kontrak"
               value={<Badge variant="secondary">{employee.contracts.length} kontrak</Badge>}
             />
@@ -275,17 +283,21 @@ export default async function DetailKaryawanPage({
             available={!!employee.image}
             href={employee.image || undefined}
           />
-          <DocCard
+          <DocumentUpload
+            employeeId={employee.id}
+            kind="ktp"
             label="Scan KTP"
             icon={<Fingerprint size={22} className="text-indigo-400" />}
-            available={!!employee.ktpPath}
-            href={employee.ktpPath || undefined}
+            currentPath={employee.ktpPath}
+            canUpload={canUpload}
           />
-          <DocCard
+          <DocumentUpload
+            employeeId={employee.id}
+            kind="kk"
             label="Scan KK"
             icon={<FileText size={22} className="text-violet-400" />}
-            available={!!employee.kkPath}
-            href={employee.kkPath || undefined}
+            currentPath={employee.kkPath}
+            canUpload={canUpload}
           />
           <DocCard
             label="Form Consent"

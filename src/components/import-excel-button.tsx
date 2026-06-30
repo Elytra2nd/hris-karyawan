@@ -460,7 +460,7 @@ export function ImportExcelButton() {
           </DialogHeader>
 
           {/* Summary bar */}
-          <div className="flex items-center gap-4 px-6 py-2 bg-muted/50 border-b border-border/60 text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 sm:px-6 py-2 bg-muted/50 border-b border-border/60 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-green-700">
               <CheckCircle size={12} /> {validRows.length} baris siap
               {employeeCount > 0 && <span className="text-green-700/70 font-normal">≈ {employeeCount} karyawan</span>}
@@ -469,15 +469,15 @@ export function ImportExcelButton() {
               <WarningCircle size={12} /> {errorRows.length} error
             </span>
             {done && (
-              <span className="ml-auto flex items-center gap-1.5 text-primary">
+              <span className="flex items-center gap-1.5 text-primary">
                 <CheckCircle size={12} /> Selesai: {done.created} karyawan, {done.contractsAdded} kontrak, {done.skipped} dilewati
               </span>
             )}
             <button
               onClick={() => downloadTemplate(branches, positions)}
-              className="ml-auto flex items-center gap-1 text-muted-foreground/70 hover:text-foreground/80 transition-colors font-medium"
+              className="ml-auto flex items-center gap-1 text-muted-foreground/70 hover:text-foreground/80 transition-colors font-medium shrink-0"
             >
-              <Download size={12} /> Download Template
+              <Download size={12} /> <span className="hidden sm:inline">Download </span>Template
             </button>
           </div>
 
@@ -521,8 +521,8 @@ export function ImportExcelButton() {
             </div>
           )}
 
-          {/* Table */}
-          <div className="flex-1 overflow-auto">
+          {/* Table — desktop (mobile pakai kartu di bawah) */}
+          <div className="hidden sm:block flex-1 overflow-auto">
             <table className="w-full border-collapse text-xs">
               <thead className="sticky top-0 z-10 bg-slate-800">
                 <tr>
@@ -570,21 +570,58 @@ export function ImportExcelButton() {
             </table>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-2 border-t border-border/60 bg-card">
+          {/* Cards — mobile (ganti tabel scroll-x agar kebaca tanpa geser) */}
+          <div className="sm:hidden flex-1 overflow-auto divide-y divide-border/60">
+            {displayedRows.length === 0 && (
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+                Tidak ada baris yang cocok dengan filter
+              </p>
+            )}
+            {displayedRows.map((row) => (
+              <div
+                key={row.index}
+                className={cn('px-4 py-3', row.status === 'error' ? 'bg-red-50' : 'bg-card')}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-mono text-muted-foreground/70">#{row.index + 1}</span>
+                  {row.status === 'error' ? (
+                    <span className="inline-flex items-center gap-1 text-red-600 font-bold text-xs">
+                      <WarningCircle size={12} /> Error
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs">
+                      <CheckCircle size={12} /> Siap
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm font-semibold text-foreground">
+                  {row.norm.namaLengkap || <span className="text-muted-foreground/50">— nama kosong —</span>}
+                </p>
+                <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                  {row.norm.noKtp && <span className="font-mono">{row.norm.noKtp}</span>}
+                  {row.norm.posisi && <span>{row.norm.posisi}</span>}
+                  {row.norm.cabang && <span>{row.norm.cabang}</span>}
+                  {row.norm.traineeSejak && <span>{row.norm.traineeSejak}</span>}
+                </div>
+                {row.error && <p className="mt-1.5 text-xs text-red-600">{row.error}</p>}
+              </div>
+            ))}
+          </div>
+
+          {/* Footer — stack di mobile, inline di desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 sm:px-6 py-3 border-t border-border/60 bg-card">
             {errorRows.length > 0 && !done && (
               <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
-                <WarningIcon size={12} />
+                <WarningIcon size={12} className="shrink-0" />
                 {errorRows.length} baris bermasalah akan dilewati
               </div>
             )}
             {done && (
               <div className="text-xs text-muted-foreground">Import selesai.</div>
             )}
-            {!errorRows.length && !done && <div />}
 
-            <div className="flex gap-2 ml-auto">
-              <Button variant="outline" size="sm" onClick={reset}>
+            <div className="flex gap-2 sm:ml-auto">
+              <Button variant="outline" size="sm" onClick={reset} className="flex-1 sm:flex-none">
                 <X size={12} className="mr-1" /> Tutup
               </Button>
               {!done && (
@@ -592,7 +629,7 @@ export function ImportExcelButton() {
                   size="sm"
                   onClick={handleImport}
                   disabled={importing || validRows.length === 0}
-                  className="gap-1.5"
+                  className="flex-1 sm:flex-none gap-1.5"
                 >
                   {importing
                     ? <><CircleNotch size={12} className="animate-spin" /> Mengimport...</>

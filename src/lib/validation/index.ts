@@ -76,6 +76,8 @@ export const createEmployeeSchema = z.object({
   traineeSejak: reqString(z.string()
     .min(1, 'Tanggal mulai wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid')),
+  // No. Perjanjian kontrak pertama — opsional (bisa diisi belakangan).
+  contractNumber: z.string().max(100).optional().nullable(),
 })
 
 // ─── Employee Schema (Bulk Import) ────────────────────────────────────────────

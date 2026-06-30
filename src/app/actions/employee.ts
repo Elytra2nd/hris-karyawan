@@ -49,6 +49,7 @@ export async function createEmployee(data: Record<string, string | null>) {
     cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, gender, posisi, traineeSejak: traineeSejakRaw,
+    contractNumber,
   } = parsed.data
 
   // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
@@ -77,7 +78,7 @@ export async function createEmployee(data: Record<string, string | null>) {
         noJamsostek: noJamsostek ?? null,
         noKtp, tglLahir, namaIbu, noHp, formConsent,
         gender: gender ?? null,
-        contracts: { create: { posisi, traineeSejak, traineeSelesai } },
+        contracts: { create: { posisi, traineeSejak, traineeSelesai, contractNumber: contractNumber ?? null } },
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
@@ -291,6 +292,7 @@ function buildContractWhere(contractFilter: string, today: Date) {
     case 'expiring14': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 14) } } } }
     case 'expiring30': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 30) } } } }
     case 'expiring90': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 90) } } } }
+    case 'safe':       return { contracts: { some: { traineeSelesai: { gt: addDays(today, 90) } } } }
     default:           return {}
   }
 }

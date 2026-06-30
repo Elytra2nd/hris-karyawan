@@ -160,7 +160,7 @@ export default function ManajemenKontrakPage() {
   const hasActiveFilters = cabang || posisiFilter
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
 
       {/* ─── Page Header ─── */}
       <div>

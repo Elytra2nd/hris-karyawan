@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useSidebar } from '@/components/ui/sidebar'
+import { hasPermission } from '@/lib/permissions'
 import { NativeSelect } from '@/components/ui/native-select'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -25,7 +26,7 @@ import {
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
-  AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { differenceInDays, format } from 'date-fns'
@@ -35,7 +36,6 @@ import { ImportExcelButton } from '@/components/import-excel-button'
 import { useDebounce } from '@/hooks/use-debounce'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationPrevious, PaginationNext, PaginationEllipsis,
@@ -95,7 +95,14 @@ export default function DataKaryawanPage() {
   }
 
   const { role } = useSidebar()
-  const isAdmin = role === 'ADMIN'
+  // Gating berbasis permission, bukan hardcode ADMIN — HR_MANAGER & HR_STAFF
+  // juga berhak sesuai matrix (lihat src/lib/permissions.ts).
+  const canCreate = hasPermission(role, 'employee_create')   // ADMIN, HR_MANAGER, HR_STAFF
+  const canEdit   = hasPermission(role, 'employee_update')   // ADMIN, HR_MANAGER, HR_STAFF
+  const canExport = hasPermission(role, 'export_data')       // ADMIN, HR_MANAGER
+  const canImport = hasPermission(role, 'import_data')       // ADMIN, HR_MANAGER
+  const canDelete = hasPermission(role, 'employee_delete')   // ADMIN, HR_MANAGER
+  const isReadOnly = !canCreate && !canEdit && !canExport && !canImport
 
   // Input search pakai state lokal (responsif instan), lalu di-debounce.
   const [searchInput, setSearchInput] = useState(urlSearch)
@@ -165,7 +172,7 @@ export default function DataKaryawanPage() {
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!isAdmin) { toast.error('Anda tidak memiliki izin menghapus - hubungi Admin'); return }
+    if (!canDelete) { toast.error('Anda tidak memiliki izin menghapus - hubungi Admin'); return }
     setIsDeleting(id)
 
     // Optimistic: hapus dari UI seketika
@@ -224,7 +231,7 @@ export default function DataKaryawanPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-6">
 
       {/* ─── Page Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -234,11 +241,12 @@ export default function DataKaryawanPage() {
             Manajemen data trainee Astra Motor Kalimantan Barat
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isAdmin && <ExportExcelButton variant="default" />}
-          {isAdmin && <ImportExcelButton />}
-          {isAdmin && (
-            <Link href="/karyawan/tambah">
+        <div className="flex items-center gap-2">
+          {canExport && <ExportExcelButton variant="default" />}
+          {canImport && <ImportExcelButton />}
+          {/* Desktop: tombol inline. Mobile: dipindah ke FAB kanan-bawah (lihat bawah). */}
+          {canCreate && (
+            <Link href="/karyawan/tambah" className="hidden sm:block">
               <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap">
                 <Plus size={16} />
                 Tambah Karyawan
@@ -249,7 +257,7 @@ export default function DataKaryawanPage() {
       </div>
 
       {/* ─── Viewer Notice ─── */}
-      {!isAdmin && (
+      {isReadOnly && (
         <div className="flex items-center gap-2 px-4 py-4 rounded-md bg-muted/50 border border-border text-sm text-foreground/70">
           <Eye size={16} className="text-muted-foreground/70 shrink-0" />
           <span>Mode <strong>Pemirsa</strong> - Anda hanya dapat melihat data. Hubungi Admin untuk perubahan.</span>
@@ -312,34 +320,35 @@ export default function DataKaryawanPage() {
       {/* ─── Stat Cards — contract-derived ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          icon={<User size={20} className="text-white" />}
-          iconBg="bg-primary"
+          icon={<User size={20} className="text-primary" />}
+          iconBg="bg-accent"
           value={stats.total}
           label="Total Karyawan"
-          primary
           href="/karyawan"
         />
         <StatCard
           icon={<CheckCircle size={20} className="text-green-600" />}
-          iconBg="bg-green-50"
+          iconBg="bg-green-50 dark:bg-green-950"
           value={stats.aktif}
           label="Kontrak Aktif"
           href="/karyawan?status=AKTIF"
         />
         <StatCard
           icon={<Clock size={20} className="text-amber-500" />}
-          iconBg="bg-amber-50"
+          iconBg="bg-amber-50 dark:bg-amber-950"
           value={stats.segera}
-          label="Segera Habis ≤ 30h"
+          label="Segera Habis ≤30 hari"
           highlight={stats.segera > 0}
+          accent="amber"
           href="/karyawan?filter=expiring30"
         />
         <StatCard
           icon={<XCircle size={20} className="text-rose-500" />}
-          iconBg="bg-rose-50"
+          iconBg="bg-rose-50 dark:bg-rose-950"
           value={stats.expired}
           label="Kontrak Expired"
           highlight={stats.expired > 0}
+          accent="rose"
           href="/karyawan?filter=expired"
         />
       </div>
@@ -420,7 +429,7 @@ export default function DataKaryawanPage() {
           >
             <Sliders size={16} />
             <span className="hidden sm:inline">Funnel</span>
-            {(cabang || statusFilter) && (
+            {(cabang || statusFilter || contractFilter) && (
               <span className="h-2 w-2 rounded-full bg-primary ml-0.5" />
             )}
           </button>
@@ -441,20 +450,35 @@ export default function DataKaryawanPage() {
               </NativeSelect>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Status</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Status Karyawan</label>
               <NativeSelect
                 value={statusFilter}
                 onChange={(e) => updateParams({ status: e.target.value })}
-                aria-label="Filter status"
+                aria-label="Filter status karyawan"
               >
                 <option value="">Semua Status</option>
                 <option value="AKTIF">Aktif</option>
                 <option value="NON-AKTIF">Non-Aktif</option>
               </NativeSelect>
             </div>
-            {(cabang || statusFilter) && (
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Status Kontrak</label>
+              <NativeSelect
+                value={contractFilter}
+                onChange={(e) => updateParams({ filter: e.target.value })}
+                aria-label="Filter status kontrak"
+              >
+                <option value="">Semua Kontrak</option>
+                <option value="safe">Aman (&gt; 90 hari)</option>
+                <option value="expiring90">Perlu Tindakan (≤ 90 hari)</option>
+                <option value="expiring30">Segera Habis (≤ 30 hari)</option>
+                <option value="expiring14">Kritis (≤ 14 hari)</option>
+                <option value="expired">Sudah Expired</option>
+              </NativeSelect>
+            </div>
+            {(cabang || statusFilter || contractFilter) && (
               <button
-                onClick={() => updateParams({ cabang: '', status: '' })}
+                onClick={() => updateParams({ cabang: '', status: '', filter: '' })}
                 className="h-8 px-4 text-xs font-semibold text-muted-foreground hover:text-red-600 border border-border rounded-md bg-card hover:bg-red-50 transition-colors"
               >
                 Reset
@@ -467,7 +491,7 @@ export default function DataKaryawanPage() {
       {/* ─── Table (Desktop) ─── */}
       <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[960px]">
+          <table className="w-full min-w-[1120px]">
             <thead>
               <tr className="border-b border-border bg-accent/60">
 
@@ -482,6 +506,9 @@ export default function DataKaryawanPage() {
                   onClick={() => handleSort('nik')}
                 >
                   NIK <SortIcon col="nik" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                  L/P
                 </th>
                 <th
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
@@ -503,6 +530,9 @@ export default function DataKaryawanPage() {
                   onClick={() => handleSort('traineeSelesai')}
                 >
                   Selesai <SortIcon col="traineeSelesai" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                  No. Perjanjian
                 </th>
                 <th className="px-4 py-2 text-center text-xs font-semibold text-foreground/80 uppercase tracking-wider">
                   Sisa
@@ -528,10 +558,12 @@ export default function DataKaryawanPage() {
                       </div>
                     </td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-6 mx-auto" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-24" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-20" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-4 py-2"><Skeleton className="h-4 w-24" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-28" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
                     <td className="px-4 py-2"><Skeleton className="h-6 w-20 rounded-full mx-auto" /></td>
@@ -550,7 +582,7 @@ export default function DataKaryawanPage() {
                       : 'Tambahkan karyawan pertama atau import dari Excel'
                   }
                   action={
-                    !searchInput && !cabang && !statusFilter && !contractFilter && isAdmin
+                    !searchInput && !cabang && !statusFilter && !contractFilter && canCreate
                       ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                       : undefined
                   }
@@ -600,6 +632,10 @@ export default function DataKaryawanPage() {
                           {emp.nik || '-'}
                         </Link>
                       </td>
+                      {/* Gender */}
+                      <td className="px-4 py-2 text-center text-sm text-foreground/80">
+                        {emp.gender || '-'}
+                      </td>
                       {/* Posisi */}
                       <td className="px-4 py-2 text-sm text-foreground/80">
                         {c?.posisi || '-'}
@@ -615,6 +651,10 @@ export default function DataKaryawanPage() {
                       )}>
                         {c ? fmtDate(c.traineeSelesai) : '-'}
                       </td>
+                      {/* No. Perjanjian */}
+                      <td className="px-4 py-2 text-sm font-mono text-foreground/70">
+                        {c?.contractNumber || '-'}
+                      </td>
                       {/* Sisa hari */}
                       <td className="px-4 py-2 text-center">
                         {getDaysBadge(emp)}
@@ -623,73 +663,43 @@ export default function DataKaryawanPage() {
                       <td className="px-4 py-2 text-center">
                         {getStatusChip(emp)}
                       </td>
-                      {/* Action */}
+                      {/* Action — dibungkus kebab menu */}
                       <td className="px-4 py-2">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link
-                                href={`/karyawan/${emp.id}`}
-                                aria-label="Lihat detail karyawan"
-                                className="h-8 w-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-400"
+                        <div className="flex items-center justify-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                aria-label={`Aksi untuk ${emp.namaLengkap}`}
+                                disabled={isDeleting === emp.id}
+                                className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none"
                               >
-                                <Eye size={16} />
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>Lihat detail</TooltipContent>
-                          </Tooltip>
-
-                          {isAdmin && (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Link
-                                    href={`/karyawan/${emp.id}/edit`}
-                                    aria-label="Edit data karyawan"
-                                    className="h-8 w-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-400"
+                                {isDeleting === emp.id
+                                  ? <CircleNotch size={18} className="animate-spin" />
+                                  : <DotsThreeVertical size={18} weight="bold" />}
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem asChild className="cursor-pointer">
+                                <Link href={`/karyawan/${emp.id}`}><Eye size={14} className="mr-2" /> Lihat Detail</Link>
+                              </DropdownMenuItem>
+                              {canEdit && (
+                                <DropdownMenuItem asChild className="cursor-pointer">
+                                  <Link href={`/karyawan/${emp.id}/edit`}><Pencil size={14} className="mr-2" /> Edit Data</Link>
+                                </DropdownMenuItem>
+                              )}
+                              {canDelete && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onSelect={(e) => { e.preventDefault(); setConfirmDelete({ id: emp.id, name: emp.namaLengkap }) }}
+                                    className="cursor-pointer text-red-600 focus:text-red-600"
                                   >
-                                    <Pencil size={16} />
-                                  </Link>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit data</TooltipContent>
-                              </Tooltip>
-
-                              <AlertDialog>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <AlertDialogTrigger
-                                      aria-label="Hapus karyawan"
-                                      disabled={isDeleting === emp.id}
-                                      className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:outline-none dark:bg-rose-950 dark:hover:bg-rose-900 dark:text-rose-400"
-                                    >
-                                      {isDeleting === emp.id
-                                        ? <CircleNotch size={16} className="animate-spin" />
-                                        : <Trash size={16} />}
-                                    </AlertDialogTrigger>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Hapus data</TooltipContent>
-                                </Tooltip>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Data <strong>{emp.namaLengkap}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDelete(emp.id, emp.namaLengkap)}
-                                      className="bg-rose-600 hover:bg-rose-700"
-                                      disabled={isDeleting === emp.id}
-                                    >
-                                      Ya, Hapus
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </>
-                          )}
+                                    <Trash size={14} className="mr-2" /> Hapus
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>
@@ -770,7 +780,7 @@ export default function DataKaryawanPage() {
                 : 'Tambahkan karyawan pertama atau import dari Excel'
             }
             action={
-              !searchInput && !cabang && !statusFilter && !contractFilter && isAdmin
+              !searchInput && !cabang && !statusFilter && !contractFilter && canCreate
                 ? { label: 'Tambah Karyawan', href: '/karyawan/tambah' }
                 : undefined
             }
@@ -825,11 +835,13 @@ export default function DataKaryawanPage() {
                               <DropdownMenuItem asChild className="cursor-pointer">
                                 <Link href={`/karyawan/${emp.id}`}><Eye size={14} className="mr-2" /> Lihat Detail</Link>
                               </DropdownMenuItem>
-                              {isAdmin && (
+                              {canEdit && (
+                                <DropdownMenuItem asChild className="cursor-pointer">
+                                  <Link href={`/karyawan/${emp.id}/edit`}><Pencil size={14} className="mr-2" /> Edit Data</Link>
+                                </DropdownMenuItem>
+                              )}
+                              {canDelete && (
                                 <>
-                                  <DropdownMenuItem asChild className="cursor-pointer">
-                                    <Link href={`/karyawan/${emp.id}/edit`}><Pencil size={14} className="mr-2" /> Edit Data</Link>
-                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     onSelect={(e) => { e.preventDefault(); setConfirmDelete({ id: emp.id, name: emp.namaLengkap }) }}
@@ -849,11 +861,21 @@ export default function DataKaryawanPage() {
                             {emp.nik}
                           </span>
                         )}
+                        {emp.gender && (
+                          <span className="text-xs text-muted-foreground">
+                            {emp.gender === 'L' ? 'Laki-laki' : emp.gender === 'P' ? 'Perempuan' : emp.gender}
+                          </span>
+                        )}
                         {c && (
                           <span className="text-xs text-muted-foreground">
                             Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-foreground/80')}>
                               {fmtDate(c.traineeSelesai)}
                             </span>
+                          </span>
+                        )}
+                        {c?.contractNumber && (
+                          <span className="text-xs font-mono text-muted-foreground/80">
+                            No. {c.contractNumber}
                           </span>
                         )}
                         {getDaysBadge(emp)}
@@ -865,27 +887,6 @@ export default function DataKaryawanPage() {
             })}
           </div>
         )}
-
-        {/* Konfirmasi hapus (mobile, dari kebab) */}
-        <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Data <strong>{confirmDelete?.name}</strong> akan dihapus permanen.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Batal</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => { if (confirmDelete) handleDelete(confirmDelete.id, confirmDelete.name); setConfirmDelete(null) }}
-                className="bg-rose-600 hover:bg-rose-700"
-              >
-                Ya, Hapus
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
 
         {/* Mobile Pagination */}
         {totalPages > 1 && !loading && (
@@ -905,6 +906,38 @@ export default function DataKaryawanPage() {
         )}
       </div>
 
+      {/* ─── Konfirmasi hapus (dipakai aksi tabel desktop & kebab mobile) ─── */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus data karyawan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Data <strong>{confirmDelete?.name}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { if (confirmDelete) handleDelete(confirmDelete.id, confirmDelete.name); setConfirmDelete(null) }}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              Ya, Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── FAB Tambah Karyawan (mobile only) ─── */}
+      {canCreate && (
+        <Link
+          href="/karyawan/tambah"
+          aria-label="Tambah Karyawan"
+          className="sm:hidden fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          <Plus size={26} weight="bold" />
+        </Link>
+      )}
+
     </div>
   )
 }
@@ -918,16 +951,16 @@ function StatCard({
   iconBg,
   value,
   label,
-  primary = false,
   highlight = false,
+  accent = 'amber',
   href,
 }: {
   icon: React.ReactNode
   iconBg: string
   value: number
   label: string
-  primary?: boolean
   highlight?: boolean
+  accent?: 'amber' | 'rose'
   href?: string
 }) {
   const inner = (
@@ -935,20 +968,24 @@ function StatCard({
       <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconBg)}>
         {icon}
       </div>
-      <div>
-        <p className={cn('text-2xl font-bold leading-snug', primary ? 'text-white' : 'text-foreground')}>
+      <div className="min-w-0">
+        <p className="text-2xl font-bold leading-snug text-foreground tabular-nums">
           {value.toLocaleString('id-ID')}
         </p>
-        <p className={cn('text-xs mt-1', primary ? 'text-blue-100' : 'text-muted-foreground')}>
-          {label}
-        </p>
+        <p className="text-xs mt-1 text-muted-foreground">{label}</p>
       </div>
     </>
   )
+  // Semua kartu seragam: card putih + border. Saat highlight, border berwarna
+  // sesuai severity (amber=segera, rose=expired) — bukan satu warna untuk semua.
   const cls = cn(
-    'rounded-lg p-4 flex items-center gap-4 shadow-sm',
+    'rounded-lg p-4 flex items-center gap-4 shadow-sm bg-card border',
     href && 'hover:shadow-md transition-shadow cursor-pointer',
-    primary ? 'bg-primary' : highlight ? 'bg-card border border-amber-200' : 'bg-card border border-border'
+    highlight
+      ? accent === 'rose'
+        ? 'border-rose-200 dark:border-rose-900/50'
+        : 'border-amber-200 dark:border-amber-900/50'
+      : 'border-border'
   )
   if (href) return <Link href={href} className={cls}>{inner}</Link>
   return <div className={cls}>{inner}</div>

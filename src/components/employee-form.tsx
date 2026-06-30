@@ -270,6 +270,15 @@ export function EmployeeForm({
           <FieldError message={errors.posisi} />
         </div>
 
+        <FormField
+          id="contractNumber" label="No. Perjanjian"
+          name="contractNumber" placeholder="Nomor surat perjanjian kontrak"
+          className="font-mono"
+          hint="Opsional — bisa diisi belakangan"
+          error={errors.contractNumber}
+          onBlur={v => blurField('contractNumber', v)}
+        />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
           {/* Row 1: Labels */}
           <Label htmlFor="traineeSejak" className="form-label self-end">

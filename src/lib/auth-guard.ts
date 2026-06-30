@@ -1,46 +1,14 @@
 import 'server-only'
 import { verifySession } from './dal'
 import { fail, type ActionResult } from './result'
-import type { AppRole } from './validation'
+import { hasPermission, PERMISSIONS, type Permission } from './permissions'
+
+// Matrix permission dipindah ke ./permissions (client-safe). Re-export di sini
+// untuk kompatibilitas import lama.
+export { hasPermission, PERMISSIONS, type Permission }
 
 type SessionUser = Awaited<ReturnType<typeof verifySession>>
 type GuardResult = { session: SessionUser; denied: null } | { session: null; denied: ActionResult<never> }
-
-// ─── Permission Matrix ────────────────────────────────────────────────────────
-// Define exactly what each role can do. Extend here as roles grow.
-const PERMISSIONS = {
-  // Employee operations
-  employee_read:        ['ADMIN', 'HR_MANAGER', 'HR_STAFF', 'VIEWER'],
-  employee_create:      ['ADMIN', 'HR_MANAGER', 'HR_STAFF'],
-  employee_update:      ['ADMIN', 'HR_MANAGER', 'HR_STAFF'],
-  employee_delete:      ['ADMIN', 'HR_MANAGER'],
-
-  // Contract operations
-  contract_create:      ['ADMIN', 'HR_MANAGER', 'HR_STAFF'],
-
-  // User management (admin panel)
-  user_manage:          ['ADMIN'],
-
-  // Audit log
-  audit_read:           ['ADMIN', 'HR_MANAGER'],
-
-  // Position management
-  position_manage:      ['ADMIN', 'HR_MANAGER'],
-
-  // Export / import
-  export_data:          ['ADMIN', 'HR_MANAGER'],
-  import_data:          ['ADMIN', 'HR_MANAGER'],
-
-  // File upload (profile photo)
-  upload_photo:         ['ADMIN', 'HR_MANAGER', 'HR_STAFF'],
-} as const
-
-export type Permission = keyof typeof PERMISSIONS
-
-export function hasPermission(role: string, permission: Permission): boolean {
-  const allowed = PERMISSIONS[permission] as readonly string[]
-  return allowed.includes(role)
-}
 
 function deny(message = 'Akses ditolak.'): never {
   throw Object.assign(new Error(message), { code: 'UNAUTHORIZED' })

@@ -3,10 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { ChartTooltip } from '@/components/chart-tooltip'
 
+// Opsi B: status aktif (aman/perhatian/kritis) pakai ramp biru-monokrom agar
+// bersih; HANYA "Berakhir" yang merah-muted supaya sinyal bahaya tetap kebaca.
 const SEGMENT_COLORS = {
-  light: { aman: '#16a34a', perhatian: '#d97706', kritis: '#dc2626', berakhir: '#94a3b8' },
-  dark:  { aman: '#4ade80', perhatian: '#fbbf24', kritis: '#f87171', berakhir: '#64748b' },
+  light: { aman: '#1d4ed8', perhatian: '#3b82f6', kritis: '#60a5fa', berakhir: '#f87171' },
+  dark:  { aman: '#93c5fd', perhatian: '#60a5fa', kritis: '#3b82f6', berakhir: '#f87171' },
 }
 
 const FILTER_MAP: Record<string, string> = {
@@ -28,8 +31,6 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const c = isDark ? SEGMENT_COLORS.dark : SEGMENT_COLORS.light
-  const tooltipBg = isDark ? '#1e293b' : '#ffffff'
-  const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
 
   // C1: total untuk ditampilkan di lubang donut
   const total = safe + warning + critical + expired
@@ -81,8 +82,8 @@ export function ContractStatusChart({ safe, warning, critical, expired }: Props)
             ))}
           </Pie>
           <Tooltip
-            formatter={(value, name) => [`${value} orang`, `${name} - klik untuk filter`]}
-            contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg }}
+            cursor={false}
+            content={<ChartTooltip valueSuffix=" orang" hint="Klik segmen untuk filter" />}
           />
         </PieChart>
       </ResponsiveContainer>
