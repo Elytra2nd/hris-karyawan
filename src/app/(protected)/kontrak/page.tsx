@@ -45,6 +45,8 @@ export default function ManajemenKontrakPage() {
   const [total, setTotal] = useState(0)
   const [stats, setStats] = useState({ total: 0, expired: 0, critical: 0, warning: 0, safe: 0 })
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   // URL-driven filter state
   const urlSearch = searchParams.get('search') ?? ''
@@ -100,12 +102,13 @@ export default function ManajemenKontrakPage() {
       if (ignore) return
       setContracts(result.contracts)
       setTotal(result.total)
+      setLoadError(result.loadError ?? false)
       setStats(statsResult)
       setLoading(false)
     }
     fetchData()
     return () => { ignore = true }
-  }, [debouncedSearch, cabang, status, posisiFilter, page, sortCol, sortDir])
+  }, [debouncedSearch, cabang, status, posisiFilter, page, sortCol, sortDir, refreshTick])
 
   // Load filter options once on mount
   useEffect(() => { getDistinctCabang().then(setCabangOptions).catch(() => setCabangOptions([])) }, [])
@@ -378,8 +381,29 @@ export default function ManajemenKontrakPage() {
         )}
       </div>
 
+      {/* ─── Error State (gagal muat, beda dari data kosong) ─── */}
+      {!loading && loadError && (
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-8 text-center dark:border-rose-900 dark:bg-rose-950/30">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
+            <Warning size={24} className="text-rose-600" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-foreground">Gagal memuat data</p>
+            <p className="max-w-[320px] text-xs text-muted-foreground">
+              Terjadi kendala saat mengambil data kontrak. Periksa koneksi lalu coba lagi.
+            </p>
+          </div>
+          <button
+            onClick={() => setRefreshTick(t => t + 1)}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
       {/* ─── Contract Table (Desktop) ─── */}
-      <div className="hidden md:block bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+      <div className={cn('hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden', loadError ? 'md:hidden' : 'md:block')}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
@@ -533,7 +557,7 @@ export default function ManajemenKontrakPage() {
       </div>
 
       {/* ─── Mobile Card View ─── */}
-      <div className="md:hidden bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+      <div className={cn('bg-card border border-border rounded-lg shadow-sm overflow-hidden', loadError ? 'hidden' : 'md:hidden')}>
         {loading ? (
           <div className="divide-y divide-border/60">
             {Array.from({ length: 5 }).map((_, i) => (

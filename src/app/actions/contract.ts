@@ -36,7 +36,7 @@ export async function getContracts({
   perPage?: number
   sortBy?: string
   sortDir?: 'asc' | 'desc'
-} = {}): Promise<{ contracts: ContractRow[]; total: number }> {
+} = {}): Promise<{ contracts: ContractRow[]; total: number; loadError: boolean }> {
   try {
     await requireAuth()
 
@@ -116,10 +116,10 @@ export async function getContracts({
     const total = filtered.length
     const paginated = filtered.slice((safePage - 1) * safePerPage, safePage * safePerPage)
 
-    return { contracts: paginated, total }
+    return { contracts: paginated, total, loadError: false }
   } catch (error) {
     logger.error('getContracts failed', { error: String(error) })
-    return { contracts: [], total: 0 }
+    return { contracts: [], total: 0, loadError: true }
   }
 }
 

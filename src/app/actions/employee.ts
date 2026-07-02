@@ -587,10 +587,12 @@ export async function getEmployees({
     const total = sorted.length
     const employees = sorted.slice((safePage - 1) * safePerPage, safePage * safePerPage)
 
-    return { employees, total }
+    return { employees, total, loadError: false }
   } catch (error) {
     logger.error('getEmployees failed', { error: String(error) })
-    return { employees: [], total: 0 }
+    // loadError membedakan "gagal ambil data" dari "data memang kosong",
+    // supaya UI bisa menampilkan error state + retry (bukan empty state).
+    return { employees: [], total: 0, loadError: true }
   }
 }
 
