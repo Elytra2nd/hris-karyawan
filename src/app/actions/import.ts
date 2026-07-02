@@ -175,9 +175,11 @@ export async function bulkImportEmployees(
   }
 
   // Pre-fetch trainee yang sudah ada (+ kontraknya) untuk dedupe.
+  // Sertakan record terarsip (deletedAt != null) agar tidak menabrak unique
+  // constraint noKtp; re-import akan memulihkannya (lihat bawah).
   const existing = await prisma.employee.findMany({
     where: { noKtp: { in: [...groups.keys()] } },
-    select: { id: true, noKtp: true, contracts: { select: { posisi: true, traineeSejak: true } } },
+    select: { id: true, noKtp: true, deletedAt: true, contracts: { select: { posisi: true, traineeSejak: true } } },
   })
   const existingByKtp = new Map(existing.map(e => [e.noKtp, e]))
 
@@ -208,6 +210,13 @@ export async function bulkImportEmployees(
 
     try {
       if (existingEmp) {
+        // Trainee terarsip yang di-import ulang → pulihkan (un-archive).
+        if (existingEmp.deletedAt) {
+          await prisma.employee.update({
+            where: { id: existingEmp.id },
+            data: { deletedAt: null },
+          })
+        }
         // Trainee sudah ada → cukup tambah periode kontrak baru.
         if (newContracts.length > 0) {
           await prisma.contract.createMany({

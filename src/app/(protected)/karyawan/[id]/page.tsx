@@ -28,8 +28,8 @@ export default async function DetailKaryawanPage({
   const canCreateContract = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(session?.role ?? '')
   const canUpload = hasPermission(session?.role, 'upload_photo')
 
-  const employee = await prisma.employee.findUnique({
-    where: { id },
+  const employee = await prisma.employee.findFirst({
+    where: { id, deletedAt: null },
     include: { contracts: { orderBy: { traineeSelesai: 'desc' } }, branch: true },
   })
   if (!employee) notFound()

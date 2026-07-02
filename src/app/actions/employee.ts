@@ -175,6 +175,15 @@ export async function createContract(employeeId: string, data: Record<string, st
       return fail(parsed.error.issues[0]?.message ?? 'Ada isian kontrak yang belum lengkap - periksa kembali', 'VALIDATION')
     }
 
+    // Jangan izinkan tambah kontrak ke trainee yang sudah diarsipkan.
+    const targetEmp = await prisma.employee.findFirst({
+      where: { id: employeeId, deletedAt: null },
+      select: { id: true },
+    })
+    if (!targetEmp) {
+      return fail('Data trainee tidak ditemukan atau sudah diarsipkan', 'NOT_FOUND')
+    }
+
     const { posisi, traineeSejak: traineeSejakRaw, contractNumber } = parsed.data
     const months = await getPositionMonths(posisi)
     if (months === null) {
@@ -208,17 +217,103 @@ export async function createContract(employeeId: string, data: Record<string, st
 }
 
 // ─── Delete Employee ──────────────────────────────────────────────────────────
+/**
+ * Soft delete: tandai `deletedAt` alih-alih hapus permanen. Data + riwayat
+ * kontrak tetap ada dan bisa dipulihkan dari halaman Arsip.
+ */
 export async function deleteEmployee(id: string): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requirePermission('employee_delete')
 
-    const employee = await prisma.employee.findUnique({
-      where: { id },
+    const employee = await prisma.employee.findFirst({
+      where: { id, deletedAt: null },
       select: { namaLengkap: true },
     })
 
     if (!employee) {
       return fail('Data trainee tidak ditemukan - mungkin sudah dihapus', 'NOT_FOUND')
+    }
+
+    await prisma.employee.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+
+    await createAuditLog(
+      session.id,
+      session.username,
+      'DELETE',
+      'employee',
+      id,
+      { namaTerhapus: employee.namaLengkap, jenis: 'arsip' }
+    )
+
+    revalidatePath('/')
+    revalidatePath('/karyawan')
+    return ok({ id })
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
+    logger.error('deleteEmployee failed', { error: String(error) })
+    return fail('Kami belum bisa mengarsipkan data - coba ulangi dalam beberapa saat', 'SERVER_ERROR')
+  }
+}
+
+/** Pulihkan trainee yang diarsipkan (deletedAt → null). */
+export async function restoreEmployee(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requirePermission('employee_delete')
+
+    const employee = await prisma.employee.findFirst({
+      where: { id, deletedAt: { not: null } },
+      select: { namaLengkap: true },
+    })
+
+    if (!employee) {
+      return fail('Data arsip tidak ditemukan - mungkin sudah dipulihkan', 'NOT_FOUND')
+    }
+
+    await prisma.employee.update({
+      where: { id },
+      data: { deletedAt: null },
+    })
+
+    await createAuditLog(
+      session.id,
+      session.username,
+      'UPDATE',
+      'employee',
+      id,
+      { namaDipulihkan: employee.namaLengkap, jenis: 'restore' }
+    )
+
+    revalidatePath('/')
+    revalidatePath('/karyawan')
+    revalidatePath('/karyawan/arsip')
+    return ok({ id })
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
+    logger.error('restoreEmployee failed', { error: String(error) })
+    return fail('Kami belum bisa memulihkan data - coba ulangi dalam beberapa saat', 'SERVER_ERROR')
+  }
+}
+
+/**
+ * Hapus permanen (hard delete) — hanya ADMIN, hanya untuk data yang SUDAH
+ * diarsipkan. Kontrak ikut terhapus (cascade). Tidak bisa dipulihkan.
+ */
+export async function permanentlyDeleteEmployee(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requirePermission('user_manage') // ADMIN-only
+
+    const employee = await prisma.employee.findFirst({
+      where: { id, deletedAt: { not: null } },
+      select: { namaLengkap: true },
+    })
+
+    if (!employee) {
+      return fail('Data harus diarsipkan dulu sebelum dihapus permanen', 'NOT_FOUND')
     }
 
     await prisma.employee.delete({ where: { id } })
@@ -229,17 +324,104 @@ export async function deleteEmployee(id: string): Promise<ActionResult<{ id: str
       'DELETE',
       'employee',
       id,
-      { namaTerhapus: employee.namaLengkap }
+      { namaTerhapus: employee.namaLengkap, jenis: 'permanen' }
     )
 
-    revalidatePath('/')
-    revalidatePath('/karyawan')
+    revalidatePath('/karyawan/arsip')
     return ok({ id })
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
-    logger.error('deleteEmployee failed', { error: String(error) })
+    logger.error('permanentlyDeleteEmployee failed', { error: String(error) })
     return fail('Kami belum bisa menghapus data - coba ulangi dalam beberapa saat', 'SERVER_ERROR')
+  }
+}
+
+/** Daftar trainee yang diarsipkan (untuk halaman Arsip). */
+export async function getArchivedEmployees() {
+  try {
+    await requirePermission('employee_delete')
+    return await prisma.employee.findMany({
+      where: { deletedAt: { not: null } },
+      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
+      orderBy: { deletedAt: 'desc' },
+    })
+  } catch {
+    return []
+  }
+}
+
+// ─── Bulk Actions ─────────────────────────────────────────────────────────────
+const MAX_BULK = 500 // batasi ukuran operasi massal (guard abuse/DoS)
+
+/** Validasi & bersihkan array id dari client. */
+function sanitizeIds(ids: unknown): string[] {
+  if (!Array.isArray(ids)) return []
+  const clean = ids.filter((x): x is string => typeof x === 'string' && x.length > 0)
+  return [...new Set(clean)].slice(0, MAX_BULK)
+}
+
+/** Arsipkan banyak trainee sekaligus (soft delete). */
+export async function bulkArchiveEmployees(ids: string[]): Promise<ActionResult<{ count: number }>> {
+  try {
+    const session = await requirePermission('employee_delete')
+    const targetIds = sanitizeIds(ids)
+    if (targetIds.length === 0) return fail('Tidak ada trainee yang dipilih', 'VALIDATION')
+
+    const result = await prisma.employee.updateMany({
+      where: { id: { in: targetIds }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    })
+
+    await createAuditLog(
+      session.id, session.username, 'DELETE', 'employee', targetIds.join(','),
+      { jenis: 'arsip_massal', jumlah: result.count }
+    )
+
+    revalidatePath('/')
+    revalidatePath('/karyawan')
+    revalidatePath('/karyawan/arsip')
+    return ok({ count: result.count }, `${result.count} trainee dipindahkan ke Arsip`)
+  } catch (error: unknown) {
+    const e = error as { code?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
+    logger.error('bulkArchiveEmployees failed', { error: String(error) })
+    return fail('Kami belum bisa mengarsipkan data - coba ulangi', 'SERVER_ERROR')
+  }
+}
+
+/** Ubah status (AKTIF / NON-AKTIF) banyak trainee sekaligus. */
+export async function bulkUpdateEmployeeStatus(
+  ids: string[],
+  status: 'AKTIF' | 'NON-AKTIF',
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    const session = await requirePermission('employee_update')
+    if (status !== 'AKTIF' && status !== 'NON-AKTIF') {
+      return fail('Status tidak valid', 'VALIDATION')
+    }
+    const targetIds = sanitizeIds(ids)
+    if (targetIds.length === 0) return fail('Tidak ada trainee yang dipilih', 'VALIDATION')
+
+    const result = await prisma.employee.updateMany({
+      where: { id: { in: targetIds }, deletedAt: null },
+      data: { status },
+    })
+
+    await createAuditLog(
+      session.id, session.username, 'UPDATE', 'employee', targetIds.join(','),
+      { jenis: 'status_massal', statusBaru: status, jumlah: result.count }
+    )
+
+    revalidatePath('/')
+    revalidatePath('/karyawan')
+    const label = status === 'AKTIF' ? 'Aktif' : 'Non-Aktif'
+    return ok({ count: result.count }, `${result.count} trainee diset ${label}`)
+  } catch (error: unknown) {
+    const e = error as { code?: string }
+    if (e?.code === 'UNAUTHORIZED') return fail('Anda tidak memiliki izin untuk tindakan ini - hubungi Admin', 'UNAUTHORIZED')
+    logger.error('bulkUpdateEmployeeStatus failed', { error: String(error) })
+    return fail('Kami belum bisa mengubah status - coba ulangi', 'SERVER_ERROR')
   }
 }
 
@@ -266,6 +448,7 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
 
   try {
     const employees = await prisma.employee.findMany({
+      where: { deletedAt: null },
       include: {
         contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
       },
@@ -348,8 +531,15 @@ export async function getEmployees({
   sortDir?: 'asc' | 'desc'
 } = {}) {
   try {
+    await requireAuth()
+
+    // Clamp paginasi dari client agar tidak bisa dipakai dump-table / DoS.
+    const safePage = Math.max(1, Math.floor(page) || 1)
+    const safePerPage = Math.min(100, Math.max(1, Math.floor(perPage) || PER_PAGE))
+
     const today = new Date()
     const where = {
+      deletedAt: null,
       AND: [
         { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
@@ -368,7 +558,7 @@ export async function getEmployees({
 
     const sorted = sortEmployeeRows(all, sortBy, sortDir)
     const total = sorted.length
-    const employees = sorted.slice((page - 1) * perPage, page * perPage)
+    const employees = sorted.slice((safePage - 1) * safePerPage, safePage * safePerPage)
 
     return { employees, total }
   } catch (error) {
@@ -380,7 +570,9 @@ export async function getEmployees({
 // ─── Read: Distinct cabang untuk filter dropdown ──────────────────────────────
 export async function getDistinctCabang(): Promise<string[]> {
   try {
+    await requireAuth()
     const result = await prisma.employee.findMany({
+      where: { deletedAt: null },
       select: { cabang: true },
       distinct: ['cabang'],
       orderBy: { cabang: 'asc' },
@@ -402,12 +594,14 @@ export async function getEmployeeStats({
   posisi?: string
 } = {}) {
   try {
+    await requireAuth()
     const today = startOfDay(new Date())
 
     // Scope statistik mengikuti filter populasi (search/cabang/posisi) agar
     // angka kartu konsisten dengan tabel. Filter status & kontrak TIDAK diterapkan
     // di sini karena justru itu yang dipecah oleh kartu-kartu ini.
     const baseWhere = {
+      deletedAt: null,
       AND: [
         { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }, { contracts: { some: { posisi: { contains: search } } } }] },
         cabang ? { cabang } : {},
@@ -460,14 +654,15 @@ export async function getEmployeeStats({
 // ─── Read: Dashboard KPI — derived from actual contract data ─────────────────
 export async function getDashboardKPI() {
   try {
+    await requireAuth()
     const today = startOfDay(new Date())
 
     const [totalAll, totalAktif, totalNonAktif, latestContracts] = await Promise.all([
-      prisma.employee.count(),
-      prisma.employee.count({ where: { status: 'AKTIF' } }),
-      prisma.employee.count({ where: { status: 'NON-AKTIF' } }),
+      prisma.employee.count({ where: { deletedAt: null } }),
+      prisma.employee.count({ where: { status: 'AKTIF', deletedAt: null } }),
+      prisma.employee.count({ where: { status: 'NON-AKTIF', deletedAt: null } }),
       prisma.contract.findMany({
-        where: { employee: { status: 'AKTIF' } },
+        where: { employee: { status: 'AKTIF', deletedAt: null } },
         orderBy: { traineeSelesai: 'desc' },
         distinct: ['employeeId'],
         select: { traineeSelesai: true, employeeId: true },

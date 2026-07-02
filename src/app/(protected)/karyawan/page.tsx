@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getEmployees, getEmployeeStats, deleteEmployee, getDistinctCabang } from '@/app/actions/employee'
+import { getEmployees, getEmployeeStats, deleteEmployee, getDistinctCabang, bulkArchiveEmployees, bulkUpdateEmployeeStatus } from '@/app/actions/employee'
+import { BulkActionBar } from '@/components/bulk-action-bar'
+import type { ActionResult } from '@/lib/result'
 import type { Prisma } from '@prisma/client'
 
 type EmployeeRow = Prisma.EmployeeGetPayload<{
@@ -13,7 +15,7 @@ import {
   Sliders, ArrowsDownUp, ArrowUp, ArrowDown,
   Plus, DotsThreeVertical, CaretLeft, CaretRight,
   Download, User, XCircle, CheckCircle, Clock, Warning,
-  Phone,
+  Phone, Archive,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -63,6 +65,9 @@ export default function DataKaryawanPage() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   // Konfirmasi hapus dari kebab mobile (AlertDialog terkontrol)
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
+  // Seleksi baris untuk aksi massal (per-halaman)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState<'archive' | 'aktif' | 'nonaktif' | null>(null)
 
   // Get from URL params, default to empty string
   const urlSearch = searchParams.get('search') ?? ''
@@ -102,6 +107,7 @@ export default function DataKaryawanPage() {
   const canExport = hasPermission(role, 'export_data')       // ADMIN, HR_MANAGER
   const canImport = hasPermission(role, 'import_data')       // ADMIN, HR_MANAGER
   const canDelete = hasPermission(role, 'employee_delete')   // ADMIN, HR_MANAGER
+  const canBulk   = canEdit || canDelete                     // seleksi hanya berguna bila ada aksi massal
   const isReadOnly = !canCreate && !canEdit && !canExport && !canImport
 
   // Input search pakai state lokal (responsif instan), lalu di-debounce.
@@ -136,6 +142,9 @@ export default function DataKaryawanPage() {
       setTotal(result.total)
       setStats(statsResult)
       setLoading(false)
+      // Bersihkan seleksi saat populasi berubah (ganti halaman/filter/refetch)
+      // agar tidak ada id "tersembunyi" yang ikut teraksi tanpa terlihat.
+      setSelectedIds(new Set())
     }
     run()
     return () => { ignore = true }
@@ -181,7 +190,10 @@ export default function DataKaryawanPage() {
     try {
       const r = await deleteEmployee(id)
       if (r.success) {
-        toast.success(`Data ${name} berhasil dihapus`)
+        toast.success(`${name} dipindahkan ke Arsip`, {
+          description: 'Data & riwayat kontrak masih tersimpan dan bisa dipulihkan.',
+          action: { label: 'Buka Arsip', onClick: () => router.push('/karyawan/arsip') },
+        })
       } else {
         toast.error(r.error)
       }
@@ -194,6 +206,53 @@ export default function DataKaryawanPage() {
       setRefreshTick(t => t + 1)
     }
   }
+
+  // ─── Seleksi baris (aksi massal) ───────────────────────────────────────────
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+  const pageIds = rows.map(e => e.id)
+  const allSelected = pageIds.length > 0 && pageIds.every(id => selectedIds.has(id))
+  const someSelected = pageIds.some(id => selectedIds.has(id))
+  const toggleSelectAll = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (allSelected) pageIds.forEach(id => next.delete(id))
+      else pageIds.forEach(id => next.add(id))
+      return next
+    })
+  }
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const runBulk = async (
+    kind: 'archive' | 'aktif' | 'nonaktif',
+    fn: () => Promise<ActionResult<{ count: number }>>,
+  ) => {
+    setBulkBusy(kind)
+    try {
+      const r = await fn()
+      if (r.success) {
+        toast.success(r.message ?? `${r.data.count} trainee diproses`)
+        clearSelection()
+        setRefreshTick(t => t + 1)
+      } else {
+        toast.error(r.error)
+      }
+    } catch {
+      toast.error('Koneksi terputus - coba ulangi')
+    } finally {
+      setBulkBusy(null)
+    }
+  }
+
+  const handleBulkArchive  = () => runBulk('archive',  () => bulkArchiveEmployees([...selectedIds]))
+  const handleBulkActive   = () => runBulk('aktif',    () => bulkUpdateEmployeeStatus([...selectedIds], 'AKTIF'))
+  const handleBulkInactive = () => runBulk('nonaktif', () => bulkUpdateEmployeeStatus([...selectedIds], 'NON-AKTIF'))
 
   const fmtDate = (s: string | Date) =>
     !s ? '-' : format(new Date(s), 'dd MMM yyyy', { locale: localeID })
@@ -242,6 +301,15 @@ export default function DataKaryawanPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {canDelete && (
+            <Link
+              href="/karyawan/arsip"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md border border-border hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              <Archive size={16} />
+              Arsip
+            </Link>
+          )}
           {canExport && <ExportExcelButton variant="default" />}
           {canImport && <ImportExcelButton />}
           {/* Desktop: tombol inline. Mobile: dipindah ke FAB kanan-bawah (lihat bawah). */}
@@ -495,6 +563,18 @@ export default function DataKaryawanPage() {
             <thead>
               <tr className="border-b border-border bg-accent/60">
 
+                {canBulk && (
+                  <th className="w-10 px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua di halaman ini"
+                      checked={allSelected}
+                      ref={(el) => { if (el) el.indeterminate = !allSelected && someSelected }}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 accent-primary cursor-pointer align-middle"
+                    />
+                  </th>
+                )}
                 <th
                   className="px-4 py-2 text-left text-xs font-semibold text-foreground/80 uppercase tracking-wider cursor-pointer hover:text-primary select-none"
                   onClick={() => handleSort('namaLengkap')}
@@ -548,6 +628,7 @@ export default function DataKaryawanPage() {
                 Array.from({ length: PER_PAGE }).map((_, i) => (
                   <tr key={i} className="hover:bg-muted/50">
 
+                    {canBulk && <td className="px-4 py-2"><Skeleton className="h-4 w-4 mx-auto" /></td>}
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-4">
                         <Skeleton className="h-8 w-8 rounded-full" />
@@ -573,7 +654,7 @@ export default function DataKaryawanPage() {
               ) : rows.length === 0 ? (
                 <EmptyState
                   asTableRow
-                  colSpan={11}
+                  colSpan={canBulk ? 12 : 11}
                   icon={searchInput || cabang || statusFilter || contractFilter ? MagnifyingGlass : User}
                   title={searchInput || cabang || statusFilter || contractFilter ? 'Tidak ada data ditemukan' : 'Belum ada karyawan'}
                   description={
@@ -594,6 +675,7 @@ export default function DataKaryawanPage() {
                   const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
                   const isMendekat = daysLeft !== null && daysLeft > 14 && daysLeft <= 30
 
+                  const isSelected = selectedIds.has(emp.id)
                   return (
                     <tr
                       key={emp.id}
@@ -601,9 +683,21 @@ export default function DataKaryawanPage() {
                         'hover:bg-muted/50 transition-colors group',
                         isKritis && 'bg-red-50/40',
                         isMendekat && !isKritis && 'bg-amber-50/30',
+                        isSelected && 'bg-primary/5',
                       )}
                     >
 
+                      {canBulk && (
+                        <td className="px-4 py-2 text-center">
+                          <input
+                            type="checkbox"
+                            aria-label={`Pilih ${emp.namaLengkap}`}
+                            checked={isSelected}
+                            onChange={() => toggleSelect(emp.id)}
+                            className="h-4 w-4 accent-primary cursor-pointer align-middle"
+                          />
+                        </td>
+                      )}
                       {/* Nama */}
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-4">
@@ -694,7 +788,7 @@ export default function DataKaryawanPage() {
                                     onSelect={(e) => { e.preventDefault(); setConfirmDelete({ id: emp.id, name: emp.namaLengkap }) }}
                                     className="cursor-pointer text-red-600 focus:text-red-600"
                                   >
-                                    <Trash size={14} className="mr-2" /> Hapus
+                                    <Trash size={14} className="mr-2" /> Arsipkan
                                   </DropdownMenuItem>
                                 </>
                               )}
@@ -792,15 +886,26 @@ export default function DataKaryawanPage() {
               const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
               const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
 
+              const isSelected = selectedIds.has(emp.id)
               return (
                 <div
                   key={emp.id}
                   className={cn(
                     'px-4 py-4 flex flex-col gap-3',
-                    isKritis && 'bg-red-50/40'
+                    isKritis && 'bg-red-50/40',
+                    isSelected && 'bg-primary/5'
                   )}
                 >
                   <div className="flex items-start gap-3">
+                    {canBulk && (
+                      <input
+                        type="checkbox"
+                        aria-label={`Pilih ${emp.namaLengkap}`}
+                        checked={isSelected}
+                        onChange={() => toggleSelect(emp.id)}
+                        className="h-4 w-4 accent-primary cursor-pointer shrink-0 mt-3.5"
+                      />
+                    )}
                     {/* Avatar */}
                     {emp.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -847,7 +952,7 @@ export default function DataKaryawanPage() {
                                     onSelect={(e) => { e.preventDefault(); setConfirmDelete({ id: emp.id, name: emp.namaLengkap }) }}
                                     className="cursor-pointer text-red-600 focus:text-red-600"
                                   >
-                                    <Trash size={14} className="mr-2" /> Hapus
+                                    <Trash size={14} className="mr-2" /> Arsipkan
                                   </DropdownMenuItem>
                                 </>
                               )}
@@ -910,9 +1015,9 @@ export default function DataKaryawanPage() {
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus data trainee?</AlertDialogTitle>
+            <AlertDialogTitle>Arsipkan data trainee?</AlertDialogTitle>
             <AlertDialogDescription>
-              Data <strong>{confirmDelete?.name}</strong> beserta seluruh riwayat kontrak akan dihapus permanen dan tidak dapat dipulihkan.
+              Data <strong>{confirmDelete?.name}</strong> akan dipindahkan ke Arsip beserta riwayat kontraknya. Data tidak hilang dan bisa dipulihkan kapan saja dari halaman Arsip.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -921,14 +1026,14 @@ export default function DataKaryawanPage() {
               onClick={() => { if (confirmDelete) handleDelete(confirmDelete.id, confirmDelete.name); setConfirmDelete(null) }}
               className="bg-rose-600 hover:bg-rose-700"
             >
-              Ya, Hapus
+              Ya, Arsipkan
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ─── FAB Tambah Trainee (mobile only) ─── */}
-      {canCreate && (
+      {/* ─── FAB Tambah Trainee (mobile only) — sembunyi saat seleksi aktif ─── */}
+      {canCreate && selectedIds.size === 0 && (
         <Link
           href="/karyawan/tambah"
           aria-label="Tambah Trainee"
@@ -936,6 +1041,20 @@ export default function DataKaryawanPage() {
         >
           <Plus size={26} weight="bold" />
         </Link>
+      )}
+
+      {/* ─── Bar Aksi Massal ─── */}
+      {canBulk && (
+        <BulkActionBar
+          count={selectedIds.size}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          busy={bulkBusy}
+          onSetActive={handleBulkActive}
+          onSetInactive={handleBulkInactive}
+          onArchive={handleBulkArchive}
+          onClear={clearSelection}
+        />
       )}
 
     </div>

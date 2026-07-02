@@ -62,6 +62,7 @@ model Employee {
   gender       String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
   image        String?
   kkPath       String?
   ktpPath      String?
@@ -72,6 +73,7 @@ model Employee {
   @@index([cabang])
   @@index([status, cabang])
   @@index([namaLengkap])
+  @@index([deletedAt])
   @@map("employee")
 }
 

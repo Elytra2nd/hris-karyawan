@@ -25,11 +25,12 @@ export default async function DashboardPage() {
     getDashboardKPI(),
     prisma.employee.groupBy({
       by: ['ba', 'baCabang', 'cabang'],
+      where: { deletedAt: null },
       _count: { ba: true },
       orderBy: { _count: { ba: 'desc' } },
     }),
     prisma.contract.findMany({
-      where: { employee: { status: 'AKTIF' } },
+      where: { employee: { status: 'AKTIF', deletedAt: null } },
       orderBy: { traineeSelesai: 'desc' },
       distinct: ['employeeId'],
       include: { employee: { select: { namaLengkap: true, cabang: true, id: true } } },

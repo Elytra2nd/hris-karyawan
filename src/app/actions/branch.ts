@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { requireAdmin } from '@/lib/auth-guard'
+import { requireAdmin, requireAuth } from '@/lib/auth-guard'
 import { createAuditLog } from '@/lib/audit'
 import { ok, fail, type ActionResult } from '@/lib/result'
 import { isUniqueViolation } from '@/lib/prisma-error'
@@ -11,6 +11,7 @@ import { branchSchema } from '@/lib/validation'
 
 export async function getBranches() {
   try {
+    await requireAuth()
     return await prisma.branch.findMany({
       orderBy: { code: 'asc' },
       include: { _count: { select: { employees: true } } },

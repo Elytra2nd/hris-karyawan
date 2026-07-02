@@ -12,8 +12,12 @@ Sistem HRIS untuk manajemen data karyawan trainee PT Astra Motor Kalimantan Bara
 - **COSS primitives in use:** Combobox (searchable select), Calendar+Popover (date picker), Pagination, Drawer, Spinner. Install via `npx shadcn@latest add @coss/<name>`
 - **Charts:** Recharts v3 (sudah terpasang, dipakai di dashboard)
 - **Font:** Satoshi (via `@font-face` di globals.css)
-- **Proxy:** `src/proxy.ts` — Next.js 16 renamed middleware → proxy
 - **Deployment:** Local/ngrok
+
+## Auth Boundary (PENTING)
+Tidak ada middleware/proxy global. Otorisasi ditegakkan di dua lapis:
+1. **Navigasi halaman:** `(protected)/layout.tsx` memanggil `verifySession()` → redirect `/login` bila belum login. Tiap halaman admin cek role sendiri (`hasPermission`/`session.role`).
+2. **Server Actions:** SETIAP action (termasuk read seperti `getEmployees`, `getContracts`) WAJIB memanggil guard (`requireAuth`/`requirePermission`/`requireAdmin`) di baris pertama. Action = endpoint publik; tanpa guard = kebocoran data walau halaman terlindungi.
 
 ## Design System
 - Primary: Astra Blue `oklch(0.379 0.191 264)` (`#1e40af`)
@@ -22,7 +26,6 @@ Sistem HRIS untuk manajemen data karyawan trainee PT Astra Motor Kalimantan Bara
 ## Folder Structure
 ```
 src/
-├── proxy.ts                ← Route guard + rate limiting (Next.js 16 proxy)
 ├── app/
 │   ├── (protected)/        ← halaman butuh auth (dilindungi proxy.ts)
 │   │   ├── page.tsx        ← dashboard (charts, alerts, stats)
@@ -62,8 +65,10 @@ Permission matrix lengkap: `src/lib/auth-guard.ts` (PERMISSIONS object)
 - Setiap karyawan bisa punya banyak kontrak (one-to-many)
 - Durasi kontrak: ADMINISTRASI → 3 bulan, semua lainnya → 6 bulan (auto-calculated)
 - Status karyawan: `AKTIF` | `NON-AKTIF`
+- **Soft delete:** `deleteEmployee` menandai `Employee.deletedAt` (bukan hapus permanen). Semua query list/stats/detail WAJIB filter `deletedAt: null`. Arsip dipulihkan via `restoreEmployee`; hard delete (`permanentlyDeleteEmployee`) hanya ADMIN & hanya untuk data yang sudah diarsipkan. Halaman: `/karyawan/arsip`. Re-import KTP yang terarsip otomatis memulihkannya.
+- **Aksi massal:** `bulkArchiveEmployees` & `bulkUpdateEmployeeStatus` (`employee.ts`) pakai `updateMany` dengan guard `deletedAt: null` (tak menyentuh data terarsip), dibatasi `MAX_BULK=500`. UI: checkbox per-halaman di tabel karyawan + `BulkActionBar`; seleksi di-reset saat ganti halaman/filter.
 - Semua mutasi tercatat di AuditLog
-- Login rate limit: 10 percobaan / 15 menit per IP (in-memory, single instance)
+- Login rate limit: 10 percobaan / 15 menit — per-IP DAN per-username (in-memory, single instance)
 
 ## Coding Conventions
 - Server Actions untuk semua mutasi (`'use server'`)
@@ -79,4 +84,5 @@ Permission matrix lengkap: `src/lib/auth-guard.ts` (PERMISSIONS object)
 - Prisma: `postinstall` otomatis jalankan `prisma generate`. Jalankan manual kalau schema berubah tanpa `npm install`. `npx prisma db push` untuk sync schema ke DB.
 - Lint: `npm run lint` = `eslint src`. Test: `npm test`. Typecheck: `npx tsc --noEmit`.
 - Zod v4: `parsed.error.issues` (bukan `.errors`), enum: `{ message: 'text' }` bukan `{ errorMap: ... }`
-- Proxy: `withAuth` dari `next-auth/middleware` dipakai di `proxy.ts`
+- Rate limit login: per-IP + per-username, 10/15mnt (`auth.ts`, in-memory single-instance)
+- JWT role di-refresh dari DB tiap 5 menit; akun dihapus ditandai role `__deleted__` (ditolak `requireAuth`)

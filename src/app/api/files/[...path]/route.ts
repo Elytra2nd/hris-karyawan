@@ -46,6 +46,9 @@ export async function GET(
         'Content-Type': contentType,
         'Cache-Control': 'private, max-age=3600',
         'X-Content-Type-Options': 'nosniff',
+        // Sajikan inline (preview), bukan sebagai halaman aktif - cegah
+        // konten tak terduga dieksekusi di konteks origin.
+        'Content-Disposition': 'inline',
       },
     })
   } catch {

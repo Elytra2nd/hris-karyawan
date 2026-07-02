@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { requirePermission } from '@/lib/auth-guard'
+import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import { createAuditLog } from '@/lib/audit'
 import { ok, fail, type ActionResult } from '@/lib/result'
 import { isUniqueViolation } from '@/lib/prisma-error'
@@ -12,6 +12,7 @@ import { positionSchema } from '@/lib/validation'
 // Daftar posisi + jumlah kontrak yang memakainya (untuk UI + guard hapus).
 export async function getPositions() {
   try {
+    await requireAuth()
     const positions = await prisma.position.findMany({ orderBy: { name: 'asc' } })
     const counts = await prisma.contract.groupBy({ by: ['posisi'], _count: { _all: true } })
     const countMap = new Map(counts.map(c => [c.posisi, c._count._all]))

@@ -19,8 +19,8 @@ export default async function TambahKontrakPage({
 
   const { id } = await params
   const [employee, positions] = await Promise.all([
-    prisma.employee.findUnique({
-      where: { id },
+    prisma.employee.findFirst({
+      where: { id, deletedAt: null },
       select: {
         namaLengkap: true,
         cabang: true,
