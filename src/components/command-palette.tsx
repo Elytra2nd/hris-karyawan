@@ -135,8 +135,19 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
       }
     }
 
+    // Buka dari tombol UI (mis. tombol "Cari ⌘K" di header) via custom event.
+    const handleOpenEvent = () => {
+      setOpen(true)
+      setSearch('')
+      setSelectedIndex(0)
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('open-command-palette', handleOpenEvent)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('open-command-palette', handleOpenEvent)
+    }
   }, [open, search, filteredCommands, selectedIndex])
 
   // Reset selected index when search changes
