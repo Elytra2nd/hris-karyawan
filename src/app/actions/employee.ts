@@ -130,6 +130,16 @@ export async function updateEmployee(id: string, data: Record<string, string | n
   // @db.Date di Prisma butuh objek Date, bukan string "yyyy-MM-dd"
   const tglLahir = new Date(tglLahirRaw)
 
+  // Ambil nilai lama untuk diff audit (sebelum → sesudah).
+  const before = await prisma.employee.findFirst({
+    where: { id, deletedAt: null },
+    select: {
+      cabang: true, namaLengkap: true, nik: true, noKtp: true, tglLahir: true,
+      namaIbu: true, noHp: true, noJamsostek: true, formConsent: true, gender: true, status: true,
+    },
+  })
+  if (!before) return fail('Data trainee tidak ditemukan atau sudah diarsipkan', 'NOT_FOUND')
+
   try {
     await prisma.employee.update({
       where: { id },
@@ -149,13 +159,30 @@ export async function updateEmployee(id: string, data: Record<string, string | n
     return fail('Kami belum bisa menyimpan perubahan - coba simpan ulang dalam beberapa saat', 'SERVER_ERROR')
   }
 
+  // Hitung diff sebelum → sesudah untuk audit yang bisa dibaca manusia.
+  const norm = (v: unknown): string => {
+    if (v == null || v === '') return '—'
+    if (v instanceof Date) return v.toISOString().slice(0, 10)
+    return String(v)
+  }
+  const after: Record<string, unknown> = {
+    cabang: branch.code, namaLengkap, nik: nik ?? null, noKtp, tglLahir,
+    namaIbu, noHp, noJamsostek: noJamsostek ?? null, formConsent, gender: gender ?? null, status,
+  }
+  const changes: Record<string, { from: string; to: string }> = {}
+  for (const key of Object.keys(after)) {
+    const from = norm((before as Record<string, unknown>)[key])
+    const to = norm(after[key])
+    if (from !== to) changes[key] = { from, to }
+  }
+
   await createAuditLog(
     session.id,
     session.username,
     'UPDATE',
     'employee',
     id,
-    { updatedFields: Object.keys(parsed.data), statusTarget: status }
+    { nama: namaLengkap, changes }
   )
 
   revalidatePath('/')
