@@ -32,7 +32,7 @@ export async function getNotifications(): Promise<NotificationSummary> {
   // Status alert dihitung dari kontrak terbaru ini — konsisten dengan seluruh app,
   // mencegah false-positive saat trainee sudah diperpanjang lebih awal.
   const latestContracts = await prisma.contract.findMany({
-    where: { employee: { status: 'AKTIF' } },
+    where: { employee: { status: 'AKTIF', deletedAt: null } },
     orderBy: { traineeSelesai: 'desc' },
     distinct: ['employeeId'],
     include: {

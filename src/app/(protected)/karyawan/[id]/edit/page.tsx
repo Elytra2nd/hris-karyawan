@@ -18,7 +18,7 @@ export default async function EditKaryawanPage({
 
   const { id } = await params
   const [employee, branches] = await Promise.all([
-    prisma.employee.findUnique({ where: { id } }),
+    prisma.employee.findFirst({ where: { id, deletedAt: null } }),
     getBranches(),
   ])
   if (!employee) notFound()

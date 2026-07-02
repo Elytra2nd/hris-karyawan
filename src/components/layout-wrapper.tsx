@@ -1,7 +1,8 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { IconContext } from '@phosphor-icons/react'
+import { IconContext, MagnifyingGlass } from '@phosphor-icons/react'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -16,6 +17,18 @@ import { NotificationBell } from '@/components/notification-bell'
 import { BreadcrumbTrail } from '@/components/breadcrumb-trail'
 import { CommandPalette } from '@/components/command-palette'
 import { ThemeToggle } from '@/components/theme-toggle'
+
+// Hint tombol pintasan: ⌘K di Mac, Ctrl K di lainnya. Guard hydration
+// (default "Ctrl" saat SSR, sesuaikan setelah mount) agar tak mismatch.
+function ShortcutHint() {
+  const [isMac, setIsMac] = useState(false)
+  useEffect(() => {
+    // Deteksi platform hanya bisa setelah mount (hindari mismatch hydration).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.platform) || /Mac/.test(navigator.userAgent))
+  }, [])
+  return <span>{isMac ? '⌘' : 'Ctrl'} K</span>
+}
 
 export default function LayoutWrapper({
   children,
@@ -60,12 +73,26 @@ export default function LayoutWrapper({
                 </TooltipContent>
               </Tooltip>
               <Separator orientation="vertical" className="h-4 mx-2" />
-              <span className="text-xs text-muted-foreground hidden sm:block flex-1">
+              <span className="text-xs text-muted-foreground hidden lg:block">
                 Astra Trainee Monitoring System
               </span>
 
+              {/* ─── Command palette trigger (discoverable ⌘K) ─── */}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('open-command-palette'))}
+                aria-label="Buka pencarian cepat"
+                className="ml-auto flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <MagnifyingGlass size={14} />
+                <span className="hidden sm:inline">Cari…</span>
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
+                  <ShortcutHint />
+                </kbd>
+              </button>
+
               {/* ─── Right-side header actions ─── */}
-              <div className="ml-auto flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <ThemeToggle />
                 <NotificationBell />
               </div>

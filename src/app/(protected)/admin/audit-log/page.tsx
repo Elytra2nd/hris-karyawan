@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import { cn } from '@/lib/utils'
 import { AuditFilters } from './audit-filters'
+import { AuditDetail } from '@/components/audit-detail'
 
 const PER_PAGE = 50
 
@@ -163,8 +164,8 @@ export default async function AuditLogPage({
                       {log.entityId.substring(0, 10)}…
                     </p>
                   </td>
-                  <td className="px-5 py-3.5 max-w-[240px]">
-                    <p className="text-xs text-muted-foreground truncate">{log.details || '-'}</p>
+                  <td className="px-5 py-3.5 max-w-[320px]">
+                    <AuditDetail details={log.details} />
                   </td>
                 </tr>
               ))}
@@ -205,10 +206,10 @@ export default async function AuditLogPage({
                   </div>
                   <ActionBadge action={log.action} />
                 </div>
-                <p className="text-xs text-muted-foreground mb-1">
+                <div className="text-xs text-muted-foreground mb-1">
                   <span className="capitalize font-medium text-muted-foreground">{log.entity}</span>
-                  {log.details && <span className="ml-2 break-all">{log.details}</span>}
-                </p>
+                  <div className="mt-1"><AuditDetail details={log.details} compact /></div>
+                </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock size={12} />
                   {format(new Date(log.createdAt), 'dd MMM yyyy, HH:mm', { locale: localeID })}

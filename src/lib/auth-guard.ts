@@ -17,7 +17,12 @@ function deny(message = 'Akses ditolak.'): never {
 // ─── Guards ───────────────────────────────────────────────────────────────────
 
 export async function requireAuth() {
-  return await verifySession()
+  const session = await verifySession()
+  // Akun yang sudah dihapus admin (ditandai saat refresh JWT) ditolak total.
+  if (session.role === '__deleted__') {
+    deny('Akun Anda sudah tidak aktif. Silakan hubungi Administrator.')
+  }
+  return session
 }
 
 /** Requires ADMIN role. Throws on failure. */

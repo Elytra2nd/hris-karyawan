@@ -24,6 +24,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: string;
     username: string;
+    refreshAt?: number;
   }
 }
 
@@ -34,11 +35,19 @@ const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 const LOGIN_LIMIT = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 menit
 
-function checkLoginRateLimit(ip: string): boolean {
+// Hash dummy untuk menyamakan waktu respons saat user tidak ditemukan
+// (mencegah username enumeration lewat timing). Cost harus sama dengan hash asli (10).
+const DUMMY_HASH = '$2b$10$BnSdWgUm7hhVo8/iQOgXHeZPyd61By8e0Bi2KPGpNhSqVkHQRqdw2';
+
+// Interval refresh role dari DB pada JWT (agar perubahan/penghapusan role
+// oleh admin berlaku tanpa menunggu sesi 8 jam habis).
+const ROLE_REFRESH_MS = 5 * 60 * 1000; // 5 menit
+
+function checkLoginRateLimit(key: string): boolean {
   const now = Date.now();
-  const entry = loginAttempts.get(ip);
+  const entry = loginAttempts.get(key);
   if (!entry || now > entry.resetAt) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+    loginAttempts.set(key, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
     return true;
   }
   if (entry.count >= LOGIN_LIMIT) return false;
@@ -58,26 +67,33 @@ export const authOptions: NextAuthOptions = {
         const ip =
           (req?.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ??
           'unknown';
-        if (!checkLoginRateLimit(ip)) {
+
+        if (!credentials?.username || !credentials?.password) return null;
+
+        // Rate limit per-IP DAN per-username. Per-username menutup celah
+        // spoofing x-forwarded-for (attacker ganti IP tiap request).
+        const ipOk = checkLoginRateLimit(`ip:${ip}`);
+        const userOk = checkLoginRateLimit(`user:${credentials.username.toLowerCase()}`);
+        if (!ipOk || !userOk) {
           logger.warn('Login blocked: rate limit exceeded', { ip });
           throw new Error('Terlalu banyak percobaan login. Coba lagi dalam 15 menit.');
         }
-
-        if (!credentials?.username || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { username: credentials.username },
         });
 
+        // Selalu jalankan bcrypt.compare (pakai dummy hash bila user tak ada)
+        // agar waktu respons seragam - mencegah username enumeration via timing.
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user?.password ?? DUMMY_HASH
+        );
+
         if (!user) {
           logger.warn('Login attempt: user not found', { username: credentials.username });
           return null;
         }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
 
         if (!isPasswordValid) {
           logger.warn('Login attempt: wrong password', { username: credentials.username });
@@ -95,10 +111,35 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // Saat login pertama: isi token dari user + set jadwal refresh.
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.username = user.username;
+        token.refreshAt = Date.now() + ROLE_REFRESH_MS;
+        return token;
+      }
+
+      // Refresh berkala: ambil ulang role dari DB agar perubahan admin
+      // (promosi/demosi/hapus akun) berlaku tanpa menunggu sesi habis.
+      const refreshAt = (token.refreshAt as number | undefined) ?? 0;
+      if (Date.now() > refreshAt && token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, username: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.username = dbUser.username;
+          } else {
+            // Akun sudah dihapus - lucuti role sehingga semua guard menolak.
+            token.role = '__deleted__';
+          }
+        } catch {
+          // DB error saat refresh - pertahankan token lama, coba lagi nanti.
+        }
+        token.refreshAt = Date.now() + ROLE_REFRESH_MS;
       }
       return token;
     },

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { differenceInDays, startOfDay } from 'date-fns'
 import { logger } from '@/lib/logger'
+import { requireAuth } from '@/lib/auth-guard'
 
 export type ContractRow = {
   id: string
@@ -35,8 +36,14 @@ export async function getContracts({
   perPage?: number
   sortBy?: string
   sortDir?: 'asc' | 'desc'
-} = {}): Promise<{ contracts: ContractRow[]; total: number }> {
+} = {}): Promise<{ contracts: ContractRow[]; total: number; loadError: boolean }> {
   try {
+    await requireAuth()
+
+    // Clamp paginasi dari client agar tidak bisa dipakai dump-table / DoS.
+    const safePage = Math.max(1, Math.floor(page) || 1)
+    const safePerPage = Math.min(100, Math.max(1, Math.floor(perPage) || 15))
+
     const today = startOfDay(new Date())
 
     // Get latest contract per AKTIF employee
@@ -45,6 +52,7 @@ export async function getContracts({
         ...(posisi ? { posisi } : {}),
         employee: {
           status: 'AKTIF',
+          deletedAt: null,
           AND: [
             search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
             cabang ? { cabang } : {},
@@ -106,12 +114,12 @@ export async function getContracts({
     }
 
     const total = filtered.length
-    const paginated = filtered.slice((page - 1) * perPage, page * perPage)
+    const paginated = filtered.slice((safePage - 1) * safePerPage, safePage * safePerPage)
 
-    return { contracts: paginated, total }
+    return { contracts: paginated, total, loadError: false }
   } catch (error) {
     logger.error('getContracts failed', { error: String(error) })
-    return { contracts: [], total: 0 }
+    return { contracts: [], total: 0, loadError: true }
   }
 }
 
@@ -125,12 +133,14 @@ export async function getContractStats({
   posisi?: string
 } = {}) {
   try {
+    await requireAuth()
     const today = startOfDay(new Date())
     const contracts = await prisma.contract.findMany({
       where: {
         ...(posisi ? { posisi } : {}),
         employee: {
           status: 'AKTIF',
+          deletedAt: null,
           AND: [
             search ? { OR: [{ namaLengkap: { contains: search } }, { nik: { contains: search } }] } : {},
             cabang ? { cabang } : {},
@@ -161,8 +171,9 @@ export async function getContractStats({
 /** Get distinct posisi values from contracts for filter dropdown */
 export async function getDistinctPosisi(): Promise<string[]> {
   try {
+    await requireAuth()
     const result = await prisma.contract.findMany({
-      where: { employee: { status: 'AKTIF' } },
+      where: { employee: { status: 'AKTIF', deletedAt: null } },
       select: { posisi: true },
       distinct: ['posisi'],
       orderBy: { posisi: 'asc' },
