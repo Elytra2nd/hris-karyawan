@@ -61,14 +61,9 @@ export default async function DetailKaryawanPage({
   return (
     <div className="space-y-5">
 
-      {/* ─── Actions ─── */}
-      <div className="flex items-center justify-end">
-        <EmployeeDetailActions id={id} isAdmin={isAdmin} />
-      </div>
-
       {/* ─── Profile Card ─── */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        {/* Top: Avatar + Info */}
+        {/* Top: Avatar + Info + Kebab */}
         <div className="flex items-start gap-5 p-6">
           {/* Avatar */}
           <div className="h-20 w-20 rounded-xl bg-accent flex items-center justify-center shrink-0 overflow-hidden border border-border">
@@ -109,6 +104,9 @@ export default async function DetailKaryawanPage({
               </span>
             </div>
           </div>
+
+          {/* Kebab actions (Cetak / Edit / Kelola Kontrak) */}
+          <EmployeeDetailActions id={id} isAdmin={isAdmin} />
         </div>
 
         {/* Bottom: Metrics Row */}
