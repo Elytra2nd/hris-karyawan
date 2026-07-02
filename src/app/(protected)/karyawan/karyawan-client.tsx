@@ -11,11 +11,11 @@ type EmployeeRow = Prisma.EmployeeGetPayload<{
   include: { contracts: true }
 }>
 import {
-  CircleNotch, Eye, Pencil, ClockCounterClockwise, Trash, MagnifyingGlass,
+  CircleNotch, Eye, Pencil, Trash, MagnifyingGlass,
   Sliders, ArrowsDownUp, ArrowUp, ArrowDown,
   Plus, DotsThreeVertical, CaretLeft, CaretRight,
-  Download, User, XCircle, CheckCircle, Clock, Warning,
-  Phone, Archive,
+  User, XCircle, CheckCircle, Clock, Warning,
+  Archive,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -289,10 +289,11 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
 
   const getDaysBadge = (emp: EmployeeRow) => {
     const c = emp.contracts?.[0]
-    if (!c) return null
+    if (!c) return <span className="text-xs text-muted-foreground/50">—</span>
     const d = differenceInDays(new Date(c.traineeSelesai), now)
+    // Expired: status sudah ditandai chip "Expired" → jangan diulang di sini.
     if (d < 0) {
-      return <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600"><XCircle size={12} /> Expired</span>
+      return <span className="text-xs text-muted-foreground/50">—</span>
     }
     if (d <= 14) {
       return <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600"><Warning size={12} /> {d}h</span>
@@ -321,10 +322,11 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
           {canDelete && (
             <Link
               href="/karyawan/arsip"
-              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md border border-border hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap"
+              aria-label="Arsip trainee"
+              className="flex items-center gap-2 px-2.5 sm:px-3 h-8 sm:h-auto sm:py-2 text-sm font-medium text-muted-foreground rounded-md border border-border hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap"
             >
               <Archive size={16} />
-              Arsip
+              <span className="hidden sm:inline">Arsip</span>
             </Link>
           )}
           {canExport && <ExportExcelButton variant="default" />}
@@ -923,7 +925,9 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
               const c = emp.contracts?.[0]
               const daysLeft = c ? differenceInDays(new Date(c.traineeSelesai), now) : null
               const isKritis = daysLeft !== null && daysLeft <= 14 && daysLeft >= 0
+              const isExpired = daysLeft !== null && daysLeft < 0
 
+              const genderLabel = emp.gender === 'L' ? 'Laki-laki' : emp.gender === 'P' ? 'Perempuan' : emp.gender
               const isSelected = selectedIds.has(emp.id)
               return (
                 <div
@@ -998,31 +1002,41 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
                           </DropdownMenu>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 mt-2 flex-wrap">
-                        {emp.nik && (
-                          <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
-                            {emp.nik}
-                          </span>
-                        )}
-                        {emp.gender && (
+                      {/* Identitas ringkas */}
+                      {(emp.nik || genderLabel) && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {emp.nik && (
+                            <span className="text-xs font-mono text-primary bg-accent px-2 py-0.5 rounded">
+                              {emp.nik}
+                            </span>
+                          )}
+                          {genderLabel && (
+                            <span className="text-xs text-muted-foreground">{genderLabel}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Baris kontrak — struktur konsisten: tanggal selesai (kiri) + sisa (kanan) */}
+                      <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-border/40">
+                        {c ? (
                           <span className="text-xs text-muted-foreground">
-                            {emp.gender === 'L' ? 'Laki-laki' : emp.gender === 'P' ? 'Perempuan' : emp.gender}
-                          </span>
-                        )}
-                        {c && (
-                          <span className="text-xs text-muted-foreground">
-                            Selesai: <span className={cn('font-medium', isKritis ? 'text-red-600' : 'text-foreground/80')}>
+                            Selesai{' '}
+                            <span className={cn('font-medium', (isKritis || isExpired) ? 'text-red-600' : 'text-foreground/80')}>
                               {fmtDate(c.traineeSelesai)}
                             </span>
                           </span>
-                        )}
-                        {c?.contractNumber && (
-                          <span className="text-xs font-mono text-muted-foreground/80">
-                            No. {c.contractNumber}
-                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/60">Belum ada kontrak</span>
                         )}
                         {getDaysBadge(emp)}
                       </div>
+
+                      {/* No. perjanjian — baris opsional, tidak menggeser layout */}
+                      {c?.contractNumber && (
+                        <p className="text-xs font-mono text-muted-foreground/60 mt-1 truncate">
+                          No. {c.contractNumber}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
