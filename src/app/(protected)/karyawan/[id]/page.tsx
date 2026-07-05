@@ -24,8 +24,8 @@ export default async function DetailKaryawanPage({
 }) {
   const session = await verifySession()
   const { id } = await params
-  const isAdmin = session?.role === 'ADMIN'
-  const canCreateContract = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(session?.role ?? '')
+  const canEditEmployee = hasPermission(session?.role, 'employee_update')
+  const canCreateContract = hasPermission(session?.role, 'contract_create')
   const canUpload = hasPermission(session?.role, 'upload_photo')
 
   const employee = await prisma.employee.findFirst({
@@ -106,7 +106,7 @@ export default async function DetailKaryawanPage({
           </div>
 
           {/* Kebab actions (Cetak / Edit / Kelola Kontrak) */}
-          <EmployeeDetailActions id={id} isAdmin={isAdmin} />
+          <EmployeeDetailActions id={id} canEdit={canEditEmployee} canManageContract={canCreateContract} />
         </div>
 
         {/* Bottom: Metrics Row */}

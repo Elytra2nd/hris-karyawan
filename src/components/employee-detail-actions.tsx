@@ -9,10 +9,11 @@ import {
 
 interface EmployeeDetailActionsProps {
   id: string
-  isAdmin: boolean
+  canEdit: boolean
+  canManageContract: boolean
 }
 
-export function EmployeeDetailActions({ id, isAdmin }: EmployeeDetailActionsProps) {
+export function EmployeeDetailActions({ id, canEdit, canManageContract }: EmployeeDetailActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,20 +32,20 @@ export function EmployeeDetailActions({ id, isAdmin }: EmployeeDetailActionsProp
         >
           <Printer size={16} className="mr-2" /> Cetak
         </DropdownMenuItem>
-        {isAdmin && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link href={`/karyawan/${id}/edit`}>
-                <Pencil size={16} className="mr-2" /> Edit Profil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link href={`/karyawan/${id}/kontrak`}>
-                <PlusCircle size={16} className="mr-2" /> Kelola Kontrak
-              </Link>
-            </DropdownMenuItem>
-          </>
+        {(canEdit || canManageContract) && <DropdownMenuSeparator />}
+        {canEdit && (
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link href={`/karyawan/${id}/edit`}>
+              <Pencil size={16} className="mr-2" /> Edit Profil
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {canManageContract && (
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link href={`/karyawan/${id}/kontrak`}>
+              <PlusCircle size={16} className="mr-2" /> Kelola Kontrak
+            </Link>
+          </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
