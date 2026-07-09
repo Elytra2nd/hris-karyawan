@@ -198,7 +198,11 @@ export function ImportExcelButton() {
       const data = new Uint8Array(ev.target!.result as ArrayBuffer)
       // cellDates: sel tanggal Excel dibaca sebagai objek Date (bukan serial)
       const wb = XLSX.read(data, { type: 'array', cellDates: true })
-      const ws = wb.Sheets[wb.SheetNames[0]]
+      
+      // Cari sheet dengan nama 'Data Trainee' terlebih dahulu (template default),
+      // jika tidak ada baru gunakan sheet pertama di file tersebut.
+      const targetSheetName = wb.SheetNames.find(name => name.trim().toLowerCase() === 'data trainee') ?? wb.SheetNames[0]
+      const ws = wb.Sheets[targetSheetName]
 
       // Read all rows as raw arrays to find the actual header row
       const rawRows: (string | number | Date)[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
@@ -242,11 +246,13 @@ export function ImportExcelButton() {
       }
 
       // Ubah sel ke teks. Sel tanggal (Date dari cellDates) → ISO yyyy-MM-dd.
+      // Menggunakan UTC methods agar jam 00:00:00 UTC dari parser excel tidak bergeser
+      // ke hari sebelumnya akibat perbedaan local timezone client browser.
       const cellToText = (cell: unknown): string => {
         if (cell instanceof Date && !isNaN(cell.getTime())) {
-          const yyyy = cell.getFullYear()
-          const mm = String(cell.getMonth() + 1).padStart(2, '0')
-          const dd = String(cell.getDate()).padStart(2, '0')
+          const yyyy = cell.getUTCFullYear()
+          const mm = String(cell.getUTCMonth() + 1).padStart(2, '0')
+          const dd = String(cell.getUTCDate()).padStart(2, '0')
           return `${yyyy}-${mm}-${dd}`
         }
         return String(cell ?? '').trim()
