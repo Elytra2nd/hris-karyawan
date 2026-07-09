@@ -13,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     employee: {
       findUnique: vi.fn().mockResolvedValue({ id: 'emp_123', image: null }),
+      findFirst: vi.fn().mockResolvedValue({ id: 'emp_123', image: null }),
       update: vi.fn().mockResolvedValue({ id: 'emp_123' }),
     },
   },
@@ -49,8 +50,9 @@ describe('Upload Action (Employee Photo)', () => {
       Object.assign(new Error('Unauthorized'), { code: 'UNAUTHORIZED' })
     );
     const formData = new FormData();
+    formData.append('employeeId', 'emp_123');
 
-    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    const result = await uploadEmployeePhoto(formData);
 
     expect(result.success).toBe(false);
     expect(result.message).toContain('izin');
@@ -68,8 +70,9 @@ describe('Upload Action (Employee Photo)', () => {
     const mockFile = new File([jpegHeader], 'foto.jpg', { type: 'image/jpeg' });
     const formData = new FormData();
     formData.append('file', mockFile);
+    formData.append('employeeId', 'emp_123');
 
-    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    const result = await uploadEmployeePhoto(formData);
 
     expect(result.success).toBe(true);
     expect(prisma.employee.update).toHaveBeenCalled();
@@ -78,8 +81,9 @@ describe('Upload Action (Employee Photo)', () => {
   it('harus error jika file kosong', async () => {
     vi.mocked(requirePermission).mockResolvedValue({ id: 'admin1', username: 'ilham_admin', role: 'ADMIN' });
     const formData = new FormData();
+    formData.append('employeeId', 'emp_123');
 
-    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    const result = await uploadEmployeePhoto(formData);
 
     expect(result.success).toBe(false);
     expect(result.message).toContain('Pilih file');

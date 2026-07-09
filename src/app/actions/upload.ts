@@ -53,11 +53,27 @@ function sniffDocumentMime(buf: Buffer): string | null {
   return null
 }
 
-export async function uploadEmployeePhoto(formData: FormData, employeeId: string) {
+export async function uploadEmployeePhoto(formData: FormData) {
+  let employeeId: string | null = null
   try {
     await requirePermission('upload_photo')
 
-    const file = formData.get('file') as File
+    const fileObj = formData.get('file')
+    employeeId = formData.get('employeeId') as string
+
+    logger.error('uploadEmployeePhoto raw payload:', {
+      employeeId,
+      hasFile: !!fileObj,
+      type: fileObj ? typeof fileObj : 'none',
+      constructor: fileObj ? (fileObj as any).constructor?.name : 'none',
+      name: fileObj ? (fileObj as any).name : 'none',
+      size: fileObj ? (fileObj as any).size : 'none',
+      keys: Array.from(formData.keys())
+    })
+
+    if (!employeeId) return { success: false, message: 'ID Karyawan tidak valid' }
+
+    const file = fileObj as File
     if (!file || file.size === 0) return { success: false, message: 'Pilih file foto terlebih dahulu' }
     if (file.size > MAX_BYTES) {
       return { success: false, message: 'Ukuran foto terlalu besar - maksimal 2 MB' }
@@ -72,12 +88,12 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
       return { success: false, message: 'Format foto tidak didukung - gunakan JPG, PNG, atau WEBP' }
     }
 
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, deletedAt: null },
       select: { image: true },
     })
     if (!employee) {
-      return { success: false, message: 'Data trainee tidak ditemukan - mungkin sudah dihapus' }
+      return { success: false, message: 'Data trainee tidak ditemukan atau sudah diarsip' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'profiles')
@@ -112,7 +128,7 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return { success: false, message: 'Anda tidak memiliki izin mengunggah foto - hubungi Admin' }
-    logger.error('uploadEmployeePhoto failed', { employeeId, error: String(error) })
+    logger.error('uploadEmployeePhoto failed', { employeeId: employeeId || 'none', error: String(error) })
     return { success: false, message: 'Kami belum bisa mengunggah foto - coba unggah ulang' }
   }
 }
@@ -122,15 +138,33 @@ export async function uploadEmployeePhoto(formData: FormData, employeeId: string
 // /api/files (auth-gated). Kolom target: ktpPath atau kkPath.
 type DocKind = 'ktp' | 'kk'
 
-export async function uploadEmployeeDocument(formData: FormData, employeeId: string, kind: DocKind) {
+export async function uploadEmployeeDocument(formData: FormData) {
+  let employeeId: string | null = null
+  let kind: DocKind | null = null
   try {
     await requirePermission('upload_photo')
 
+    const fileObj = formData.get('file')
+    employeeId = formData.get('employeeId') as string
+    kind = formData.get('kind') as DocKind
+
+    logger.error('uploadEmployeeDocument raw payload:', {
+      employeeId,
+      kind,
+      hasFile: !!fileObj,
+      type: fileObj ? typeof fileObj : 'none',
+      constructor: fileObj ? (fileObj as any).constructor?.name : 'none',
+      name: fileObj ? (fileObj as any).name : 'none',
+      size: fileObj ? (fileObj as any).size : 'none',
+      keys: Array.from(formData.keys())
+    })
+
+    if (!employeeId) return { success: false, message: 'ID Karyawan tidak valid' }
     if (kind !== 'ktp' && kind !== 'kk') {
       return { success: false, message: 'Jenis dokumen tidak dikenal' }
     }
 
-    const file = formData.get('file') as File
+    const file = fileObj as File
     if (!file || file.size === 0) return { success: false, message: 'Pilih file dokumen terlebih dahulu' }
     if (file.size > DOC_MAX_BYTES) {
       return { success: false, message: 'Ukuran file terlalu besar - maksimal 5 MB' }
@@ -144,12 +178,12 @@ export async function uploadEmployeeDocument(formData: FormData, employeeId: str
       return { success: false, message: 'Format tidak didukung - gunakan JPG, PNG, WEBP, atau PDF' }
     }
 
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, deletedAt: null },
       select: { ktpPath: true, kkPath: true },
     })
     if (!employee) {
-      return { success: false, message: 'Data trainee tidak ditemukan - mungkin sudah dihapus' }
+      return { success: false, message: 'Data trainee tidak ditemukan atau sudah diarsip' }
     }
 
     const uploadDir = join(PRIVATE_BASE, 'documents')
@@ -183,7 +217,7 @@ export async function uploadEmployeeDocument(formData: FormData, employeeId: str
   } catch (error: unknown) {
     const e = error as { code?: string; message?: string }
     if (e?.code === 'UNAUTHORIZED') return { success: false, message: 'Anda tidak memiliki izin mengunggah dokumen - hubungi Admin' }
-    logger.error('uploadEmployeeDocument failed', { employeeId, kind, error: String(error) })
+    logger.error('uploadEmployeeDocument failed', { employeeId: employeeId || 'none', kind: kind || 'none', error: String(error) })
     return { success: false, message: 'Kami belum bisa mengunggah dokumen - coba unggah ulang' }
   }
 }

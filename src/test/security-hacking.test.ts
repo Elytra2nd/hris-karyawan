@@ -16,6 +16,7 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       findUnique: vi.fn().mockResolvedValue({ id: 'emp_123', image: null }),
+      findFirst: vi.fn().mockResolvedValue({ id: 'emp_123', image: null }),
       update: vi.fn().mockResolvedValue({ id: 'emp_123' }),
     },
   },
@@ -38,8 +39,9 @@ describe('Security & Hacking Defense Test', () => {
     const maliciousFile = new Blob(['<script>alert("Hacked")</script>'], { type: 'text/html' });
     const formData = new FormData();
     formData.append('file', maliciousFile, 'virus.php.pdf');
+    formData.append('employeeId', 'emp_123');
 
-    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    const result = await uploadEmployeePhoto(formData);
 
     expect(result.success).toBe(false);
     expect(result.message).toContain('Format foto tidak didukung');
@@ -51,7 +53,8 @@ describe('Security & Hacking Defense Test', () => {
     );
 
     const formData = new FormData();
-    const result = await uploadEmployeePhoto(formData, 'emp_123');
+    formData.append('employeeId', 'emp_123');
+    const result = await uploadEmployeePhoto(formData);
     expect(result.success).toBe(false);
   });
 });

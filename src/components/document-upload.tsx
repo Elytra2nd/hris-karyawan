@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CircleNotch, CloudArrowUp, CheckCircle, XCircle, Eye, ArrowsClockwise } from '@phosphor-icons/react'
-import { uploadEmployeeDocument, uploadEmployeePhoto } from '@/app/actions/upload'
+import { compressImage } from '@/lib/compress-image'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -26,25 +26,57 @@ export function DocumentUpload({
   canUpload: boolean
 }) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'compressing' | 'uploading'>('idle')
   const available = !!currentPath
   // Foto = khusus gambar (maks 2MB). KTP/KK = gambar atau PDF (maks 5MB).
   const isFoto = kind === 'foto'
+  const isImage = (f: File) => f.type.startsWith('image/')
   const accept = isFoto ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,application/pdf'
-  const formatHint = isFoto ? 'JPG, PNG, atau WebP · Maks 2MB' : 'JPG, PNG, atau PDF · Maks 5MB'
+  const formatHint = isFoto ? 'JPG, PNG, atau WebP · Maks 2MB · Dikompres otomatis' : 'JPG, PNG, atau PDF · Maks 5MB'
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setLoading(true)
-    const formData = new FormData()
-    formData.append('file', file)
+
     try {
-      const result = isFoto
-        ? await uploadEmployeePhoto(formData, employeeId)
-        : await uploadEmployeeDocument(formData, employeeId, kind)
+      // Kompres gambar sebelum upload (PDF dilewati).
+      let uploadBlob: Blob = file
+      let uploadName: string = file.name
+      let uploadSize: number = file.size
+
+      if (isImage(file)) {
+        setStatus('compressing')
+        const compressed = await compressImage(file)
+        uploadBlob = compressed.blob
+        uploadName = compressed.name
+        uploadSize = compressed.size
+      }
+
+      setStatus('uploading')
+      const formData = new FormData()
+      // Gunakan blob langsung (bukan new File([blob])) untuk menghindari
+      // bug serialisasi Next.js Server Actions yang menghasilkan size=0 di server.
+      formData.append('file', uploadBlob, uploadName)
+      formData.append('employeeId', employeeId)
+      if (!isFoto) {
+        formData.append('kind', kind)
+      }
+
+      const urlParam = isFoto ? 'photo' : 'document'
+      const response = await fetch(`/api/upload?action=${urlParam}`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Gagal berkomunikasi dengan server')
+      }
+
+      const result = await response.json()
+
       if (result.success) {
-        toast.success(`${label} berhasil diunggah`)
+        const sizeKb = Math.round(uploadSize / 1024)
+        toast.success(`${label} berhasil diunggah (${sizeKb} KB)`)
         router.refresh()
       } else {
         toast.error(result.message ?? 'Gagal mengunggah dokumen')
@@ -52,10 +84,13 @@ export function DocumentUpload({
     } catch {
       toast.error('Koneksi terputus - coba unggah ulang')
     } finally {
-      setLoading(false)
+      setStatus('idle')
       e.target.value = '' // reset agar file sama bisa dipilih lagi
     }
   }
+
+  const loading = status !== 'idle'
+  const loadingLabel = status === 'compressing' ? 'Mengompres…' : 'Mengunggah…'
 
   return (
     <div className={cn(
@@ -99,7 +134,7 @@ export function DocumentUpload({
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
             )}>
               {loading ? (
-                <><CircleNotch size={13} className="animate-spin" /> Mengunggah…</>
+                <><CircleNotch size={13} className="animate-spin" /> {loadingLabel}</>
               ) : available ? (
                 <><ArrowsClockwise size={13} /> Ganti</>
               ) : (
