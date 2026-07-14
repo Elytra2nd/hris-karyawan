@@ -774,8 +774,8 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
                       <td className="px-4 py-2 text-sm text-foreground/80">
                         {c?.posisi || '-'}
                       </td>
-                      {/* Cabang */}
-                      <td className="px-4 py-2 text-sm text-foreground/80">{emp.cabang}</td>
+                      {/* Cabang — tampilkan nama daerah, bukan kode (H721) */}
+                      <td className="px-4 py-2 text-sm text-foreground/80">{emp.baCabang || emp.cabang}</td>
                       {/* Sejak */}
                       <td className="px-4 py-2 text-sm text-foreground/70">{c ? fmtDate(c.traineeSejak) : '-'}</td>
                       {/* Selesai */}
@@ -964,7 +964,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-foreground truncate">{emp.namaLengkap}</p>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {c?.posisi || '—'} · {emp.cabang}
+                            {c?.posisi || '—'} · {emp.baCabang || emp.cabang}
                           </p>
                         </div>
                         <div className="shrink-0 flex items-center gap-1">
