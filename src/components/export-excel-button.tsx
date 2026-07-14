@@ -21,6 +21,10 @@ import { toast } from 'sonner'
 
 type Row = Record<string, string>
 
+// Deployment Astra Motor Kalimantan Barat = satu region (HO Pontianak).
+// ponytail: konstanta; kalau nanti multi-region, ambil dari emp.region.
+const REGION_LABEL = 'PONTIANAK'
+
 function safeDateFormat(value: unknown, fmt = 'dd.MM.yyyy'): string {
   if (!value) return '-'
   try {
@@ -36,7 +40,7 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
   return rawData.map((emp) => ({
     'BA': emp.ba,
     'BA CABANG': emp.baCabang,
-    'CABANG': emp.cabang,
+    'REGION': REGION_LABEL,
     'Nama Lengkap': emp.namaLengkap,
     'Status': emp.status,
     'NIK': emp.nik ?? '-',
@@ -56,7 +60,7 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
 
 function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, search: string): Row[] {
   return rows.filter(r => {
-    const matchCabang = !cabang || r['CABANG'] === cabang
+    const matchCabang = !cabang || r['BA CABANG'] === cabang
     const matchStatus = !status || r['Status'] === status
     const matchPosisi = !posisi || r['Posisi'] === posisi
     const matchSearch = !search || r['Nama Lengkap'].toLowerCase().includes(search.toLowerCase())
@@ -151,7 +155,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       toast.warning('Tidak ada data yang cocok dengan filter - ubah filter atau reset')
       return
     }
-    const pdfCols = ['BA', 'CABANG', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+    const pdfCols = ['BA', 'BA CABANG', 'REGION', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
     const html = `<html><head><title>ATMS Report</title><style>
       @page{size:landscape;margin:10mm}
       body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
@@ -175,13 +179,13 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     setOpen(false)
   }
 
-  const cabangOpts = [...new Set(allRows.map(r => r['CABANG']))].sort()
+  const cabangOpts = [...new Set(allRows.map(r => r['BA CABANG']))].sort()
   const statusOpts = [...new Set(allRows.map(r => r['Status']))].sort()
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
   // Preview columns - hide some less important columns in preview for cleanliness
-  const previewCols = ['Nama Lengkap', 'Status', 'CABANG', 'Posisi', 'NIK', 'No KTP', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+  const previewCols = ['Nama Lengkap', 'Status', 'BA CABANG', 'REGION', 'Posisi', 'NIK', 'No KTP', 'Tgl Lahir', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
   const visibleHeaders = headers.filter(h => previewCols.includes(h))
 
   const selectCls = "rounded-lg sm:text-xs"

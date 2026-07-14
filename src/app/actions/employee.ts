@@ -492,18 +492,20 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
 // ─── Read: Filter trainee (server-side pagination + contractFilter) ──────────
 const PER_PAGE = 10
 
-function addDays(date: Date, n: number): Date {
-  return new Date(date.getTime() + n * 86400000)
-}
-
-function buildContractWhere(contractFilter: string, today: Date) {
-  switch (contractFilter) {
-    case 'expired':    return { contracts: { some: { traineeSelesai: { lt: today } } } }
-    case 'expiring14': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 14) } } } }
-    case 'expiring30': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 30) } } } }
-    case 'expiring90': return { contracts: { some: { traineeSelesai: { gte: today, lte: addDays(today, 90) } } } }
-    case 'safe':       return { contracts: { some: { traineeSelesai: { gt: addDays(today, 90) } } } }
-    default:           return {}
+// Cocokkan bucket kontrak berdasarkan kontrak TERBARU (contracts[0]) trainee.
+// Pakai logika yang sama persis dengan getEmployeeStats/getDashboardKPI agar
+// hasil filter list == angka di kartu (dulu pakai `some` = kontrak apa pun,
+// termasuk trainee NON-AKTIF & kontrak lama, sehingga tak cocok dengan kartu).
+function matchesContractBucket(latest: Date | null | undefined, filter: string, today: Date): boolean {
+  if (!latest) return false
+  const days = differenceInDays(new Date(latest), today)
+  switch (filter) {
+    case 'expired':    return days < 0
+    case 'expiring14': return days >= 0 && days <= 14
+    case 'expiring30': return days >= 0 && days <= 30
+    case 'expiring90': return days >= 0 && days <= 90
+    case 'safe':       return days > 90
+    default:           return true
   }
 }
 
@@ -564,7 +566,7 @@ export async function getEmployees({
     const safePage = Math.max(1, Math.floor(page) || 1)
     const safePerPage = Math.min(100, Math.max(1, Math.floor(perPage) || PER_PAGE))
 
-    const today = new Date()
+    const today = startOfDay(new Date())
     const where = {
       deletedAt: null,
       AND: [
@@ -572,7 +574,6 @@ export async function getEmployees({
         cabang ? { cabang } : {},
         status ? { status } : {},
         posisi ? { contracts: { some: { posisi } } } : {},
-        buildContractWhere(contractFilter, today),
       ],
     }
 
@@ -583,7 +584,15 @@ export async function getEmployees({
       include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
     })
 
-    const sorted = sortEmployeeRows(all, sortBy, sortDir)
+    // Filter bucket kontrak di memori pakai kontrak terbaru. Tanpa filter status
+    // eksplisit (mis. klik kartu), batasi ke AKTIF agar hasil sama persis dengan
+    // angka kartu. Kalau user memilih status di funnel, `all` sudah terbatas
+    // status itu → hormati pilihannya.
+    const filtered = contractFilter
+      ? all.filter(e => (status !== '' || e.status === 'AKTIF') && matchesContractBucket(e.contracts[0]?.traineeSelesai, contractFilter, today))
+      : all
+
+    const sorted = sortEmployeeRows(filtered, sortBy, sortDir)
     const total = sorted.length
     const employees = sorted.slice((safePage - 1) * safePerPage, safePage * safePerPage)
 
