@@ -606,16 +606,17 @@ export async function getEmployees({
 }
 
 // ─── Read: Distinct cabang untuk filter dropdown ──────────────────────────────
-export async function getDistinctCabang(): Promise<string[]> {
+// value = kode (dipakai query filter), label = nama daerah (ditampilkan ke user).
+export async function getDistinctCabang(): Promise<{ code: string; label: string }[]> {
   try {
     await requireAuth()
     const result = await prisma.employee.findMany({
       where: { deletedAt: null },
-      select: { cabang: true },
+      select: { cabang: true, baCabang: true },
       distinct: ['cabang'],
-      orderBy: { cabang: 'asc' },
+      orderBy: { baCabang: 'asc' },
     })
-    return result.map(r => r.cabang)
+    return result.map(r => ({ code: r.cabang, label: r.baCabang || r.cabang }))
   } catch {
     return []
   }

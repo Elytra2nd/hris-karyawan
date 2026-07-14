@@ -53,7 +53,7 @@ export type KaryawanInitial = {
   total: number
   loadError: boolean
   stats: EmployeeStats
-  cabangOptions: string[]
+  cabangOptions: { code: string; label: string }[]
 }
 
 // Dideklarasikan di module-level (bukan dalam render) agar tidak reset tiap render
@@ -91,7 +91,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   const [sortCol, setSortCol] = useState<SortKey>('')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [showFilter, setShowFilter] = useState(false)
-  const [cabangOptions] = useState<string[]>(initial.cabangOptions)
+  const [cabangOptions] = useState<{ code: string; label: string }[]>(initial.cabangOptions)
 
   // Helper to update URL params
   const updateParams = (updates: Record<string, string | null>) => {
@@ -533,7 +533,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
                 aria-label="Filter cabang"
               >
                 <option value="">Semua Cabang</option>
-                {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                {cabangOptions.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
               </NativeSelect>
             </div>
             <div className="space-y-2">
