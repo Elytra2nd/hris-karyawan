@@ -109,10 +109,7 @@ export default function LayoutWrapper({
         </SidebarProvider>
       )}
       <Toaster position="top-center" richColors closeButton />
-      <CommandPalette
-        isAdmin={role === 'ADMIN'}
-        canManageHR={['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')}
-      />
+      <CommandPalette role={role} />
     </TooltipProvider>
     </IconContext.Provider>
   )

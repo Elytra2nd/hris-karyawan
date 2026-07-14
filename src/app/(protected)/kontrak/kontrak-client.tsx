@@ -35,7 +35,7 @@ export type KontrakInitial = {
   total: number
   loadError: boolean
   stats: ContractStats
-  cabangOptions: string[]
+  cabangOptions: { code: string; label: string }[]
   posisiOptions: string[]
 }
 
@@ -69,7 +69,7 @@ export function KontrakClient({ initial }: { initial: KontrakInitial }) {
   const [sortCol, setSortCol] = useState<SortKey>('')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [showFilter, setShowFilter] = useState(false)
-  const [cabangOptions] = useState<string[]>(initial.cabangOptions)
+  const [cabangOptions] = useState<{ code: string; label: string }[]>(initial.cabangOptions)
   const [posisiOptions] = useState<string[]>(initial.posisiOptions)
 
   // Input search pakai state lokal (responsif instan), lalu di-debounce
@@ -368,7 +368,7 @@ export function KontrakClient({ initial }: { initial: KontrakInitial }) {
                 aria-label="Filter cabang"
               >
                 <option value="">Semua Cabang</option>
-                {cabangOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                {cabangOptions.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
               </NativeSelect>
             </div>
             <div className="space-y-2">

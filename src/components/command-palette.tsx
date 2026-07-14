@@ -12,9 +12,11 @@ import {
   ClipboardText,
   Buildings,
   MapPin,
+  FileText,
   MagnifyingGlassMinusIcon,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import { hasPermission } from '@/lib/permissions'
 
 interface Command {
   id: string
@@ -24,7 +26,12 @@ interface Command {
   action: () => void
 }
 
-export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; canManageHR: boolean }) {
+export function CommandPalette({ role }: { role?: string }) {
+  const isAdmin = role === 'ADMIN'
+  const canManageHR = hasPermission(role, 'employee_create')
+  const canManageContract = hasPermission(role, 'contract_create')
+  const canManagePosition = hasPermission(role, 'position_manage')
+  const canReadAudit = hasPermission(role, 'audit_read')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -53,6 +60,27 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
       icon: <UserPlus size={16} />,
       action: () => router.push('/karyawan/tambah'),
     }] : []),
+    ...(canManageContract ? [{
+      id: 'contracts',
+      title: 'Manajemen Kontrak',
+      description: 'Kelola kontrak trainee yang akan/sudah habis',
+      icon: <FileText size={16} />,
+      action: () => router.push('/kontrak'),
+    }] : []),
+    ...(canManagePosition ? [{
+      id: 'positions',
+      title: 'Posisi',
+      description: 'Kelola posisi / jabatan',
+      icon: <Buildings size={16} />,
+      action: () => router.push('/admin/positions'),
+    }] : []),
+    ...(canReadAudit ? [{
+      id: 'audit-log',
+      title: 'Log Aktivitas',
+      description: 'Lihat riwayat perubahan sistem',
+      icon: <ClipboardText size={16} />,
+      action: () => router.push('/admin/audit-log'),
+    }] : []),
     ...(isAdmin ? [
       {
         id: 'manage-users',
@@ -62,25 +90,11 @@ export function CommandPalette({ isAdmin, canManageHR }: { isAdmin: boolean; can
         action: () => router.push('/admin/users'),
       },
       {
-        id: 'positions',
-        title: 'Posisi',
-        description: 'Kelola posisi / jabatan',
-        icon: <Buildings size={16} />,
-        action: () => router.push('/admin/positions'),
-      },
-      {
         id: 'branches',
         title: 'Cabang',
         description: 'Kelola cabang organisasi',
         icon: <MapPin size={16} />,
         action: () => router.push('/admin/branches'),
-      },
-      {
-        id: 'audit-log',
-        title: 'Log Aktivitas',
-        description: 'Lihat riwayat perubahan sistem',
-        icon: <ClipboardText size={16} />,
-        action: () => router.push('/admin/audit-log'),
       },
       {
         id: 'settings',

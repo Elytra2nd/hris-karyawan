@@ -37,6 +37,7 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import { hasPermission } from '@/lib/permissions'
 
 export function AppSidebar() {
   const [mounted, setMounted] = useState(false)
@@ -47,6 +48,7 @@ export function AppSidebar() {
   const { role, username } = useSidebar()
   const isAdmin       = role === 'ADMIN'
   const canManageHR   = ['ADMIN', 'HR_MANAGER', 'HR_STAFF'].includes(role ?? '')
+  const canManageContract = hasPermission(role, 'contract_create')
   const canReadAudit  = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const canManagePosition = ['ADMIN', 'HR_MANAGER'].includes(role ?? '')
   const pathname = usePathname()
@@ -143,12 +145,14 @@ export function AppSidebar() {
                   active={isActive('/karyawan/tambah')}
                 />
               )}
-              <NavItem
-                href="/kontrak"
-                icon={<FileText size={16} />}
-                label="Manajemen Kontrak"
-                active={isActive('/kontrak')}
-              />
+              {canManageContract && (
+                <NavItem
+                  href="/kontrak"
+                  icon={<FileText size={16} />}
+                  label="Manajemen Kontrak"
+                  active={isActive('/kontrak')}
+                />
+              )}
             </nav>
           )}
         </div>
