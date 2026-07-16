@@ -249,6 +249,7 @@ export async function bulkImportEmployees(
         )
       }
     } catch (error) {
+      if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
       let message = 'Kami belum bisa menyimpan data ini - coba impor ulang'
       if (isUniqueViolation(error, 'noKtp')) message = `No KTP ${ktp} sudah terdaftar - baris dilewati`
       else logger.error('bulkImport group failed', { ktp, error: String(error) })

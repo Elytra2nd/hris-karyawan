@@ -82,6 +82,7 @@ export async function createEmployee(data: Record<string, string | null>) {
       } satisfies Prisma.EmployeeUncheckedCreateInput,
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     if (isUniqueViolation(error, 'noKtp')) {
       return fail(`No KTP ${noKtp} sudah terdaftar di sistem - gunakan nomor KTP lain`, 'DUPLICATE', { noKtp: 'No KTP ini sudah terdaftar' })
     }
@@ -152,6 +153,7 @@ export async function updateEmployee(id: string, data: Record<string, string | n
       } satisfies Prisma.EmployeeUncheckedUpdateInput,
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     if (isUniqueViolation(error, 'noKtp')) {
       return fail(`No KTP ${noKtp} sudah digunakan trainee lain - gunakan nomor KTP berbeda`, 'DUPLICATE', { noKtp: 'No KTP ini sudah dipakai trainee lain' })
     }
@@ -484,6 +486,7 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
 
     return employees as unknown as EmployeeExportItem[]
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getAllEmployeesForExport failed', { error: String(error) })
     return []
   }
@@ -598,6 +601,7 @@ export async function getEmployees({
 
     return { employees, total, loadError: false }
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getEmployees failed', { error: String(error) })
     // loadError membedakan "gagal ambil data" dari "data memang kosong",
     // supaya UI bisa menampilkan error state + retry (bukan empty state).
@@ -685,6 +689,7 @@ export async function getEmployeeStats({
       expired: contractExpired,
     }
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getEmployeeStats failed', { error: String(error) })
     return { total: 0, aktif: 0, nonAktif: 0, segera: 0, expired: 0 }
   }
@@ -750,6 +755,7 @@ export async function getDashboardKPI() {
       validPercent,
     }
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getDashboardKPI failed', { error: String(error) })
     return {
       totalAll: 0, totalAktif: 0, totalNonAktif: 0,

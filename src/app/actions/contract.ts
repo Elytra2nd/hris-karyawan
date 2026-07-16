@@ -118,6 +118,7 @@ export async function getContracts({
 
     return { contracts: paginated, total, loadError: false }
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getContracts failed', { error: String(error) })
     return { contracts: [], total: 0, loadError: true }
   }
@@ -163,6 +164,7 @@ export async function getContractStats({
 
     return { total: contracts.length, expired, critical, warning, safe }
   } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
     logger.error('getContractStats failed', { error: String(error) })
     return { total: 0, expired: 0, critical: 0, warning: 0, safe: 0 }
   }
