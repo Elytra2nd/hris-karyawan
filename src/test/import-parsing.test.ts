@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { normalizeRow } from '@/lib/import-utils'
 import { parse, isValid, format } from 'date-fns'
 
 // Mirrors parseDate logic in src/app/actions/import.ts - keep in sync
@@ -73,5 +74,25 @@ describe('Import Excel - Validasi Kolom', () => {
     const missing = REQUIRED_COLS.filter(col => !row[col] || row[col] === '-')
     expect(missing.length).toBeGreaterThan(0)
     expect(missing).toContain('NAMA LENGKAP')
+  })
+})
+
+// Regresi: file Bu Yanti (TEST EKAYANDO.xlsx) memakai header Bahasa Inggris —
+// "Resident Identification Number" tak terpetakan sehingga semua baris ditolak
+// dengan "No KTP harus 16 digit".
+describe('Import Excel - Header Bahasa Inggris', () => {
+  it('memetakan header sistem lama (apostrof, newline, kata tambahan)', () => {
+    const row = normalizeRow({
+      'Branch Code': 'H721',
+      'Full Name': 'EKA YANDO',
+      "Birth\nMother's Name": 'SAPARIDA',
+      'Position': 'SALESMAN',
+      'Training Start Date': '1-Nov-21',
+      'Resident Identification Number': '6104025204000003',
+    })
+    expect(row.noKtp).toBe('6104025204000003')
+    expect(row.namaIbu).toBe('SAPARIDA')
+    expect(row.posisi).toBe('SALES EXECUTIVE')
+    expect(row.traineeSejak).toBe('2021-11-01')
   })
 })
