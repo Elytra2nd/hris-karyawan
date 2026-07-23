@@ -1,9 +1,13 @@
 name: Deploy
 
+# Deploy hanya jalan setelah workflow CI SELESAI dan HIJAU di master.
+# (Dulu: push ke `main` — padahal default branch repo ini `master`, jadi gate-nya
+# tidak pernah menyala.)
 on:
-  push:
-    branches: [main]
-    # Only trigger after CI passes
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [master]
 
 concurrency:
   group: deploy-production
@@ -15,8 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production  # Requires manual approval if configured in GitHub settings
-    # Remove the line below and uncomment 'needs: ci' once CI workflow is in same repo
-    # needs: ci
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout
@@ -48,9 +51,17 @@ jobs:
       # ── SSH Deploy ──────────────────────────────────────────────────────────
       # Adjust this section to match your server setup.
       # Option A: SSH into VPS and pull + restart
+      # Konteks `secrets` TIDAK tersedia di `if:` — memakainya bikin workflow
+      # gagal validasi (run 0 detik). Salin ke env dulu, baru dites di `if`.
+      - name: Cek konfigurasi SSH
+        id: ssh
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: echo "configured=${{ env.SSH_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
-        if: ${{ secrets.SSH_HOST != '' }}
+        if: steps.ssh.outputs.configured == 'true'
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -58,7 +69,7 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd /var/www/hris-karyawan
-            git pull origin main
+            git pull origin master
             npm ci --production=false
             npx prisma generate
             npm run build

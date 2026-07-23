@@ -2,9 +2,10 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { addMonths, subDays, format } from 'date-fns'
+import { format } from 'date-fns'
+import { calculateEndDate } from '@/lib/contract'
 import { requirePermission } from "@/lib/auth-guard"
-import { createAuditLog } from '@/lib/audit'
+import { createAuditLogs } from '@/lib/audit'
 import { logger } from '@/lib/logger'
 import { isUniqueViolation } from '@/lib/prisma-error'
 import { importEmployeeSchema } from '@/lib/validation'
@@ -143,7 +144,7 @@ export async function bulkImportEmployees(
         continue
       }
     } else {
-      selesai = subDays(addMonths(sejak, months), 1)
+      selesai = calculateEndDate(sejak, months)
     }
 
     // Kalau kolom CABANG ternyata berisi region (bukan kode/nama cabang yang
@@ -191,6 +192,10 @@ export async function bulkImportEmployees(
   }
 
   // ── Tahap 3: buat/lengkapi trainee + kontrak per grup ──
+  // Audit log dikumpulkan dulu, ditulis sekali di akhir (satu INSERT untuk
+  // ratusan baris) — bukan satu round-trip DB per trainee.
+  const auditEntries: Parameters<typeof createAuditLogs>[0] = []
+
   for (const [ktp, g] of groups) {
     const head = g[0]
     const existingEmp = existingByKtp.get(ktp)
@@ -223,10 +228,11 @@ export async function bulkImportEmployees(
             data: newContracts.map(c => ({ ...c, employeeId: existingEmp.id })),
           })
           result.contractsAdded += newContracts.length
-          await createAuditLog(
-            session.id, session.username, 'UPDATE', 'employee', existingEmp.id,
-            { source: 'bulk_import', action: 'add_contracts', nama: head.namaLengkap, jumlahKontrak: newContracts.length }
-          )
+          auditEntries.push({
+            userId: session.id, userName: session.username, action: 'UPDATE',
+            entity: 'employee', entityId: existingEmp.id,
+            details: { source: 'bulk_import', action: 'add_contracts', nama: head.namaLengkap, jumlahKontrak: newContracts.length },
+          })
         }
       } else {
         // Trainee baru → buat identitas + semua kontraknya sekaligus (atomik).
@@ -243,10 +249,11 @@ export async function bulkImportEmployees(
         })
         result.created++
         result.contractsAdded += newContracts.length
-        await createAuditLog(
-          session.id, session.username, 'CREATE', 'employee', emp.id,
-          { source: 'bulk_import', nama: head.namaLengkap, cabang: head.cabang, jumlahKontrak: newContracts.length }
-        )
+        auditEntries.push({
+          userId: session.id, userName: session.username, action: 'CREATE',
+          entity: 'employee', entityId: emp.id,
+          details: { source: 'bulk_import', nama: head.namaLengkap, cabang: head.cabang, jumlahKontrak: newContracts.length },
+        })
       }
     } catch (error) {
       let message = 'Kami belum bisa menyimpan data ini - coba impor ulang'
@@ -259,6 +266,8 @@ export async function bulkImportEmployees(
       }
     }
   }
+
+  await createAuditLogs(auditEntries)
 
   if (result.created > 0 || result.contractsAdded > 0) {
     revalidatePath('/')

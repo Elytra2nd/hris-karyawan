@@ -9,37 +9,9 @@ function reqString<T extends z.ZodTypeAny>(schema: T) {
 }
 
 // ─── Konstanta ────────────────────────────────────────────────────────────────
-export const POSISI_VALID = [
-  'SALES EXECUTIVE',
-  'SALESGIRL',
-  'COUNTER SALES',
-  'MECHANIC',
-  'TEAM LEADER',
-  'ADMINISTRATOR',
-] as const
-
-// Daftar cabang resmi Astra Motor Kalbar (BA H721-H730). Sumber kebenaran ada
-// di tabel Branch (dinamis); konstanta ini hanya referensi/dokumentasi.
-export const CABANG_OPTIONS = [
-  { code: 'H721', label: 'KETAPANG' },
-  { code: 'H722', label: 'PATTIMURA' },
-  { code: 'H723', label: 'SINGKAWANG' },
-  { code: 'H724', label: 'SANGGAU' },
-  { code: 'H725', label: 'IMAM BONJOL' },
-  { code: 'H726', label: 'NDS AYANI' },
-  { code: 'H727', label: 'BENUA KAYONG' },
-  { code: 'H728', label: 'SINTANG' },
-  { code: 'H729', label: 'PUTUSSIBAU' },
-  { code: 'H730', label: 'SAMBAS' },
-] as const
-
-export const CABANG_VALID = ['H721', 'H722', 'H723', 'H724', 'H725', 'H726', 'H727', 'H728', 'H729', 'H730'] as const
+// Cabang & posisi divalidasi terhadap tabel Branch/Position (dinamis) —
+// tidak ada daftar statis di sini agar tak ada dua sumber kebenaran.
 export const STATUS_VALID = ['AKTIF', 'NON-AKTIF'] as const
-
-// Helper: get label dari kode cabang
-export function getCabangLabel(code: string): string {
-  return CABANG_OPTIONS.find(c => c.code === code)?.label ?? code
-}
 
 // Roles - in ascending privilege order
 // VIEWER       : read-only

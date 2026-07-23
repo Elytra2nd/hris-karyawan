@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { addMonths, subDays, format } from 'date-fns'
+import { format } from 'date-fns'
+import { calculateEndDate } from '@/lib/contract'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
 import { id as localeID } from 'date-fns/locale'
-import { CircleNotch, Info, CalendarCheck, FileText } from '@phosphor-icons/react'
+import { CircleNotch, Info, CalendarCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { createContractSchema } from '@/lib/validation'
 
@@ -50,7 +51,7 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
     if (posisi && tglMulai) {
       const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
       // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
-      setTglSelesai(format(subDays(addMonths(new Date(tglMulai), months), 1), 'yyyy-MM-dd'))
+      setTglSelesai(format(calculateEndDate(new Date(tglMulai), months), 'yyyy-MM-dd'))
     }
   }, [posisi, tglMulai, positions])
 
@@ -112,7 +113,7 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
         }
         toast.error(errorMessages[result.code] ?? result.error ?? 'Terjadi kesalahan')
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error('Koneksi terputus — periksa internet Anda lalu coba kirim ulang')
     } finally {
       if (!navigated) {

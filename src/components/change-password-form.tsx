@@ -91,7 +91,7 @@ export function ChangePasswordForm() {
         }
         toast.error(result.error)
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error('Koneksi terputus - coba simpan ulang')
     } finally {
       setPending(false)

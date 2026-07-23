@@ -3,8 +3,9 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { format, differenceInDays, differenceInMonths } from 'date-fns'
+import { totalTenureMonths } from '@/lib/contract'
 import { id as localeID } from 'date-fns/locale'
-import { ClockCounterClockwise, CheckCircle, XCircle, Clock, Warning, Plus, ArrowBendUpRight } from '@phosphor-icons/react'
+import { ClockCounterClockwise, CheckCircle, Clock, Warning, Plus, ArrowBendUpRight } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Employee, ContractListItem } from '@/types'
@@ -305,11 +306,7 @@ export function ContractList({
         <p className="text-xs text-muted-foreground">
           Total akumulasi:{' '}
           <span className="font-semibold text-foreground/80">
-            {contracts.reduce(
-              (acc, c) =>
-                acc + differenceInMonths(new Date(c.traineeSelesai), new Date(c.traineeSejak)),
-              0
-            )}{' '}
+            {totalTenureMonths(contracts)}{' '}
             bulan
           </span>
         </p>

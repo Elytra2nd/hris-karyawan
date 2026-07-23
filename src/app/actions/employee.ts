@@ -2,8 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { addMonths, subDays, differenceInDays, startOfDay } from 'date-fns'
+import { differenceInDays, startOfDay } from 'date-fns'
+import { calculateEndDate } from '@/lib/contract'
 import { createAuditLog } from '@/lib/audit'
 import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import {
@@ -15,13 +15,6 @@ import { ok, fail, ActionResult } from '@/lib/result'
 import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
-
-// ─── Business Rule: hitung tanggal selesai ────────────────────────────────────
-// Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari.
-// mis. mulai 01 Jul, 6 bln -> 31 Des (bukan 01 Jan).
-function calculateEndDate(startDate: Date, months: number): Date {
-  return subDays(addMonths(startDate, months), 1)
-}
 
 // Durasi kontrak (bulan) dari tabel Position. null = posisi tak terdaftar.
 async function getPositionMonths(posisi: string): Promise<number | null> {
@@ -492,6 +485,29 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
 // ─── Read: Filter trainee (server-side pagination + contractFilter) ──────────
 const PER_PAGE = 10
 
+// Kolom yang benar-benar dirender tabel/kartu daftar. Data sensitif (No KTP,
+// nama ibu, tgl lahir, no Jamsostek, path dokumen) TIDAK ikut — payload daftar
+// terkirim ke browser semua peran, termasuk VIEWER. Detail lengkap hanya di
+// halaman /karyawan/[id] yang punya guard sendiri.
+const LIST_SELECT = {
+  id: true,
+  namaLengkap: true,
+  nik: true,
+  cabang: true,
+  baCabang: true,
+  status: true,
+  gender: true,
+  image: true,
+  noHp: true,
+  contracts: {
+    orderBy: { traineeSelesai: 'desc' },
+    take: 1,
+    select: { posisi: true, traineeSejak: true, traineeSelesai: true, contractNumber: true },
+  },
+} satisfies Prisma.EmployeeSelect
+
+export type EmployeeListRow = Prisma.EmployeeGetPayload<{ select: typeof LIST_SELECT }>
+
 // Cocokkan bucket kontrak berdasarkan kontrak TERBARU (contracts[0]) trainee.
 // Pakai logika yang sama persis dengan getEmployeeStats/getDashboardKPI agar
 // hasil filter list == angka di kartu (dulu pakai `some` = kontrak apa pun,
@@ -577,12 +593,37 @@ export async function getEmployees({
       ],
     }
 
-    // Fetch seluruh hasil filter agar sort berlaku global (bukan per halaman),
-    // lalu paginate di memori. Skala data ATMS ini kecil sehingga aman.
-    const all = await prisma.employee.findMany({
-      where,
-      include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
-    })
+    // Filter bucket kontrak & sort kolom turunan (posisi/traineeSelesai) butuh
+    // kontrak TERBARU tiap trainee — tidak bisa diungkapkan sebagai satu query
+    // SQL lewat Prisma. Hanya jalur itu yang fetch-all + proses di memori;
+    // jalur biasa (mayoritas pemakaian) paginasi di DB.
+    const needsLatestContract =
+      contractFilter !== '' || sortBy === 'posisi' || sortBy === 'traineeSelesai'
+
+    if (!needsLatestContract) {
+      const orderBy =
+        sortBy === 'nik' ? { nik: sortDir }
+        : sortBy === 'cabang' ? { cabang: sortDir }
+        : { namaLengkap: sortDir }
+
+      const [employees, total] = await prisma.$transaction([
+        prisma.employee.findMany({
+          where,
+          select: LIST_SELECT,
+          orderBy,
+          skip: (safePage - 1) * safePerPage,
+          take: safePerPage,
+        }),
+        prisma.employee.count({ where }),
+      ])
+      return { employees, total, loadError: false }
+    }
+
+    // ponytail: jalur kontrak masih fetch-all lalu potong di memori. Aman
+    // sampai ~5rb trainee; kalau tembus, pindahkan "kontrak terbaru" ke kolom
+    // turunan di tabel employee (di-update saat kontrak dibuat) supaya bisa
+    // di-ORDER BY / WHERE langsung di SQL.
+    const all = await prisma.employee.findMany({ where, select: LIST_SELECT })
 
     // Filter bucket kontrak di memori pakai kontrak terbaru. Tanpa filter status
     // eksplisit (mis. klik kartu), batasi ke AKTIF agar hasil sama persis dengan

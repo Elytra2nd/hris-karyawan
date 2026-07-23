@@ -10,7 +10,10 @@ function createPrismaClient() {
     user: process.env.DB_USER ?? 'root',
     password: process.env.DB_PASSWORD ?? '',
     database: process.env.DB_NAME ?? 'hris_karyawan',
-    connectionLimit: 1,
+    // Pool aplikasi: 1 koneksi = semua request antre di belakang query paling
+    // lambat (impor besar membekukan login). 10 aman untuk deployment
+    // single-instance ini; naikkan bersama max_connections MariaDB kalau perlu.
+    connectionLimit: Number(process.env.DB_POOL_SIZE ?? 10),
   })
 
   return new PrismaClient({ adapter })
