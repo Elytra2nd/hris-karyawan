@@ -1,6 +1,6 @@
 // src/components/risk-alert.tsx
 import { Card, CardContent } from "@/components/ui/card";
-import { Warning, CaretRight } from "@phosphor-icons/react/ssr";
+import { Warning } from "@phosphor-icons/react/ssr";
 
 export function RiskAlert({ count }: { count: number }) {
   return (

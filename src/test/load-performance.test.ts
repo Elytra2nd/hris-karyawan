@@ -7,7 +7,6 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('server-only', () => ({})); 
 
 import { getEmployees } from '@/app/actions/employee';
-import { prisma } from '@/lib/prisma';
 
 // Mocking Prisma dengan Latency 10ms
 vi.mock('@/lib/prisma', () => ({

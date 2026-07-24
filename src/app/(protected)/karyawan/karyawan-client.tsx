@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useTransition } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getEmployees, getEmployeeStats, deleteEmployee, bulkArchiveEmployees, bulkUpdateEmployeeStatus } from '@/app/actions/employee'
+import { deleteEmployee, bulkArchiveEmployees, bulkUpdateEmployeeStatus } from '@/app/actions/employee'
 import { BulkActionBar } from '@/components/bulk-action-bar'
 import type { ActionResult } from '@/lib/result'
-import type { Prisma } from '@prisma/client'
+import type { EmployeeListRow } from '@/app/actions/employee'
 
-type EmployeeRow = Prisma.EmployeeGetPayload<{
-  include: { contracts: true }
-}>
+// Bentuk baris = persis kolom yang di-select getEmployees (tanpa data sensitif).
+type EmployeeRow = EmployeeListRow
 import {
   CircleNotch, Eye, Pencil, Trash, MagnifyingGlass,
   Sliders, ArrowsDownUp, ArrowUp, ArrowDown,
@@ -67,13 +66,20 @@ function SortIcon({ col, sortCol, sortDir }: { col: SortKey; sortCol: SortKey; s
 export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [employees, setEmployees] = useState<EmployeeRow[]>(initial.employees)
-  const [total, setTotal] = useState(initial.total)
-  const [stats, setStats] = useState<EmployeeStats>(initial.stats)
-  // Data awal sudah diseed dari Server Component → tidak ada flash skeleton.
-  const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState(initial.loadError)
+  // Sumber data TUNGGAL: Server Component (page.tsx) yang membaca searchParams.
+  // Filter/sort/halaman semuanya hidup di URL, jadi mengubah URL = render ulang
+  // di server. Dulu komponen ini mengambil ulang data sendiri lewat server
+  // action — dua jalur untuk hasil yang sama, gampang tak sinkron.
+  const { total, stats, loadError } = initial
+  const [isPending, startTransition] = useTransition()
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  // Baris yang baru dihapus: disembunyikan seketika (optimistis) sambil menunggu
+  // router.refresh() membawa data terbaru dari server.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
+  const employees = useMemo(
+    () => initial.employees.filter(e => !hiddenIds.has(e.id)),
+    [initial.employees, hiddenIds],
+  )
   // Konfirmasi hapus dari kebab mobile (AlertDialog terkontrol)
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
   // Seleksi baris untuk aksi massal (per-halaman)
@@ -88,8 +94,10 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   const posisiFilter = searchParams.get('posisi') ?? ''
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
 
-  const [sortCol, setSortCol] = useState<SortKey>('')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  // Sort ikut di URL supaya server yang mengurutkan (lintas seluruh dataset,
+  // bukan cuma halaman aktif) dan hasilnya bisa di-bookmark/di-share.
+  const sortCol = (searchParams.get('sort') ?? '') as SortKey
+  const sortDir = searchParams.get('dir') === 'desc' ? 'desc' : 'asc'
   const [showFilter, setShowFilter] = useState(false)
   const [cabangOptions] = useState<{ code: string; label: string }[]>(initial.cabangOptions)
 
@@ -107,7 +115,10 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
     if (updates.search !== undefined || updates.cabang !== undefined || updates.status !== undefined || updates.filter !== undefined || updates.posisi !== undefined) {
       params.set('page', '1')
     }
-    router.push(`?${params.toString()}`, { scroll: false })
+    // Populasi berubah → buang seleksi, supaya tidak ada id "tersembunyi" yang
+    // ikut kena aksi massal tanpa terlihat di layar.
+    setSelectedIds(new Set())
+    startTransition(() => router.push(`?${params.toString()}`, { scroll: false }))
   }
 
   const { role } = useSidebar()
@@ -132,45 +143,12 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
     if (debouncedSearch) params.set('search', debouncedSearch)
     else params.delete('search')
     params.set('page', '1')
-    router.replace(`?${params.toString()}`, { scroll: false })
+    startTransition(() => router.replace(`?${params.toString()}`, { scroll: false }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch])
 
-  // Penanda untuk memaksa refetch (mis. setelah delete) tanpa mengubah filter
-  const [refreshTick, setRefreshTick] = useState(0)
-
-  // Render pertama memakai data seed dari server → lewati fetch awal agar
-  // tidak double-fetch / flash. Fetch hanya saat filter/sort/halaman berubah.
-  const isInitialMount = useRef(true)
-
-  // Fetch data. Flag `ignore` mencegah respons lama (out-of-order) menimpa yang baru.
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-      return
-    }
-    let ignore = false
-    const run = async () => {
-      setLoading(true)
-      const [result, statsResult] = await Promise.all([
-        getEmployees({ search: debouncedSearch, cabang, status: statusFilter, contractFilter, posisi: posisiFilter, page, perPage: PER_PAGE, sortBy: sortCol, sortDir }),
-        getEmployeeStats({ search: debouncedSearch, cabang, posisi: posisiFilter }),
-      ])
-      if (ignore) return
-      setEmployees(result.employees)
-      setTotal(result.total)
-      setLoadError(result.loadError ?? false)
-      setStats(statsResult)
-      setLoading(false)
-      // Bersihkan seleksi saat populasi berubah (ganti halaman/filter/refetch)
-      // agar tidak ada id "tersembunyi" yang ikut teraksi tanpa terlihat.
-      setSelectedIds(new Set())
-    }
-    run()
-    return () => { ignore = true }
-  }, [debouncedSearch, cabang, statusFilter, contractFilter, posisiFilter, page, sortCol, sortDir, refreshTick])
-
-
+  // Muat ulang data dari server (setelah hapus / aksi massal).
+  const refresh = () => startTransition(() => router.refresh())
 
   const now = new Date()
 
@@ -193,16 +171,16 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   }, [page, totalPages])
 
   const handleSort = (col: SortKey) => {
-    if (sortCol === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    else { setSortCol(col); setSortDir('asc') }
+    const dir = sortCol === col && sortDir === 'asc' ? 'desc' : 'asc'
+    updateParams({ sort: col, dir })
   }
 
   const handleDelete = async (id: string, name: string) => {
     if (!canDelete) { toast.error('Anda tidak memiliki izin menghapus - hubungi Admin'); return }
     setIsDeleting(id)
 
-    // Optimistic: hapus dari UI seketika
-    setEmployees(prev => prev.filter(e => e.id !== id))
+    // Optimistic: sembunyikan dari UI seketika
+    setHiddenIds(prev => new Set(prev).add(id))
 
     try {
       const r = await deleteEmployee(id)
@@ -218,9 +196,10 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
       toast.error('Koneksi terputus - coba ulangi')
     } finally {
       setIsDeleting(null)
-      // Selalu refetch: sukses -> sinkron total/stats/pagination; gagal -> kembalikan
-      // baris ke posisi sortir yang benar (bukan ditempel di bawah).
-      setRefreshTick(t => t + 1)
+      // Selalu muat ulang: sukses -> sinkron total/stats/pagination; gagal ->
+      // baris muncul lagi di posisi sortir yang benar.
+      setHiddenIds(new Set())
+      refresh()
     }
   }
 
@@ -256,7 +235,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
       if (r.success) {
         toast.success(r.message ?? `${r.data.count} trainee diproses`)
         clearSelection()
-        setRefreshTick(t => t + 1)
+        refresh()
       } else {
         toast.error(r.error)
       }
@@ -267,9 +246,13 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
     }
   }
 
-  const handleBulkArchive  = () => runBulk('archive',  () => bulkArchiveEmployees([...selectedIds]))
-  const handleBulkActive   = () => runBulk('aktif',    () => bulkUpdateEmployeeStatus([...selectedIds], 'AKTIF'))
-  const handleBulkInactive = () => runBulk('nonaktif', () => bulkUpdateEmployeeStatus([...selectedIds], 'NON-AKTIF'))
+  // Hanya baris yang benar-benar tampil di halaman ini yang ikut teraksi —
+  // seleksi sisa dari halaman/filter sebelumnya tidak boleh ikut terbawa.
+  const targetIds = () => pageIds.filter(id => selectedIds.has(id))
+
+  const handleBulkArchive  = () => runBulk('archive',  () => bulkArchiveEmployees(targetIds()))
+  const handleBulkActive   = () => runBulk('aktif',    () => bulkUpdateEmployeeStatus(targetIds(), 'AKTIF'))
+  const handleBulkInactive = () => runBulk('nonaktif', () => bulkUpdateEmployeeStatus(targetIds(), 'NON-AKTIF'))
 
   const fmtDate = (s: string | Date) =>
     !s ? '-' : format(new Date(s), 'dd MMM yyyy', { locale: localeID })
@@ -495,7 +478,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => { setSortCol(''); setSortDir('asc') }}
+                onClick={() => updateParams({ sort: null, dir: null })}
                 className="cursor-pointer text-sm text-muted-foreground"
               >
                 Reset urutan
@@ -576,7 +559,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
       </div>
 
       {/* ─── Error State (gagal muat, beda dari data kosong) ─── */}
-      {!loading && loadError && (
+      {!isPending && loadError && (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-8 text-center dark:border-rose-900 dark:bg-rose-950/30">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
             <Warning size={24} className="text-rose-600" />
@@ -588,7 +571,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
             </p>
           </div>
           <button
-            onClick={() => setRefreshTick(t => t + 1)}
+            onClick={refresh}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Coba Lagi
@@ -664,7 +647,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {loading ? (
+              {isPending ? (
                 Array.from({ length: PER_PAGE }).map((_, i) => (
                   <tr key={i} className="hover:bg-muted/50">
 
@@ -845,7 +828,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
         </div>
 
         {/* Pagination */}
-        {totalPages > 0 && !loading && (
+        {totalPages > 0 && !isPending && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               {total === 0 ? '0' : `${(page - 1) * PER_PAGE + 1}-${Math.min(page * PER_PAGE, total)}`} dari{' '}
@@ -888,7 +871,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
 
       {/* ─── Mobile Card View ─── */}
       <div className={cn('bg-card border border-border rounded-lg shadow-sm overflow-hidden', loadError ? 'hidden' : 'md:hidden')}>
-        {loading ? (
+        {isPending ? (
           <div className="divide-y divide-border/60">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="px-4 py-4 flex items-start gap-4">
@@ -1046,7 +1029,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
         )}
 
         {/* Mobile Pagination */}
-        {totalPages > 1 && !loading && (
+        {totalPages > 1 && !isPending && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/50">
             <p className="text-xs text-muted-foreground">
               Hal. {page} / {totalPages}

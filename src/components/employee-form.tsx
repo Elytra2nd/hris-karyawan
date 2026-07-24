@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { addMonths, subDays, format } from 'date-fns'
+import { format } from 'date-fns'
+import { calculateEndDate } from '@/lib/contract'
 import { id as localeID } from 'date-fns/locale'
 import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -53,7 +54,7 @@ export function EmployeeForm({
     if (posisi && tglMulai) {
       const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
       // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
-      setTglSelesai(format(subDays(addMonths(new Date(tglMulai), months), 1), 'yyyy-MM-dd'))
+      setTglSelesai(format(calculateEndDate(new Date(tglMulai), months), 'yyyy-MM-dd'))
     }
   }, [posisi, tglMulai, positions])
 

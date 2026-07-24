@@ -26,11 +26,6 @@ const MONTH_NUM: Record<string, number> = {
   des: 12, dec: 12, desember: 12, december: 12,
 }
 
-// Kolom wajib (untuk deteksi baris header di file Excel)
-export const REQUIRED_COLS = [
-  'CABANG', 'NAMA LENGKAP', 'NO KTP', 'NAMA IBU', 'POSISI', 'TRAINEE SEJAK',
-]
-
 // Nama kolom Excel → field schema.
 // Mendukung header template ATMS (Bahasa Indonesia) DAN header dari sistem
 // lama / export ATMS lama (Bahasa Inggris) agar file historis bisa langsung
@@ -72,11 +67,30 @@ export const COL_MAP: Record<string, string> = {
   'CONTRACT NUMBER': 'contractNumber',
   'SEX': 'gender',
   'RESIDENT IDENTIFICATION': 'noKtp',
+  'RESIDENT IDENTIFICATION NUMBER': 'noKtp',
+  'IDENTITY NUMBER': 'noKtp',
+  'ID NUMBER': 'noKtp',
   'KTP': 'noKtp',
   'DATE OF BIRTH': 'tglLahir',
   'BIRTH DATE': 'tglLahir',
   'PHONE': 'noHp',
   'PHONE NUMBER': 'noHp',
+}
+
+// Header Excel dunia nyata mengandung newline, apostrof, titik, spasi ganda
+// ("Birth\nMother's Name", "NO. PERJANJIAN"). Samakan dulu ke huruf kapital +
+// spasi tunggal sebelum dicocokkan ke COL_MAP, supaya variasi tulisan tidak
+// bikin kolom gagal terbaca (mis. No KTP tak terpetakan → "harus 16 digit").
+const normHeader = (s: string) =>
+  String(s).replace(/^[★○]\s*/, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim()
+
+const COL_LOOKUP: Record<string, string> = Object.fromEntries(
+  Object.entries(COL_MAP).map(([k, v]) => [normHeader(k), v]),
+)
+
+/** Kolom Excel → field schema (toleran tanda baca & newline). */
+export function colField(header: string): string | undefined {
+  return COL_LOOKUP[normHeader(header)]
 }
 
 // Alias posisi: nama jabatan di file historis → nama posisi kanonik di sistem.
@@ -157,7 +171,7 @@ export function parseDate(raw: string): string | null {
 export function normalizeRow(raw: Record<string, string>): Record<string, string | null> {
   const normalized: Record<string, string | null> = {}
   for (const [col, val] of Object.entries(raw)) {
-    const field = COL_MAP[col.toUpperCase().trim()]
+    const field = colField(col)
     if (!field) continue
     const v = (val ?? '').toString().trim()
 

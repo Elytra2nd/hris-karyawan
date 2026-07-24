@@ -1,7 +1,8 @@
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import { differenceInMonths, differenceInDays, format, isValid } from 'date-fns'
+import { differenceInDays, format, isValid } from 'date-fns'
+import { totalTenureMonths, splitTenure } from '@/lib/contract'
 import { id as localeID } from 'date-fns/locale'
 import {
   User, MapPin, Phone, CreditCard, Clock,
@@ -34,13 +35,8 @@ export default async function DetailKaryawanPage({
   })
   if (!employee) notFound()
 
-  const totalMonths = employee.contracts.reduce(
-    (acc, c) =>
-      acc + differenceInMonths(new Date(c.traineeSelesai), new Date(c.traineeSejak)),
-    0
-  )
-  const years = Math.floor(totalMonths / 12)
-  const months = totalMonths % 12
+  const totalMonths = totalTenureMonths(employee.contracts)
+  const { years, months } = splitTenure(totalMonths)
   const latestContract = employee.contracts[0]
   const daysToExpiry = latestContract
     ? differenceInDays(new Date(latestContract.traineeSelesai), new Date())

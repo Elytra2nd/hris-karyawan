@@ -8,6 +8,7 @@ const adapter = new PrismaMariaDb({host:process.env.DB_HOST??'localhost',port:Nu
 const p = new PrismaClient({adapter})
 
 const BRANCHES = [
+  { code: 'H720', label: 'PONTIANAK' },
   { code: 'H721', label: 'KETAPANG' },
   { code: 'H722', label: 'PATTIMURA' },
   { code: 'H723', label: 'SINGKAWANG' },

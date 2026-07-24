@@ -13,7 +13,7 @@ import {
 import { bulkImportEmployees, type ImportRow } from '@/app/actions/import'
 import { getBranches } from '@/app/actions/branch'
 import { getPositions } from '@/app/actions/position'
-import { normalizeRow, COL_MAP } from '@/lib/import-utils'
+import { normalizeRow, colField } from '@/lib/import-utils'
 import { importEmployeeSchema } from '@/lib/validation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -214,7 +214,7 @@ export function ImportExcelButton() {
       for (let i = 0; i < Math.min(rawRows.length, 5); i++) {
         const recognized = new Set(
           rawRows[i]
-            .map((c) => COL_MAP[String(c).replace(/^[★○]\s*/, '').toUpperCase().trim()])
+            .map((c) => colField(String(c)))
             .filter(Boolean)
         )
         if (recognized.size >= 3) {

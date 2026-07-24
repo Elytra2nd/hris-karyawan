@@ -1,6 +1,6 @@
 'use client';
 
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import type { Employee, ContractListItem } from '@/types';

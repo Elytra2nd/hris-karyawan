@@ -60,3 +60,9 @@ public/uploads/
 
 # User uploads
 /uploads
+
+# Backup DB (jangan di-commit — bisa berisi data pribadi)
+backups/
+
+# Dokumen komersial, bukan kode
+SURAT KONTRAK*.pdf
