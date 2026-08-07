@@ -1,4 +1,4 @@
-import { getEmployees } from '@/app/actions/employee';
+import { getEmployees, getAllEmployeesForExport } from '@/app/actions/employee';
 import { uploadEmployeePhoto } from '@/app/actions/upload';
 import { verifySession } from '@/lib/dal';
 import { describe, it, expect, vi } from 'vitest';
@@ -56,5 +56,24 @@ describe('Security & Hacking Defense Test', () => {
     formData.append('employeeId', 'emp_123');
     const result = await uploadEmployeePhoto(formData);
     expect(result.success).toBe(false);
+  });
+
+  // Regresi: export pernah memakai requireAuth(), sehingga sesi VIEWER bisa
+  // menarik seluruh noKtp/tglLahir/namaIbu/noHp dengan memanggil action langsung
+  // — tombol yang disembunyikan di klien bukan kontrol akses.
+  it('harus menolak export massal data pribadi oleh VIEWER (Privilege Escalation)', async () => {
+    (verifySession as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'user_viewer', username: 'viewer', role: 'VIEWER',
+    });
+
+    await expect(getAllEmployeesForExport()).rejects.toThrow(/Akses ditolak/);
+  });
+
+  it('mengizinkan export untuk HR_MANAGER', async () => {
+    (verifySession as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'user_mgr', username: 'manager', role: 'HR_MANAGER',
+    });
+
+    await expect(getAllEmployeesForExport()).resolves.toEqual([]);
   });
 });

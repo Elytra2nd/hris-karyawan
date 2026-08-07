@@ -134,13 +134,27 @@ Buka kembali menu **Setup Node.js App** → pilih aplikasi Anda dan klik tombol 
    ```bash
    npx prisma db push
    ```
-6. Masukkan data dummy awal dan akun admin utama:
+6. Sinkronkan data referensi (daftar cabang H720–H730 & jabatan):
    ```bash
-   npx tsx --env-file=.env prisma/seed.ts
+   node --env-file=.env scripts/seed-refdata.cjs
    ```
-   *Catatan: Akun admin default yang terbuat adalah:*
-   * *Username*: `admin`
-   * *Password*: `admin123`
+   Aman dijalankan berulang — hanya menambah yang belum ada, tidak pernah
+   menghapus karyawan atau kontrak. **Jalankan setiap kali daftar cabang atau
+   jabatan bertambah**; ini yang mencegah kasus "cabang H720 tidak muncul".
+
+7. **Khusus instalasi baru yang masih kosong**, isi akun awal + data contoh:
+   ```bash
+   npx tsx --env-file=.env prisma/seed-400.ts
+   ```
+   > 🚨 **JANGAN dijalankan di `astratraineemonitoringsystem.com`.** Server itu
+   > sudah berisi data karyawan asli yang diinput manual oleh tim HR. Script ini
+   > menimpa/menambah 400 karyawan contoh dan tidak bisa dibatalkan.
+   >
+   > Script ini juga membuat akun default `admin`/`Admin123` beserta `manager`,
+   > `staff`, `viewer` — kredensial yang tertulis di repo, jadi bukan rahasia.
+   > Kalau seed ini pernah jalan di produksi, **ganti semua password itu sekarang**
+   > (Admin → Users, atau `npx tsx --env-file=.env scripts/reset-admin.ts`) dan
+   > hapus akun yang tidak dipakai.
 
 ---
 

@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { hasPermission } from '@/lib/permissions'
 import { readFile } from 'fs/promises'
 import { join, extname, normalize, sep } from 'path'
 import { NextRequest, NextResponse } from 'next/server'
@@ -24,6 +25,13 @@ export async function GET(
   }
 
   const { path } = await params
+
+  // Scan KTP/KK = data pribadi peka. Nama file memuat employeeId yang muncul di
+  // respons daftar, jadi "tahu URL" bukan kontrol akses: batasi ke role yang
+  // memang mengurus berkas. Foto profil tetap terbuka untuk semua sesi.
+  if (path[0] === 'documents' && !hasPermission(session.user.role, 'upload_photo')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
   // Prevent path traversal: normalize and ensure it stays within PRIVATE_BASE
   const relative = normalize(path.join('/'))
   if (relative.includes('..')) {
@@ -46,9 +54,9 @@ export async function GET(
         'Content-Type': contentType,
         'Cache-Control': 'private, max-age=3600',
         'X-Content-Type-Options': 'nosniff',
-        // Sajikan inline (preview), bukan sebagai halaman aktif - cegah
-        // konten tak terduga dieksekusi di konteks origin.
-        'Content-Disposition': 'inline',
+        // Gambar boleh inline (preview). PDF dipaksa attachment: PDF bisa memuat
+        // skrip, dan inline di origin yang sama membuatnya jalan sebagai kita.
+        'Content-Disposition': ext === '.pdf' ? 'attachment' : 'inline',
       },
     })
   } catch {

@@ -45,6 +45,17 @@ const ROLE_REFRESH_MS = 5 * 60 * 1000; // 5 menit
 
 function checkLoginRateLimit(key: string): boolean {
   const now = Date.now();
+
+  // Key `user:<username>` berasal dari input penyerang: tanpa pembersihan, username
+  // acak tanpa batas = entry tanpa batas. Sapu yang kedaluwarsa saat map membesar.
+  // ponytail: sapuan O(n) saat ambang terlampaui; ganti timer/LRU kalau instance
+  // ini nanti melayani trafik login jauh lebih besar.
+  if (loginAttempts.size > 1000) {
+    for (const [k, v] of loginAttempts) {
+      if (now > v.resetAt) loginAttempts.delete(k);
+    }
+  }
+
   const entry = loginAttempts.get(key);
   if (!entry || now > entry.resetAt) {
     loginAttempts.set(key, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
@@ -53,6 +64,13 @@ function checkLoginRateLimit(key: string): boolean {
   if (entry.count >= LOGIN_LIMIT) return false;
   entry.count++;
   return true;
+}
+
+// Tanpa secret, NextAuth diam-diam jatuh ke fallback dan seluruh JWT jadi tak
+// tepercaya. Lebih baik app menolak start daripada jalan dengan sesi rapuh —
+// gampang kelewat saat mengisi environment di cPanel.
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET wajib diisi di produksi - set di environment cPanel');
 }
 
 export const authOptions: NextAuthOptions = {

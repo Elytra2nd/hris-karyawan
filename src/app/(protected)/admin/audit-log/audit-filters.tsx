@@ -10,6 +10,8 @@ const ACTION_OPTIONS = [
   { value: 'CREATE', label: 'Dibuat' },
   { value: 'UPDATE', label: 'Diubah' },
   { value: 'DELETE', label: 'Dihapus' },
+  { value: 'UPLOAD', label: 'Diunggah' },
+  { value: 'EXPORT', label: 'Diekspor' },
 ]
 
 export function AuditFilters({ q, actionFilter }: { q: string; actionFilter: string }) {

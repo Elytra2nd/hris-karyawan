@@ -61,16 +61,6 @@ export async function uploadEmployeePhoto(formData: FormData) {
     const fileObj = formData.get('file')
     employeeId = formData.get('employeeId') as string
 
-    logger.error('uploadEmployeePhoto raw payload:', {
-      employeeId,
-      hasFile: !!fileObj,
-      type: fileObj ? typeof fileObj : 'none',
-      constructor: fileObj ? (fileObj as any).constructor?.name : 'none',
-      name: fileObj ? (fileObj as any).name : 'none',
-      size: fileObj ? (fileObj as any).size : 'none',
-      keys: Array.from(formData.keys())
-    })
-
     if (!employeeId) return { success: false, message: 'ID Karyawan tidak valid' }
 
     const file = fileObj as File
@@ -147,17 +137,6 @@ export async function uploadEmployeeDocument(formData: FormData) {
     const fileObj = formData.get('file')
     employeeId = formData.get('employeeId') as string
     kind = formData.get('kind') as DocKind
-
-    logger.error('uploadEmployeeDocument raw payload:', {
-      employeeId,
-      kind,
-      hasFile: !!fileObj,
-      type: fileObj ? typeof fileObj : 'none',
-      constructor: fileObj ? (fileObj as any).constructor?.name : 'none',
-      name: fileObj ? (fileObj as any).name : 'none',
-      size: fileObj ? (fileObj as any).size : 'none',
-      keys: Array.from(formData.keys())
-    })
 
     if (!employeeId) return { success: false, message: 'ID Karyawan tidak valid' }
     if (kind !== 'ktp' && kind !== 'kk') {

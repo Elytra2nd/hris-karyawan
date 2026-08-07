@@ -465,8 +465,11 @@ type EmployeeExportItem = {
   contracts: { posisi: string; traineeSejak: Date; traineeSelesai: Date; contractNumber: string | null }[]
 }
 
+// Menarik SELURUH data pribadi (noKtp, tglLahir, namaIbu, noHp) tanpa paginasi.
+// Wajib requirePermission — tombol export yang disembunyikan di klien bukan guard:
+// action ini endpoint publik yang bisa dipanggil langsung oleh sesi VIEWER.
 export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> {
-  await requireAuth()
+  const session = await requirePermission('export_data')
 
   try {
     const employees = await prisma.employee.findMany({
@@ -475,6 +478,11 @@ export async function getAllEmployeesForExport(): Promise<EmployeeExportItem[]> 
         contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 },
       },
       orderBy: { namaLengkap: 'asc' },
+    })
+
+    // Export massal data pribadi harus berjejak (UU PDP 27/2022).
+    await createAuditLog(session.id, session.username, 'EXPORT', 'employee', 'ALL', {
+      count: employees.length,
     })
 
     return employees as unknown as EmployeeExportItem[]

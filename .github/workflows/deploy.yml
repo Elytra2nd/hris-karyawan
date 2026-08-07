@@ -77,10 +77,16 @@ jobs:
             pm2 restart hris-karyawan || pm2 start npm --name "hris-karyawan" -- start
             pm2 save
 
-      - name: Notify success
-        if: success()
-        run: echo "Deploy to production successful at $(date)"
+      # Tanpa ini workflow melapor HIJAU walau step SSH di-skip karena SSH_HOST
+      # kosong — "deploy sukses" yang tidak mendeploy apa pun. Gagal terang-terangan
+      # lebih baik daripada rasa aman palsu.
+      - name: Pastikan deploy benar-benar terjadi
+        if: steps.ssh.outputs.configured != 'true'
+        run: |
+          echo "::error::Tidak ada target deploy. SSH_HOST belum diset di repo secrets,"
+          echo "::error::jadi tidak ada yang dikirim ke server. Produksi saat ini di cPanel"
+          echo "::error::Jagoan Hosting dan dideploy manual — lihat DEPLOYMENT.md."
+          exit 1
 
-      - name: Notify failure
-        if: failure()
-        run: echo "Deploy failed — check logs above"
+      - name: Notify success
+        run: echo "Deploy to production successful at $(date)"

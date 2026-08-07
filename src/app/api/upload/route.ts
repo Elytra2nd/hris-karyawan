@@ -14,15 +14,6 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
     const action = req.nextUrl.searchParams.get('action')
 
-    // Cetak log mentah untuk debug di stderr.log
-    logger.error('API Upload Route triggered:', {
-      action,
-      username: session.username,
-      keys: Array.from(formData.keys()),
-      hasFile: formData.has('file'),
-      employeeId: formData.get('employeeId')
-    })
-
     let result
     if (action === 'photo') {
       result = await uploadEmployeePhoto(formData)
@@ -33,10 +24,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result)
-  } catch (error: any) {
-    logger.error('API Upload Route crash:', { error: error?.message || String(error) })
+  } catch (error: unknown) {
+    // Detail hanya ke log server — pesan internal tak boleh sampai ke browser.
+    logger.error('API Upload Route crash:', { error: String(error) })
     return NextResponse.json(
-      { success: false, message: 'Gagal memproses unggahan: ' + (error?.message || String(error)) },
+      { success: false, message: 'Kami belum bisa memproses unggahan - coba lagi' },
       { status: 500 }
     )
   }
