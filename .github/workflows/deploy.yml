@@ -22,6 +22,27 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      # Dicek PALING AWAL. Tanpa target deploy, membangun dulu cuma membakar dua
+      # menit lalu gagal dengan pesan menyesatkan: secret yang tidak ada di-pass
+      # sebagai string kosong, dan NEXTAUTH_URL='' membuat prerender /login
+      # melempar ERR_INVALID_URL — seolah kodenya yang rusak.
+      # Konteks `secrets` TIDAK tersedia di `if:`, jadi salin ke env dulu.
+      - name: Cek konfigurasi target deploy
+        id: ssh
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: echo "configured=${{ env.SSH_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Berhenti kalau tidak ada target deploy
+        if: steps.ssh.outputs.configured != 'true'
+        run: |
+          echo "::error::SSH_HOST belum diset di repo secrets, jadi tidak ada yang"
+          echo "::error::dikirim ke server. Produksi saat ini di cPanel Jagoan Hosting"
+          echo "::error::dan dideploy manual — lihat DEPLOYMENT.md. Set SSH_HOST,"
+          echo "::error::SSH_USER, SSH_PRIVATE_KEY, NEXTAUTH_SECRET, NEXTAUTH_URL,"
+          echo "::error::dan DB_* untuk mengaktifkan deploy otomatis."
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -49,19 +70,10 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
 
       # ── SSH Deploy ──────────────────────────────────────────────────────────
-      # Adjust this section to match your server setup.
-      # Option A: SSH into VPS and pull + restart
-      # Konteks `secrets` TIDAK tersedia di `if:` — memakainya bikin workflow
-      # gagal validasi (run 0 detik). Salin ke env dulu, baru dites di `if`.
-      - name: Cek konfigurasi SSH
-        id: ssh
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-        run: echo "configured=${{ env.SSH_HOST != '' }}" >> "$GITHUB_OUTPUT"
-
+      # Jalur VPS + pm2. Kalau produksi tetap di cPanel (upload ZIP manual),
+      # blok ini tidak akan pernah dipakai — hapus saja daripada dibiarkan.
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
-        if: steps.ssh.outputs.configured == 'true'
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -76,17 +88,6 @@ jobs:
             npm run build
             pm2 restart hris-karyawan || pm2 start npm --name "hris-karyawan" -- start
             pm2 save
-
-      # Tanpa ini workflow melapor HIJAU walau step SSH di-skip karena SSH_HOST
-      # kosong — "deploy sukses" yang tidak mendeploy apa pun. Gagal terang-terangan
-      # lebih baik daripada rasa aman palsu.
-      - name: Pastikan deploy benar-benar terjadi
-        if: steps.ssh.outputs.configured != 'true'
-        run: |
-          echo "::error::Tidak ada target deploy. SSH_HOST belum diset di repo secrets,"
-          echo "::error::jadi tidak ada yang dikirim ke server. Produksi saat ini di cPanel"
-          echo "::error::Jagoan Hosting dan dideploy manual — lihat DEPLOYMENT.md."
-          exit 1
 
       - name: Notify success
         run: echo "Deploy to production successful at $(date)"
