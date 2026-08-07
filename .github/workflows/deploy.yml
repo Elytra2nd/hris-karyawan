@@ -72,6 +72,7 @@ jobs:
             git pull origin master
             npm ci --production=false
             npx prisma generate
+            node --env-file=.env scripts/seed-refdata.cjs
             npm run build
             pm2 restart hris-karyawan || pm2 start npm --name "hris-karyawan" -- start
             pm2 save
