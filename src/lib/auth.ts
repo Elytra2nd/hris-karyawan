@@ -66,13 +66,6 @@ function checkLoginRateLimit(key: string): boolean {
   return true;
 }
 
-// Tanpa secret, NextAuth diam-diam jatuh ke fallback dan seluruh JWT jadi tak
-// tepercaya. Lebih baik app menolak start daripada jalan dengan sesi rapuh —
-// gampang kelewat saat mengisi environment di cPanel.
-if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET wajib diisi di produksi - set di environment cPanel');
-}
-
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
