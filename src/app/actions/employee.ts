@@ -360,11 +360,11 @@ export async function permanentlyDeleteEmployee(id: string): Promise<ActionResul
 }
 
 /** Daftar trainee yang diarsipkan (untuk halaman Arsip). */
-export async function getArchivedEmployees() {
+export async function getArchivedEmployees({ cabang = '' }: { cabang?: string } = {}) {
   try {
     await requirePermission('employee_delete')
     return await prisma.employee.findMany({
-      where: { deletedAt: { not: null } },
+      where: { deletedAt: { not: null }, ...(cabang ? { cabang } : {}) },
       include: { contracts: { orderBy: { traineeSelesai: 'desc' }, take: 1 } },
       orderBy: { deletedAt: 'desc' },
     })
@@ -658,18 +658,23 @@ export async function getEmployees({
   }
 }
 
-// ─── Read: Distinct cabang untuk filter dropdown ──────────────────────────────
+// ─── Read: Daftar cabang untuk filter dropdown ────────────────────────────────
 // value = kode (dipakai query filter), label = nama daerah (ditampilkan ke user).
+//
+// Sumbernya tabel `branch`, BUKAN distinct dari data karyawan. Sebelumnya
+// opsi diturunkan dari `employee.distinct(['cabang'])`, sehingga cabang yang
+// baru didaftarkan tapi belum punya karyawan TIDAK PERNAH muncul di filter —
+// tampak seolah belum terdaftar padahal sudah ada di master (kasus H720
+// PONTIANAK). Form tambah/edit karyawan sudah memakai tabel `branch`; ini
+// menyamakan sumbernya supaya kedua tempat tak bisa berbeda isi.
 export async function getDistinctCabang(): Promise<{ code: string; label: string }[]> {
   try {
     await requireAuth()
-    const result = await prisma.employee.findMany({
-      where: { deletedAt: null },
-      select: { cabang: true, baCabang: true },
-      distinct: ['cabang'],
-      orderBy: { baCabang: 'asc' },
+    const result = await prisma.branch.findMany({
+      select: { code: true, label: true },
+      orderBy: { code: 'asc' },
     })
-    return result.map(r => ({ code: r.cabang, label: r.baCabang || r.cabang }))
+    return result.map(r => ({ code: r.code, label: r.label || r.code }))
   } catch {
     return []
   }

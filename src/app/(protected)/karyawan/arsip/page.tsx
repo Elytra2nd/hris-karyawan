@@ -1,7 +1,7 @@
 import { verifySession } from '@/lib/dal'
 import { redirect } from 'next/navigation'
 import { hasPermission } from '@/lib/permissions'
-import { getArchivedEmployees } from '@/app/actions/employee'
+import { getArchivedEmployees, getDistinctCabang } from '@/app/actions/employee'
 import { Archive, ArrowLeft } from '@phosphor-icons/react/ssr'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ArchiveActions } from '@/components/archive-actions'
@@ -9,13 +9,21 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 
-export default async function ArsipPage() {
+export default async function ArsipPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   const session = await verifySession()
   // Hanya peran yang boleh menghapus (arsip) yang boleh mengakses.
   if (!hasPermission(session.role, 'employee_delete')) redirect('/karyawan')
 
   const canHardDelete = hasPermission(session.role, 'user_manage') // ADMIN
-  const archived = await getArchivedEmployees()
+  const cabang = (await searchParams).cabang ?? ''
+  const [archived, cabangOptions] = await Promise.all([
+    getArchivedEmployees({ cabang }),
+    getDistinctCabang(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -41,11 +49,53 @@ export default async function ArsipPage() {
         </div>
       </div>
 
+      {/* Filter cabang — form GET biasa: halaman ini server component tanpa
+          client JS, jadi tak perlu menambah komponen klien hanya untuk satu
+          select. Opsinya dari master cabang, sama dgn halaman lain. */}
+      <form method="get" className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="cabang" className="text-xs font-medium text-muted-foreground">
+            Cabang
+          </label>
+          <select
+            id="cabang"
+            name="cabang"
+            defaultValue={cabang}
+            className="h-9 rounded-lg border border-border bg-background px-3 text-sm"
+          >
+            <option value="">Semua cabang</option>
+            {cabangOptions.map(c => (
+              <option key={c.code} value={c.code}>
+                {c.label} ({c.code})
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="submit"
+          className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Terapkan
+        </button>
+        {cabang && (
+          <Link
+            href="/karyawan/arsip"
+            className="h-9 inline-flex items-center rounded-lg border border-border px-3 text-sm text-muted-foreground hover:bg-muted"
+          >
+            Reset
+          </Link>
+        )}
+      </form>
+
       {archived.length === 0 ? (
         <EmptyState
           icon={Archive}
-          title="Arsip kosong"
-          description="Belum ada trainee yang diarsipkan. Data yang Anda hapus dari daftar akan muncul di sini."
+          title={cabang ? 'Tidak ada arsip di cabang ini' : 'Arsip kosong'}
+          description={
+            cabang
+              ? 'Coba pilih cabang lain atau reset filter.'
+              : 'Belum ada trainee yang diarsipkan. Data yang Anda hapus dari daftar akan muncul di sini.'
+          }
         />
       ) : (
         <>

@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const now = new Date()
   const today = startOfDay(now)
 
-  const [kpi, statsBranch, recentContracts] = await Promise.all([
+  const [kpi, statsBranch, recentContracts, allBranches] = await Promise.all([
     getDashboardKPI(),
     prisma.employee.groupBy({
       by: ['ba', 'baCabang', 'cabang'],
@@ -35,6 +35,10 @@ export default async function DashboardPage() {
       distinct: ['employeeId'],
       include: { employee: { select: { namaLengkap: true, cabang: true, id: true } } },
     }),
+    // Opsi filter grafik diambil dari master cabang, bukan diturunkan dari
+    // data karyawan — cabang baru yang belum berisi karyawan tetap harus bisa
+    // dipilih (dan memperlihatkan kondisi "belum ada data"), bukan hilang.
+    prisma.branch.findMany({ select: { code: true, label: true }, orderBy: { code: 'asc' } }),
   ])
 
   // ── Data ringkas untuk komponen visualisasi (filter per-chart di client) ──
@@ -43,9 +47,7 @@ export default async function DashboardPage() {
     posisi: c.posisi,
     daysLeft: differenceInDays(new Date(c.traineeSelesai), today),
   }))
-  const vizBranches = [...new Map(statsBranch.map(b => [b.cabang, b.baCabang])).entries()]
-    .map(([code, label]) => ({ code, label }))
-    .sort((a, b) => a.code.localeCompare(b.code))
+  const vizBranches = allBranches.map(b => ({ code: b.code, label: b.label || b.code }))
   const vizPositions = [...new Set(recentContracts.map(c => c.posisi))].sort()
 
   const hour = now.getHours()
