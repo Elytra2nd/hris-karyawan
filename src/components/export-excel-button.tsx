@@ -16,6 +16,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { getAllEmployeesForExport } from '@/app/actions/employee'
 import { format } from 'date-fns'
+import { contractStatus, contractDaysLeft } from '@/lib/contract'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -42,7 +43,15 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
     'BA CABANG': emp.baCabang,
     'REGION': REGION_LABEL,
     'Nama Lengkap': emp.namaLengkap,
-    'Status': emp.status,
+    // Dinamai eksplisit: sebelumnya kolom ini bernama 'Status' dan mudah
+    // dikira status kontrak (Aktif/Segera Habis/Expired) yang tampil di tabel,
+    // padahal isinya AKTIF/NON_AKTIF milik karyawan.
+    'Status Karyawan': emp.status,
+    'Status Kontrak': contractStatus(emp.status, emp.contracts[0]?.traineeSelesai),
+    'Sisa Hari': (() => {
+      const d = contractDaysLeft(emp.contracts[0]?.traineeSelesai)
+      return d === null ? '-' : String(d)
+    })(),
     'NIK': emp.nik ?? '-',
     'No Jamsostek': emp.noJamsostek ?? '-',
     'No KTP': emp.noKtp,
@@ -61,7 +70,7 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
 function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, search: string): Row[] {
   return rows.filter(r => {
     const matchCabang = !cabang || r['BA CABANG'] === cabang
-    const matchStatus = !status || r['Status'] === status
+    const matchStatus = !status || r['Status Karyawan'] === status
     const matchPosisi = !posisi || r['Posisi'] === posisi
     const matchSearch = !search || r['Nama Lengkap'].toLowerCase().includes(search.toLowerCase())
       || r['No KTP'].includes(search) || r['NIK']?.includes(search)
@@ -155,7 +164,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
       toast.warning('Tidak ada data yang cocok dengan filter - ubah filter atau reset')
       return
     }
-    const pdfCols = ['BA', 'BA CABANG', 'REGION', 'Nama Lengkap', 'Status', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+    const pdfCols = ['BA', 'BA CABANG', 'REGION', 'Nama Lengkap', 'Status Karyawan', 'Status Kontrak', 'NIK', 'No KTP', 'Posisi', 'Trainee Sejak', 'Trainee Selesai', 'Sisa Hari', 'No HP']
     const html = `<html><head><title>ATMS Report</title><style>
       @page{size:landscape;margin:10mm}
       body{font-family:Arial,sans-serif;font-size:9px;margin:12px}
@@ -180,12 +189,12 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
   }
 
   const cabangOpts = [...new Set(allRows.map(r => r['BA CABANG']))].sort()
-  const statusOpts = [...new Set(allRows.map(r => r['Status']))].sort()
+  const statusOpts = [...new Set(allRows.map(r => r['Status Karyawan']))].sort()
   const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
   // Preview columns - hide some less important columns in preview for cleanliness
-  const previewCols = ['Nama Lengkap', 'Status', 'BA CABANG', 'REGION', 'Posisi', 'NIK', 'No KTP', 'Tgl Lahir', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
+  const previewCols = ['Nama Lengkap', 'Status Karyawan', 'Status Kontrak', 'BA CABANG', 'REGION', 'Posisi', 'NIK', 'No KTP', 'Tgl Lahir', 'Trainee Sejak', 'Trainee Selesai', 'No HP']
   const visibleHeaders = headers.filter(h => previewCols.includes(h))
 
   const selectCls = "rounded-lg sm:text-xs"
@@ -325,7 +334,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
                           h === 'Nama Lengkap' ? 'font-semibold text-foreground' : 'text-foreground/70',
                           h === 'No KTP' ? 'font-mono text-xs' : '',
                         )}>
-                          {h === 'Status' ? <StatusBadge status={row[h]} /> : row[h]}
+                          {h === 'Status Karyawan' ? <StatusBadge status={row[h]} /> : row[h]}
                         </td>
                       ))}
                     </tr>

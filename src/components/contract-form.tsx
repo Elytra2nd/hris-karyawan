@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { calculateEndDate } from '@/lib/contract'
 import { Label } from '@/components/ui/label'
+import { ContractDurationSelect } from '@/components/contract-duration-select'
 import { Input } from '@/components/ui/input'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -29,6 +30,8 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [tglSelesai, setTglSelesai] = useState('')
+  // '' = ikut bawaan jabatan; angka = durasi yang dipilih user utk kontrak ini.
+  const [durasi, setDurasi] = useState<number | ''>('')
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Kunci sinkron anti double-submit
@@ -49,11 +52,11 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
 
   useEffect(() => {
     if (posisi && tglMulai) {
-      const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
+      const months = durasi || (positions.find(p => p.name === posisi)?.contractMonths ?? 6)
       // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
       setTglSelesai(format(calculateEndDate(new Date(tglMulai), months), 'yyyy-MM-dd'))
     }
-  }, [posisi, tglMulai, positions])
+  }, [posisi, tglMulai, positions, durasi])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -143,6 +146,7 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
           value={posisi}
           onValueChange={(v) => {
             setPosisi(v)
+            setDurasi('') // ikut bawaan jabatan baru sampai user mengubahnya
             setErrors(prev => { const n = { ...prev }; delete n.posisi; return n })
             blurField('posisi', v)
           }}
@@ -155,6 +159,13 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
         />
         <FieldError id="posisi-error" message={errors.posisi} />
       </div>
+
+      <ContractDurationSelect
+        value={durasi || (selectedPosition?.contractMonths ?? '')}
+        onChange={setDurasi}
+        positionMonths={selectedPosition?.contractMonths}
+        disabled={!posisi}
+      />
 
       {/* Tanggal */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -224,7 +235,10 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
             <Info size={16} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-blue-700">
               Jabatan <strong>{posisi}</strong> mendapat kontrak{' '}
-              <strong>{selectedPosition?.contractMonths ?? 6} bulan</strong> dari tanggal mulai.
+              <strong>{durasi || selectedPosition?.contractMonths || 6} bulan</strong> dari tanggal mulai
+              {durasi && durasi !== selectedPosition?.contractMonths
+                ? ` (bawaan jabatan ${selectedPosition?.contractMonths} bulan)`
+                : ''}.
             </p>
           </div>
         ) : (

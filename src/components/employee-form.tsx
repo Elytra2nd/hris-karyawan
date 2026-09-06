@@ -8,6 +8,7 @@ import { Info, Buildings, User, FileTextIcon, CalendarCheck, CircleNotch } from 
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ContractDurationSelect } from '@/components/contract-duration-select'
 import { SelectCombobox } from '@/components/ui/select-combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FieldError } from '@/components/ui/field-error'
@@ -30,6 +31,8 @@ export function EmployeeForm({
   const [posisi, setPosisi] = useState('')
   const [tglMulai, setTglMulai] = useState('')
   const [tglSelesai, setTglSelesai] = useState('')
+  // '' = ikut bawaan jabatan; angka = durasi yang dipilih user utk kontrak ini.
+  const [durasi, setDurasi] = useState<number | ''>('')
   const [isPending, setIsPending] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Kunci sinkron anti double-submit (disabled={isPending} tidak instan karena state async)
@@ -52,11 +55,11 @@ export function EmployeeForm({
 
   useEffect(() => {
     if (posisi && tglMulai) {
-      const months = positions.find(p => p.name === posisi)?.contractMonths ?? 6
+      const months = durasi || (positions.find(p => p.name === posisi)?.contractMonths ?? 6)
       // Hari terakhir periode (inklusif): +N bulan lalu mundur 1 hari
       setTglSelesai(format(calculateEndDate(new Date(tglMulai), months), 'yyyy-MM-dd'))
     }
-  }, [posisi, tglMulai, positions])
+  }, [posisi, tglMulai, positions, durasi])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -260,7 +263,10 @@ export function EmployeeForm({
             required
             size="sm"
             value={posisi}
-            onValueChange={setPosisi}
+            onValueChange={(v) => {
+              setPosisi(v)
+              setDurasi('') // ikut bawaan jabatan baru sampai user mengubahnya
+            }}
             options={positions.map(p => ({
               value: p.name,
               label: p.name,
@@ -270,6 +276,13 @@ export function EmployeeForm({
           />
           <FieldError message={errors.posisi} />
         </div>
+
+        <ContractDurationSelect
+          value={durasi || (selectedPosition?.contractMonths ?? '')}
+          onChange={setDurasi}
+          positionMonths={selectedPosition?.contractMonths}
+          disabled={!posisi}
+        />
 
         <FormField
           id="contractNumber" label="No. Perjanjian"
@@ -320,9 +333,12 @@ export function EmployeeForm({
           <div className="flex items-start gap-2 rounded-md bg-accent border border-blue-100 px-4 py-2">
             <Info size={16} className="text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
-              Jabatan <strong>{posisi}</strong> otomatis mendapat kontrak{' '}
-              <strong>{selectedPosition?.contractMonths ?? 6} bulan</strong>{' '}
-              dari tanggal mulai.
+              Jabatan <strong>{posisi}</strong> mendapat kontrak{' '}
+              <strong>{durasi || selectedPosition?.contractMonths || 6} bulan</strong>{' '}
+              dari tanggal mulai
+              {durasi && durasi !== selectedPosition?.contractMonths
+                ? ` (bawaan jabatan ${selectedPosition?.contractMonths} bulan)`
+                : ''}.
             </p>
           </div>
         )}

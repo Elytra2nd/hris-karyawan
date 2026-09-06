@@ -8,7 +8,7 @@
  * Murni (tanpa akses DB) supaya bisa dipakai server maupun client, dan bisa
  * dites langsung.
  */
-import { addMonths, subDays, differenceInMonths } from 'date-fns'
+import { addMonths, subDays, differenceInMonths, differenceInDays } from 'date-fns'
 
 /**
  * Hari terakhir periode kontrak (INKLUSIF): +N bulan lalu mundur 1 hari.
@@ -31,4 +31,39 @@ export function totalTenureMonths(
 /** Pecah total bulan jadi tahun + sisa bulan untuk ditampilkan. */
 export function splitTenure(totalMonths: number): { years: number; months: number } {
   return { years: Math.floor(totalMonths / 12), months: totalMonths % 12 }
+}
+
+export type ContractStatus = 'Non-Aktif' | 'Expired' | 'Segera Habis' | 'Aktif'
+
+/** Ambang "segera habis" (hari). Sama dgn KPI dashboard & filter tabel. */
+export const SEGERA_HABIS_HARI = 30
+
+/**
+ * Status kontrak seperti yang tampil di kolom STATUS tabel trainee.
+ *
+ * Dipusatkan di sini karena dipakai DUA tempat dgn konsekuensi berbeda: chip
+ * di tabel dan kolom di export Excel. Kalau rumusnya disalin, laporan yang
+ * dikirim ke HO bisa menyebut "Aktif" untuk baris yang di layar "Expired" —
+ * selisih yang tak terlihat sampai ada yang membandingkan keduanya.
+ */
+export function contractStatus(
+  employeeStatus: string,
+  traineeSelesai: Date | string | null | undefined,
+  now: Date = new Date(),
+): ContractStatus {
+  if (employeeStatus !== 'AKTIF') return 'Non-Aktif'
+  if (!traineeSelesai) return 'Aktif'
+  const sisa = differenceInDays(new Date(traineeSelesai), now)
+  if (sisa < 0) return 'Expired'
+  if (sisa <= SEGERA_HABIS_HARI) return 'Segera Habis'
+  return 'Aktif'
+}
+
+/** Sisa hari kontrak; null bila tak ada kontrak. Negatif = sudah lewat. */
+export function contractDaysLeft(
+  traineeSelesai: Date | string | null | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!traineeSelesai) return null
+  return differenceInDays(new Date(traineeSelesai), now)
 }

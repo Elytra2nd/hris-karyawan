@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
+import { contractStatus } from '@/lib/contract'
 import { differenceInDays, format } from 'date-fns'
 import { id as localeID } from 'date-fns/locale'
 import { ExportExcelButton } from '@/components/export-excel-button'
@@ -257,17 +258,26 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   const fmtDate = (s: string | Date) =>
     !s ? '-' : format(new Date(s), 'dd MMM yyyy', { locale: localeID })
 
+  // Status dihitung lewat helper bersama (lib/contract) — dipakai juga oleh
+  // export Excel. Kalau rumusnya disalin, laporan ke HO bisa menyebut "Aktif"
+  // untuk baris yang di layar "Expired".
   const getStatusChip = (emp: EmployeeRow) => {
-    if (emp.status !== 'AKTIF') {
-      return <button onClick={() => updateParams({ status: 'NON-AKTIF' })} className="chip-nonaktif hover:opacity-80 transition-opacity cursor-pointer">Non-Aktif</button>
+    const status = contractStatus(emp.status, emp.contracts?.[0]?.traineeSelesai, now)
+    const chip: Record<string, { cls: string; params: Record<string, string> }> = {
+      'Non-Aktif': { cls: 'chip-nonaktif', params: { status: 'NON-AKTIF' } },
+      'Expired': { cls: 'chip-expired', params: { filter: 'expired' } },
+      'Segera Habis': { cls: 'chip-warning', params: { filter: 'expiring30' } },
+      'Aktif': { cls: 'chip-aktif', params: { status: 'AKTIF' } },
     }
-    const c = emp.contracts?.[0]
-    if (c) {
-      const d = differenceInDays(new Date(c.traineeSelesai), now)
-      if (d < 0) return <button onClick={() => updateParams({ filter: 'expired' })} className="chip-expired hover:opacity-80 transition-opacity cursor-pointer">Expired</button>
-      if (d <= 30) return <button onClick={() => updateParams({ filter: 'expiring30' })} className="chip-warning hover:opacity-80 transition-opacity cursor-pointer">Segera Habis</button>
-    }
-    return <button onClick={() => updateParams({ status: 'AKTIF' })} className="chip-aktif hover:opacity-80 transition-opacity cursor-pointer">Aktif</button>
+    const { cls, params } = chip[status]
+    return (
+      <button
+        onClick={() => updateParams(params)}
+        className={`${cls} hover:opacity-80 transition-opacity cursor-pointer`}
+      >
+        {status}
+      </button>
+    )
   }
 
   const getDaysBadge = (emp: EmployeeRow) => {

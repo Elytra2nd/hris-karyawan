@@ -25,6 +25,22 @@ async function getPositionMonths(posisi: string): Promise<number | null> {
   return pos?.contractMonths ?? null
 }
 
+/**
+ * Durasi kontrak yang BERLAKU: pilihan user bila ada, selain itu bawaan posisi.
+ *
+ * Dihitung di server, bukan menerima tanggal akhir dari client — tanggal akhir
+ * adalah konsekuensi aturan bisnis (inklusif, +N bulan −1 hari), jadi client
+ * tak boleh bisa menentukannya sendiri. `null` = posisi tak terdaftar.
+ */
+async function resolveContractMonths(
+  posisi: string,
+  pilihan?: number | null,
+): Promise<number | null> {
+  const bawaan = await getPositionMonths(posisi)
+  if (bawaan === null) return null
+  return pilihan ?? bawaan
+}
+
 // ─── Create Employee ──────────────────────────────────────────────────────────
 export async function createEmployee(data: Record<string, string | null>) {
   const session = await requirePermission('employee_create')
@@ -42,7 +58,7 @@ export async function createEmployee(data: Record<string, string | null>) {
     cabang, namaLengkap,
     nik, noKtp, tglLahir: tglLahirRaw, namaIbu, noHp,
     noJamsostek, formConsent, gender, posisi, traineeSejak: traineeSejakRaw,
-    contractNumber,
+    contractNumber, durasiBulan,
   } = parsed.data
 
   // BA & BA Cabang diturunkan dari Cabang (Branch). Sekaligus validasi cabang.
@@ -50,8 +66,8 @@ export async function createEmployee(data: Record<string, string | null>) {
   if (!branch) {
     return fail(`Cabang "${cabang}" tidak terdaftar - pilih dari daftar atau tambahkan di Kelola Cabang`, 'VALIDATION', { cabang: 'Cabang tidak terdaftar' })
   }
-  // Durasi kontrak dari tabel Position
-  const months = await getPositionMonths(posisi)
+  // Durasi kontrak: pilihan user bila diisi, selain itu bawaan posisi
+  const months = await resolveContractMonths(posisi, durasiBulan)
   if (months === null) {
     return fail(`Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi`, 'VALIDATION', { posisi: 'Posisi tidak terdaftar' })
   }
@@ -206,8 +222,8 @@ export async function createContract(employeeId: string, data: Record<string, st
       return fail('Data trainee tidak ditemukan atau sudah diarsipkan', 'NOT_FOUND')
     }
 
-    const { posisi, traineeSejak: traineeSejakRaw, contractNumber } = parsed.data
-    const months = await getPositionMonths(posisi)
+    const { posisi, traineeSejak: traineeSejakRaw, contractNumber, durasiBulan } = parsed.data
+    const months = await resolveContractMonths(posisi, durasiBulan)
     if (months === null) {
       return fail(`Posisi "${posisi}" tidak terdaftar - tambahkan dulu di Kelola Posisi`, 'VALIDATION', { posisi: 'Posisi tidak terdaftar' })
     }
@@ -224,7 +240,7 @@ export async function createContract(employeeId: string, data: Record<string, st
       'CREATE',
       'contract',
       newContract.id,
-      { employeeId, posisiBaru: posisi }
+      { employeeId, posisiBaru: posisi, durasiBulan: months }
     )
 
     revalidatePath(`/karyawan/${employeeId}`)

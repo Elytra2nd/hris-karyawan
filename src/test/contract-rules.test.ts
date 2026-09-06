@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateEndDate, totalTenureMonths, splitTenure } from '@/lib/contract'
+import { calculateEndDate, totalTenureMonths, splitTenure, contractStatus, contractDaysLeft, SEGERA_HABIS_HARI } from '@/lib/contract'
 
 // Menguji rumus ASLI di src/lib/contract.ts — dipakai form input, action
 // createEmployee/createContract, dan importer. Kalau rumusnya berubah,
@@ -42,5 +42,43 @@ describe('Kontrak — akumulasi masa kerja', () => {
     expect(splitTenure(15)).toEqual({ years: 1, months: 3 })
     expect(splitTenure(0)).toEqual({ years: 0, months: 0 })
     expect(splitTenure(24)).toEqual({ years: 2, months: 0 })
+  })
+})
+
+// Status kontrak dipakai DUA tempat dgn konsekuensi berbeda: chip di tabel dan
+// kolom di export Excel yang dikirim ke HO. Kalau keduanya menyimpang, laporan
+// menyebut "Aktif" untuk baris yang di layar "Expired".
+describe('Kontrak — status', () => {
+  const kini = new Date(2026, 8, 6) // 6 Sep 2026
+
+  it('karyawan non-aktif selalu Non-Aktif, apa pun kontraknya', () => {
+    // Kontrak masih lama berlaku, tapi orangnya sudah keluar.
+    expect(contractStatus('NON_AKTIF', new Date(2027, 0, 1), kini)).toBe('Non-Aktif')
+  })
+
+  it('lewat tanggal selesai → Expired', () => {
+    expect(contractStatus('AKTIF', new Date(2026, 8, 5), kini)).toBe('Expired')
+  })
+
+  it('tepat di ambang 30 hari masih Segera Habis, 31 hari sudah Aktif', () => {
+    const batas = new Date(2026, 8, 6 + SEGERA_HABIS_HARI)
+    const lewat = new Date(2026, 8, 6 + SEGERA_HABIS_HARI + 1)
+    expect(contractStatus('AKTIF', batas, kini)).toBe('Segera Habis')
+    expect(contractStatus('AKTIF', lewat, kini)).toBe('Aktif')
+  })
+
+  it('hari terakhir (sisa 0) belum Expired — kontrak inklusif', () => {
+    expect(contractStatus('AKTIF', kini, kini)).toBe('Segera Habis')
+  })
+
+  it('tanpa kontrak → Aktif, bukan Expired', () => {
+    // Trainee baru yang kontraknya belum dibuat tak boleh tampak kedaluwarsa.
+    expect(contractStatus('AKTIF', null, kini)).toBe('Aktif')
+  })
+
+  it('sisa hari: negatif bila lewat, null bila tak ada kontrak', () => {
+    expect(contractDaysLeft(new Date(2026, 8, 1), kini)).toBe(-5)
+    expect(contractDaysLeft(new Date(2026, 8, 16), kini)).toBe(10)
+    expect(contractDaysLeft(null, kini)).toBeNull()
   })
 })

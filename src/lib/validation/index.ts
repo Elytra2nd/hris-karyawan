@@ -22,6 +22,20 @@ export const ROLE_VALID = ['ADMIN', 'HR_MANAGER', 'HR_STAFF', 'VIEWER'] as const
 export type AppRole = (typeof ROLE_VALID)[number]
 
 // ─── Employee Schema (Create) ─────────────────────────────────────────────────
+// Durasi kontrak (bulan) yang dipilih user saat membuat kontrak.
+// Opsional: bila kosong, server memakai durasi bawaan posisi
+// (Position.contractMonths). Ada supaya jabatan yang durasinya tidak tetap —
+// mis. LAINNYA untuk penempatan non-permanen — bisa 3 ATAU 6 bulan tanpa
+// perlu membuat posisi terpisah per durasi (yang akan mengotori nama jabatan
+// di export & dokumen perjanjian). Batasnya disamakan dgn positionSchema.
+const durasiBulan = z.coerce
+  .number()
+  .int('Durasi harus angka bulat')
+  .min(1, 'Durasi minimal 1 bulan')
+  .max(24, 'Durasi maksimal 24 bulan')
+  .optional()
+  .nullable()
+
 export const createEmployeeSchema = z.object({
   // BA & BA Cabang tidak lagi diinput manual - diturunkan otomatis dari Cabang
   // (Branch.code & Branch.label) di server. Lihat actions/employee.ts.
@@ -50,6 +64,7 @@ export const createEmployeeSchema = z.object({
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid')),
   // No. Perjanjian kontrak pertama — opsional (bisa diisi belakangan).
   contractNumber: z.string().max(100).optional().nullable(),
+  durasiBulan,
 })
 
 // ─── Employee Schema (Bulk Import) ────────────────────────────────────────────
@@ -119,6 +134,7 @@ export const createContractSchema = z.object({
     .min(1, 'Tanggal mulai kontrak wajib diisi')
     .refine((d) => !isNaN(Date.parse(d)), 'Format tanggal tidak valid — gunakan kalender untuk memilih')),
   contractNumber: z.string().max(100).optional().nullable(),
+  durasiBulan,
 })
 
 // ─── User Schema ──────────────────────────────────────────────────────────────
