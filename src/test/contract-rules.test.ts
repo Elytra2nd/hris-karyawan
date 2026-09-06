@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateEndDate, totalTenureMonths, splitTenure, contractStatus, contractDaysLeft, SEGERA_HABIS_HARI } from '@/lib/contract'
+import { formatBranch } from '@/lib/branch'
 
 // Menguji rumus ASLI di src/lib/contract.ts — dipakai form input, action
 // createEmployee/createContract, dan importer. Kalau rumusnya berubah,
@@ -80,5 +81,21 @@ describe('Kontrak — status', () => {
     expect(contractDaysLeft(new Date(2026, 8, 1), kini)).toBe(-5)
     expect(contractDaysLeft(new Date(2026, 8, 16), kini)).toBe(10)
     expect(contractDaysLeft(null, kini)).toBeNull()
+  })
+})
+
+describe('Label cabang — kode + nama daerah', () => {
+  it('menggabungkan kode & nama supaya tak perlu dihafal', () => {
+    expect(formatBranch('H720', 'PONTIANAK')).toBe('H720 — PONTIANAK')
+  })
+
+  it('tidak menduplikasi bila kode & nama sama', () => {
+    expect(formatBranch('H720', 'H720')).toBe('H720')
+  })
+
+  it('jatuh ke yang tersedia bila salah satu kosong', () => {
+    expect(formatBranch('H720', null)).toBe('H720')
+    expect(formatBranch('', 'PONTIANAK')).toBe('PONTIANAK')
+    expect(formatBranch(null, null)).toBe('-')
   })
 })

@@ -66,7 +66,7 @@ export default async function ArsipPage({
             <option value="">Semua cabang</option>
             {cabangOptions.map(c => (
               <option key={c.code} value={c.code}>
-                {c.label} ({c.code})
+                {c.display}
               </option>
             ))}
           </select>

@@ -53,7 +53,7 @@ export type KaryawanInitial = {
   total: number
   loadError: boolean
   stats: EmployeeStats
-  cabangOptions: { code: string; label: string }[]
+  cabangOptions: { code: string; label: string; display?: string }[]
 }
 
 // Dideklarasikan di module-level (bukan dalam render) agar tidak reset tiap render
@@ -100,7 +100,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
   const sortCol = (searchParams.get('sort') ?? '') as SortKey
   const sortDir = searchParams.get('dir') === 'desc' ? 'desc' : 'asc'
   const [showFilter, setShowFilter] = useState(false)
-  const [cabangOptions] = useState<{ code: string; label: string }[]>(initial.cabangOptions)
+  const [cabangOptions] = useState<{ code: string; label: string; display?: string }[]>(initial.cabangOptions)
 
   // Helper to update URL params
   const updateParams = (updates: Record<string, string | null>) => {
@@ -526,7 +526,7 @@ export function KaryawanClient({ initial }: { initial: KaryawanInitial }) {
                 aria-label="Filter cabang"
               >
                 <option value="">Semua Cabang</option>
-                {cabangOptions.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+                {cabangOptions.map((c) => <option key={c.code} value={c.code}>{c.display ?? c.label}</option>)}
               </NativeSelect>
             </div>
             <div className="space-y-2">

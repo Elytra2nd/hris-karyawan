@@ -7,6 +7,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { ContractStatusChart } from '@/components/contract-status-chart'
 import { EmployeeChart } from '@/components/employee-chart'
 import { cn } from '@/lib/utils'
+import { formatBranch } from '@/lib/branch'
 
 export interface VizItem {
   cabang: string   // kode cabang (H721…)
@@ -128,7 +129,7 @@ export function DashboardVisualizations({ data, branches, positions }: Props) {
         filter={
           <MiniSelect label="Filter cabang" value={cabangStatus} onChange={setCabangStatus}>
             <option value="">Semua Cabang</option>
-            {branches.map(b => <option key={b.code} value={b.code}>{b.code} · {b.label}</option>)}
+            {branches.map(b => <option key={b.code} value={b.code}>{formatBranch(b.code, b.label)}</option>)}
           </MiniSelect>
         }
         className="h-[340px]"
@@ -164,7 +165,7 @@ export function DashboardVisualizations({ data, branches, positions }: Props) {
         filter={
           <MiniSelect label="Filter cabang" value={cabangPosisi} onChange={setCabangPosisi}>
             <option value="">Semua Cabang</option>
-            {branches.map(b => <option key={b.code} value={b.code}>{b.code} · {b.label}</option>)}
+            {branches.map(b => <option key={b.code} value={b.code}>{formatBranch(b.code, b.label)}</option>)}
           </MiniSelect>
         }
         className="h-[340px]"

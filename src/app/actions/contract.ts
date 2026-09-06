@@ -171,16 +171,23 @@ export async function getContractStats({
 }
 
 /** Get distinct posisi values from contracts for filter dropdown */
+/**
+ * Daftar jabatan untuk filter dropdown.
+ *
+ * Sumbernya tabel `position` (master), bukan distinct dari kontrak yang ada.
+ * Jabatan yang baru didaftarkan tapi belum dipakai siapa pun — mis. LAINNYA
+ * untuk penempatan non-permanen — tetap harus bisa dipilih; kalau diturunkan
+ * dari data, jabatan itu baru muncul SETELAH ada yang memakainya, sehingga
+ * tak bisa dipakai menyaring "siapa saja yang sudah memakai jabatan ini".
+ */
 export async function getDistinctPosisi(): Promise<string[]> {
   try {
     await requireAuth()
-    const result = await prisma.contract.findMany({
-      where: { employee: { status: 'AKTIF', deletedAt: null } },
-      select: { posisi: true },
-      distinct: ['posisi'],
-      orderBy: { posisi: 'asc' },
+    const result = await prisma.position.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
     })
-    return result.map(r => r.posisi)
+    return result.map(r => r.name)
   } catch {
     return []
   }

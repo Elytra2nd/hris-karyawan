@@ -14,7 +14,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { getAllEmployeesForExport } from '@/app/actions/employee'
+import { getAllEmployeesForExport, getDistinctCabang } from '@/app/actions/employee'
+import { getDistinctPosisi } from '@/app/actions/contract'
 import { format } from 'date-fns'
 import { contractStatus, contractDaysLeft } from '@/lib/contract'
 import { cn } from '@/lib/utils'
@@ -69,7 +70,7 @@ function toRows(rawData: Awaited<ReturnType<typeof getAllEmployeesForExport>>): 
 
 function applyFilters(rows: Row[], cabang: string, status: string, posisi: string, search: string): Row[] {
   return rows.filter(r => {
-    const matchCabang = !cabang || r['BA CABANG'] === cabang
+    const matchCabang = !cabang || r['BA'] === cabang
     const matchStatus = !status || r['Status Karyawan'] === status
     const matchPosisi = !posisi || r['Posisi'] === posisi
     const matchSearch = !search || r['Nama Lengkap'].toLowerCase().includes(search.toLowerCase())
@@ -100,6 +101,12 @@ function StatusBadge({ status }: { status: string }) {
 export function ExportExcelButton({ variant = 'default' }: { variant?: 'default' | 'sidebar' }) {
   const [loading, setLoading] = useState(false)
   const [allRows, setAllRows] = useState<Row[]>([])
+  // Opsi filter dari MASTER (tabel branch & position), bukan diturunkan dari
+  // baris yang kebetulan ada. Cabang/jabatan yang baru didaftarkan tapi belum
+  // dipakai siapa pun tetap harus bisa dipilih — kalau tidak, orang mengira
+  // datanya hilang padahal memang belum ada isinya (kasus H720 PONTIANAK).
+  const [cabangMaster, setCabangMaster] = useState<{ code: string; label: string; display: string }[]>([])
+  const [posisiMaster, setPosisiMaster] = useState<string[]>([])
   const [open, setOpen] = useState(false)
   const [filterCabang, setFilterCabang] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -119,7 +126,13 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     if (loading) return
     setLoading(true)
     try {
-      const raw = await getAllEmployeesForExport()
+      const [raw, cabangs, posisis] = await Promise.all([
+        getAllEmployeesForExport(),
+        getDistinctCabang(),
+        getDistinctPosisi(),
+      ])
+      setCabangMaster(cabangs)
+      setPosisiMaster(posisis)
       if (raw.length === 0) {
         toast.info('Belum ada data trainee untuk diekspor')
         return
@@ -188,9 +201,11 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
     setOpen(false)
   }
 
-  const cabangOpts = [...new Set(allRows.map(r => r['BA CABANG']))].sort()
+  // Cabang & posisi dari master; status tetap dari data karena nilainya enum
+  // tetap (AKTIF/NON_AKTIF), bukan referensi yang bisa bertambah.
+  const cabangOpts = cabangMaster
   const statusOpts = [...new Set(allRows.map(r => r['Status Karyawan']))].sort()
-  const posisiOpts = [...new Set(allRows.map(r => r['Posisi']).filter(p => p !== '-'))].sort()
+  const posisiOpts = posisiMaster
   const headers = filtered.length > 0 ? Object.keys(filtered[0]) : []
 
   // Preview columns - hide some less important columns in preview for cleanliness
@@ -265,7 +280,7 @@ export function ExportExcelButton({ variant = 'default' }: { variant?: 'default'
 
             <NativeSelect value={filterCabang} onChange={e => setFilterCabang(e.target.value)} aria-label="Filter cabang" className={selectCls}>
               <option value="">Semua Cabang</option>
-              {cabangOpts.map(c => <option key={c} value={c}>{c}</option>)}
+              {cabangOpts.map(c => <option key={c.code} value={c.code}>{c.display}</option>)}
             </NativeSelect>
 
             <NativeSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)} aria-label="Filter status" className={selectCls}>

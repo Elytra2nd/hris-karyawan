@@ -14,6 +14,7 @@ import {
 import { ok, fail, ActionResult } from '@/lib/result'
 import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
+import { formatBranch } from '@/lib/branch'
 import type { Prisma } from '@prisma/client'
 
 // Durasi kontrak (bulan) dari tabel Position. null = posisi tak terdaftar.
@@ -683,14 +684,18 @@ export async function getEmployees({
 // tampak seolah belum terdaftar padahal sudah ada di master (kasus H720
 // PONTIANAK). Form tambah/edit karyawan sudah memakai tabel `branch`; ini
 // menyamakan sumbernya supaya kedua tempat tak bisa berbeda isi.
-export async function getDistinctCabang(): Promise<{ code: string; label: string }[]> {
+export async function getDistinctCabang(): Promise<{ code: string; label: string; display: string }[]> {
   try {
     await requireAuth()
     const result = await prisma.branch.findMany({
       select: { code: true, label: true },
       orderBy: { code: 'asc' },
     })
-    return result.map(r => ({ code: r.code, label: r.label || r.code }))
+    return result.map(r => ({
+      code: r.code,
+      label: r.label || r.code,
+      display: formatBranch(r.code, r.label),
+    }))
   } catch {
     return []
   }
