@@ -1,4 +1,5 @@
 import { verifySession } from '@/lib/dal'
+import { formatBranch } from '@/lib/branch'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import { differenceInDays, format, isValid } from 'date-fns'
@@ -88,7 +89,7 @@ export default async function DetailKaryawanPage({
               </span>
               <span className="flex items-center gap-1.5">
                 <MapPin size={12} className="text-muted-foreground/70" />
-                {employee.branch ? `${employee.branch.label} (${employee.cabang})` : employee.cabang}
+                {formatBranch(employee.cabang, employee.branch?.label)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Phone size={12} className="text-muted-foreground/70" />
@@ -232,7 +233,7 @@ export default async function DetailKaryawanPage({
           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
             <InfoItem label="Branch Code (BA)" value={employee.ba} mono />
             <InfoItem label="BA Cabang" value={employee.baCabang} />
-            <InfoItem label="Nama Cabang" value={employee.branch ? `${employee.branch.label} (${employee.cabang})` : employee.cabang} />
+            <InfoItem label="Nama Cabang" value={formatBranch(employee.cabang, employee.branch?.label)} />
             <InfoItem
               label="Posisi Terakhir"
               value={
