@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { differenceInDays, startOfDay } from 'date-fns'
 import { logger } from '@/lib/logger'
 import { requireAuth } from '@/lib/auth-guard'
+import { bandingkanJabatan } from '@/lib/contract'
 
 export type ContractRow = {
   id: string
@@ -183,11 +184,8 @@ export async function getContractStats({
 export async function getDistinctPosisi(): Promise<string[]> {
   try {
     await requireAuth()
-    const result = await prisma.position.findMany({
-      select: { name: true },
-      orderBy: { name: 'asc' },
-    })
-    return result.map(r => r.name)
+    const result = await prisma.position.findMany({ select: { name: true } })
+    return result.map(r => r.name).sort(bandingkanJabatan)
   } catch {
     return []
   }

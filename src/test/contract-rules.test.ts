@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateEndDate, totalTenureMonths, splitTenure, contractStatus, contractDaysLeft, SEGERA_HABIS_HARI } from '@/lib/contract'
+import { calculateEndDate, totalTenureMonths, splitTenure, contractStatus, contractDaysLeft, SEGERA_HABIS_HARI, durasiBisaDipilih, bandingkanJabatan, JABATAN_DURASI_BEBAS } from '@/lib/contract'
 import { formatBranch } from '@/lib/branch'
 
 // Menguji rumus ASLI di src/lib/contract.ts — dipakai form input, action
@@ -97,5 +97,49 @@ describe('Label cabang — kode + nama daerah', () => {
     expect(formatBranch('H720', null)).toBe('H720')
     expect(formatBranch('', 'PONTIANAK')).toBe('PONTIANAK')
     expect(formatBranch(null, null)).toBe('-')
+  })
+})
+
+describe('Jabatan LAINNYA — satu-satunya yang durasinya bisa dipilih', () => {
+  it('hanya LAINNYA yang boleh menyimpang dari bawaan', () => {
+    expect(durasiBisaDipilih(JABATAN_DURASI_BEBAS)).toBe(true)
+    expect(durasiBisaDipilih('ADMINISTRATOR')).toBe(false)
+    expect(durasiBisaDipilih('SALES EXECUTIVE')).toBe(false)
+  })
+
+  // Nama jabatan di-uppercase saat disimpan, tapi bisa datang dari importer
+  // Excel atau request rakitan dalam bentuk apa pun.
+  it('tak peduli huruf besar-kecil & spasi berlebih', () => {
+    expect(durasiBisaDipilih(' lainnya ')).toBe(true)
+    expect(durasiBisaDipilih('Lainnya')).toBe(true)
+  })
+
+  it('nilai kosong bukan LAINNYA', () => {
+    expect(durasiBisaDipilih('')).toBe(false)
+    expect(durasiBisaDipilih(null)).toBe(false)
+    expect(durasiBisaDipilih(undefined)).toBe(false)
+  })
+})
+
+describe('Urutan jabatan — LAINNYA di paling bawah', () => {
+  it('mengurutkan A–Z tapi menyisihkan LAINNYA ke akhir', () => {
+    const acak = ['SALESGIRL', 'LAINNYA', 'ADMINISTRATOR', 'MECHANIC']
+    expect([...acak].sort(bandingkanJabatan)).toEqual([
+      'ADMINISTRATOR', 'MECHANIC', 'SALESGIRL', 'LAINNYA',
+    ])
+  })
+
+  // Tanpa aturan khusus, alfabet menaruh LAINNYA di tengah — persis di antara
+  // dua jabatan yang huruf awalnya mengapitnya, sehingga terbaca seperti
+  // jabatan biasa.
+  it('LAINNYA tetap terakhir walau alfabet menaruhnya di tengah', () => {
+    const urut = ['KURIR', 'LAINNYA', 'MECHANIC'].sort(bandingkanJabatan)
+    expect(urut.at(-1)).toBe('LAINNYA')
+  })
+
+  it('daftar tanpa LAINNYA tetap urut alfabet', () => {
+    expect(['MECHANIC', 'ADMINISTRATOR'].sort(bandingkanJabatan)).toEqual([
+      'ADMINISTRATOR', 'MECHANIC',
+    ])
   })
 })

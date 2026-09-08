@@ -33,6 +33,40 @@ export function splitTenure(totalMonths: number): { years: number; months: numbe
   return { years: Math.floor(totalMonths / 12), months: totalMonths % 12 }
 }
 
+/**
+ * Jabatan penampung untuk penempatan non-permanen (permintaan Bu Yanti,
+ * 03 Sep 2026) — satu-satunya jabatan yang durasi kontraknya boleh menyimpang
+ * dari bawaan.
+ *
+ * Sengaja konstanta, bukan kolom baru di tabel `Position`: hanya satu baris yang
+ * memerlukannya, dan kolom `boleh_pilih_durasi` berarti migration di database
+ * produksi yang sudah berisi data HR asli — biaya yang tak sebanding dgn satu
+ * pengecualian. Kalau nanti jabatan lain butuh perilaku sama, barulah naikkan
+ * jadi kolom.
+ */
+export const JABATAN_DURASI_BEBAS = 'LAINNYA'
+
+/** Apakah durasi kontrak jabatan ini boleh dipilih manual. */
+export function durasiBisaDipilih(posisi: string | null | undefined): boolean {
+  return (posisi ?? '').trim().toUpperCase() === JABATAN_DURASI_BEBAS
+}
+
+/**
+ * Urutan tampil jabatan: A–Z, tapi LAINNYA selalu paling bawah.
+ *
+ * LAINNYA bukan jabatan sejajar melainkan penampung sisa, jadi menaruhnya di
+ * antara KURIR dan MECHANIC (urutan alfabet) membuatnya terbaca seperti pilihan
+ * biasa. Dipusatkan di sini karena daftar jabatan muncul di combobox form,
+ * filter tabel, filter export, dan template import — kalau tiap tempat
+ * mengurutkan sendiri, satu-dua di antaranya pasti ketinggalan.
+ */
+export function bandingkanJabatan(a: string, b: string): number {
+  const aLain = durasiBisaDipilih(a)
+  const bLain = durasiBisaDipilih(b)
+  if (aLain !== bLain) return aLain ? 1 : -1
+  return a.localeCompare(b, 'id')
+}
+
 export type ContractStatus = 'Non-Aktif' | 'Expired' | 'Segera Habis' | 'Aktif'
 
 /** Ambang "segera habis" (hari). Sama dgn KPI dashboard & filter tabel. */

@@ -163,8 +163,8 @@ export function ContractForm({ employeeId, action, positions = [] }: ContractFor
       <ContractDurationSelect
         value={durasi || (selectedPosition?.contractMonths ?? '')}
         onChange={setDurasi}
+        posisi={posisi}
         positionMonths={selectedPosition?.contractMonths}
-        disabled={!posisi}
       />
 
       {/* Tanggal */}

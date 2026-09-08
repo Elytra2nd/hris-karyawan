@@ -8,15 +8,20 @@ import { ok, fail, type ActionResult } from '@/lib/result'
 import { isUniqueViolation } from '@/lib/prisma-error'
 import { logger } from '@/lib/logger'
 import { positionSchema } from '@/lib/validation'
+import { bandingkanJabatan } from '@/lib/contract'
 
 // Daftar posisi + jumlah kontrak yang memakainya (untuk UI + guard hapus).
+// Urutan A–Z dgn LAINNYA di paling bawah — lihat `bandingkanJabatan`. Diurutkan
+// di aplikasi, bukan `orderBy` Prisma, karena aturannya bukan alfabet murni.
 export async function getPositions() {
   try {
     await requireAuth()
-    const positions = await prisma.position.findMany({ orderBy: { name: 'asc' } })
+    const positions = await prisma.position.findMany()
     const counts = await prisma.contract.groupBy({ by: ['posisi'], _count: { _all: true } })
     const countMap = new Map(counts.map(c => [c.posisi, c._count._all]))
-    return positions.map(p => ({ ...p, _count: { contracts: countMap.get(p.name) ?? 0 } }))
+    return positions
+      .sort((a, b) => bandingkanJabatan(a.name, b.name))
+      .map(p => ({ ...p, _count: { contracts: countMap.get(p.name) ?? 0 } }))
   } catch {
     return []
   }

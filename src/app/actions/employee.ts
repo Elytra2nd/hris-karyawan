@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { differenceInDays, startOfDay } from 'date-fns'
-import { calculateEndDate } from '@/lib/contract'
+import { calculateEndDate, durasiBisaDipilih } from '@/lib/contract'
 import { createAuditLog } from '@/lib/audit'
 import { requirePermission, requireAuth } from '@/lib/auth-guard'
 import {
@@ -27,11 +27,17 @@ async function getPositionMonths(posisi: string): Promise<number | null> {
 }
 
 /**
- * Durasi kontrak yang BERLAKU: pilihan user bila ada, selain itu bawaan posisi.
+ * Durasi kontrak yang BERLAKU. `null` = posisi tak terdaftar.
  *
  * Dihitung di server, bukan menerima tanggal akhir dari client — tanggal akhir
  * adalah konsekuensi aturan bisnis (inklusif, +N bulan −1 hari), jadi client
- * tak boleh bisa menentukannya sendiri. `null` = posisi tak terdaftar.
+ * tak boleh bisa menentukannya sendiri.
+ *
+ * Hanya LAINNYA yang boleh menyimpang dari bawaan jabatan. Untuk jabatan lain
+ * `durasiBulan` dari client DIABAIKAN, bukan ditolak: field-nya memang tidak
+ * ditampilkan di form, jadi nilai yang nyasar ke sini berarti request rakitan —
+ * dan menegakkannya di server adalah satu-satunya penegakan yang berarti, sebab
+ * menyembunyikan field di UI tidak menghalangi siapa pun memanggil action ini.
  */
 async function resolveContractMonths(
   posisi: string,
@@ -39,6 +45,7 @@ async function resolveContractMonths(
 ): Promise<number | null> {
   const bawaan = await getPositionMonths(posisi)
   if (bawaan === null) return null
+  if (!durasiBisaDipilih(posisi)) return bawaan
   return pilihan ?? bawaan
 }
 

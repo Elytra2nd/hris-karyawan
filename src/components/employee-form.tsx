@@ -280,8 +280,8 @@ export function EmployeeForm({
         <ContractDurationSelect
           value={durasi || (selectedPosition?.contractMonths ?? '')}
           onChange={setDurasi}
+          posisi={posisi}
           positionMonths={selectedPosition?.contractMonths}
-          disabled={!posisi}
         />
 
         <FormField
