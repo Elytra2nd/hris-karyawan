@@ -24,6 +24,24 @@ graph TD
 
 Karena RAM server hosting terbatas (1 GB), proses *compiling/building* Next.js **wajib** dilakukan di komputer lokal Anda untuk menghindari kehabisan memori (*out of memory / hang*) di server hosting.
 
+> [!CAUTION]
+> **Samakan versi `next` lokal dengan yang terpasang di server SEBELUM build.**
+> Hasil `.next/` terikat pada versi Next yang membuatnya. Build Next 16.3.0 yang
+> dijalankan di atas runtime 16.2.9 membaca field config yang belum ada di versi
+> lama dan melempar `Cannot read properties of undefined (reading
+> 'validationLevel')` di **setiap** request — situs 500 total, dan penyebabnya
+> tidak kelihatan dari kode sama sekali.
+>
+> Cek dua-duanya lebih dulu:
+> ```bash
+> # lokal
+> node -p "require('next/package.json').version"
+> # server (Terminal cPanel, virtualenv aktif) — next-auth memblokir require,
+> # jadi baca filenya langsung
+> grep -m1 '"version"' node_modules/next/package.json node_modules/next-auth/package.json
+> ```
+> Kalau beda, samakan server dulu (lihat Langkah 7 no. 3), baru build & upload.
+
 1. Buka terminal di folder root project `hris-karyawan`.
 2. Jalankan build produksi menggunakan Webpack (bukan Turbopack):
    ```bash
@@ -124,12 +142,39 @@ Buka kembali menu **Setup Node.js App** → pilih aplikasi Anda dan klik tombol 
    ```
 3. Pasang semua pustaka dependency produksi (tanpa development tools untuk menghemat ruang disk):
    ```bash
-   npm install --production --ignore-scripts
+   npm install --omit=dev --ignore-scripts --no-audit --no-fund --prefer-offline --maxsockets 3
    ```
+   Flag `--no-audit --no-fund --maxsockets 3` bukan hiasan: tanpa itu `npm install`
+   pernah kena **OOM killer** di RAM 1 GB (`Killed`) sementara aplikasi Next masih
+   jalan. Kalau tetap kena, Stop dulu aplikasinya di *Setup Node.js App*, install,
+   baru Start lagi.
+
+   **Selalu verifikasi hasilnya, jangan percaya pesan "up to date":**
+   ```bash
+   grep -m1 '"version"' node_modules/next/package.json node_modules/next-auth/package.json
+   ```
+   npm bisa melapor "up to date" padahal isi `node_modules` tidak cocok dengan
+   lockfile — ia percaya pada state di `node_modules/.package-lock.json`, dan kalau
+   state itu basi, npm justru menyelaraskan dengan cara menulis ulang lockfile-nya
+   sendiri, bukan memperbaiki paketnya. Kalau versinya masih salah, pasang eksplisit:
+   ```bash
+   npm install next@16.3.0 next-auth@4.24.15 --omit=dev --ignore-scripts --no-audit --no-fund
+   ```
+   > ⚠️ **Jangan tambahkan `--no-save`.** Dengan flag itu npm menyusun ulang pohon
+   > dependency dari `package.json` saja lalu **mencopot** `next` & `next-auth` dari
+   > `node_modules` tanpa memasang penggantinya. Situs tetap hidup (proses lama masih
+   > pegang modul di memori) sampai restart berikutnya, lalu mati total.
+
 4. Generate Prisma Client khusus untuk server:
    ```bash
    npx prisma generate
    ```
+   > Langkah ini **hanya perlu** kalau `prisma/schema.prisma` atau versi
+   > `@prisma/client` berubah. Di update yang cuma menyentuh kode aplikasi, lewati
+   > saja. Perhatikan juga: dengan `--omit=dev`, `dotenv` tidak ikut terpasang,
+   > sedangkan `prisma.config.ts` diawali `import 'dotenv/config'` — jadi perintah
+   > ini akan gagal dengan `Cannot find module 'dotenv/config'`. Itu wajar, bukan
+   > tanda instalasi rusak.
 5. Sinkronkan skema database ke database cPanel Anda:
    ```bash
    npx prisma db push
